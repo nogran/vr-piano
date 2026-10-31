@@ -2,13 +2,13 @@
 
 ![Lição 1 no Quest: o card pede "Ponha a mão assim." e a mão branca mostra a posição, polegar no dó central](docs/visao/capa-licao1.jpg)
 
-Aprenda piano com o Meta Quest 3/3S e um teclado Casio CT-S300 de verdade. O app mostra no teclado real onde pôr a mão, toca junto com você e depois apaga as luzes para você tocar de cabeça.
+Aprenda piano com o Meta Quest 3/3S e um teclado Casio CT-S300 de verdade. Sem notas caindo: é chamada e resposta, direto nas teclas. Uma mão 3D toca o trecho, você repete com as teclas guiando o dedo e o tempo, e depois as luzes apagam para você tocar de cabeça.
 
 Planejamento, sem implementação ainda. As imagens abaixo são a prova de conceito visual: mostram o que a pessoa vê no headset, passo a passo, antes de existir código.
 
 > Os balões roxos são explicação desta página. Eles não aparecem no app.
 
-![Como funciona: ligar, preparar, mão na posição, ouvir, tocar junto, tocar de memória, ganhar estrelas e, no outro dia, lembrar](docs/visao/poc/00-como-funciona.svg)
+![Como funciona: ligar, preparar, mão na posição, assistir a mão tocar, tocar guiado, tocar de memória, ganhar estrelas e, no outro dia, lembrar](docs/visao/poc/00-como-funciona.svg)
 
 ## Antes da primeira aula (uma vez só)
 
@@ -32,31 +32,33 @@ Planejamento, sem implementação ainda. As imagens abaixo são a prova de conce
 
 **5. Mão na posição.** A mão branca mostra onde pôr a sua: polegar no dó, um dedo em cada tecla. Quando a sua encaixa, a aula começa sozinha.
 
+Cada trecho tem três fases: **assistir**, **tocar guiado** e **tocar de memória**.
+
 ![Passo 5: ponha a mão assim](docs/visao/poc/05-pose.svg)
 
-**6. Ouvir (se quiser).** O próprio piano toca a sequência devagar e a mão branca mostra qual dedo desce.
+**6. Assista.** Na primeira vez num trecho, a mão branca toca sozinha, no andamento da música. O próprio piano soa e cada tecla acende junto. No fim, a mão some. Para rever depois, é só tocar em Ouvir.
 
-![Passo 6: o piano toca e a mão branca mostra](docs/visao/poc/06-ouvir.svg)
+![Passo 6: a mão toca sozinha e o piano soa](docs/visao/poc/06-assistir.svg)
 
-**7. Toque junto.** A tecla laranja e o dedo laranja dizem o que tocar. A mão branca espera você, sem relógio. No fim da sequência, ela recomeça.
+**7. Toque guiado.** Laranja é a tecla de agora. A próxima já aparece em cinza claro e vai escurecendo no ritmo da música: ponha o dedo nela e toque quando ficar laranja. Se você atrasar, ela espera. No fim da sequência, recomeça.
 
-![Passo 7: loop com a tecla e o dedo da vez](docs/visao/poc/07-loop.svg)
+![Passo 7: tecla laranja e a próxima em cinza que escurece](docs/visao/poc/07-guiado.svg)
 
-**8. Errou? Tudo bem.** A tecla errada fica vermelha e a certa continua esperando. Nada se perde.
+**8. Errou? Tudo bem.** A tecla errada fica vermelha e a certa continua esperando. Tocou cedo ou tarde? Aparece "Adiantado" ou "Atrasado", e você segue.
 
-![Passo 8: erro no loop](docs/visao/poc/08-erro.svg)
+![Passo 8: erro e aviso de tempo](docs/visao/poc/08-erro.svg)
 
-**9. Agora de cabeça.** Depois de uma volta sem erro, luz e mão somem. Você toca de memória.
+**9. Agora de cabeça.** Depois de uma volta sem errar tecla, as luzes apagam. Você toca de memória. Travou por 3 segundos? A tecla certa pisca em cinza, como dica.
 
 ![Passo 9: memória, sem luz](docs/visao/poc/09-memoria.svg)
 
 ## Estrelas e progresso
 
-**10. Ganhe estrelas.** Lembrou de primeira: 3 estrelas. Com 2, a próxima lição abre.
+**10. Ganhe estrelas.** Lembrou de primeira, sem dica: 3 estrelas. Com 2, a próxima lição abre. O card também mostra quantas notas saíram no tempo, mas o ritmo não tira estrela.
 
 ![Passo 10: três estrelas](docs/visao/poc/10-estrelas.svg)
 
-**11. Seu progresso.** Estrelas, dias seguidos e as 12 lições. Com as 12, abre a música do nível 1.
+**11. Seu progresso.** Estrelas, dias seguidos, as 12 lições e o melhor ritmo de cada uma. Com as 12, abre a música do nível 1.
 
 ![Passo 11: quadro de progresso](docs/visao/poc/11-progresso.svg)
 

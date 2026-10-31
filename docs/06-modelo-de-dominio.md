@@ -1,19 +1,24 @@
 # Modelo do domínio
 
-A regra do app escrita de forma que se implemente e se teste sem headset. Vale o que está aqui quando um texto dos outros documentos for menos preciso. Os requisitos citados estão em [01](01-requisitos-do-sistema.md).
+Este documento escreve a regra do app de um jeito que dá para implementar e testar sem headset. Quando um texto de outro documento for menos preciso, vale o que está aqui. Os requisitos citados estão no [01](01-requisitos-do-sistema.md).
 
-O domínio é uma biblioteca pura. Ele recebe **entradas** (fatos do mundo, já traduzidos pelos adapters), guarda estado e devolve **eventos** (o que mudou) e **comandos de saída** (notas a enviar, progresso a gravar). Tempo só entra pelo `ClockPort` e por `Tick(t)`. Assim cada cenário de teste é uma lista de entradas com instantes e uma lista esperada de eventos.
+O domínio é uma biblioteca pura. Ele recebe **entradas** (fatos do mundo, já traduzidos pelos adapters), guarda estado e devolve **eventos** (o que mudou) e **comandos de saída** (notas a enviar, progresso a gravar). O tempo só entra pelo `ClockPort` e por `Tick(t)`. Por isso cada cenário de teste é uma lista de entradas com instantes e uma lista esperada de eventos.
 
 ## 1. Glossário
 
 | Termo | Significado |
 |---|---|
-| Passo | Uma nota MIDI e um dedo (1 = polegar … 5 = mínimo). |
-| Sequência | Lista ordenada de passos de uma lição ou da música. |
+| Passo | Uma nota MIDI, um dedo (1 = polegar … 5 = mínimo) e uma duração em tempos. |
+| Sequência | Lista ordenada de passos de uma lição ou da música, com um andamento (BPM). |
 | Item | Uma lição (`L01`–`L12`) ou a música (`SONG1`). |
 | Execução | Do início de um item até o resultado ou até “Sair da aula”. |
-| Volta | Percorrer a sequência do passo 0 ao último no loop. Limpa = sem nenhum Note On errado. |
+| Demonstração | A mão branca toca a sequência no andamento, com o piano soando e a tecla acesa junto. Toca sozinha na primeira vez que a pessoa entra num item (item inédito). Depois disso, só quando ela pede com “Ouvir”. |
+| Vez guiada | A pessoa toca a sequência com a tecla da vez colorida e a próxima em cinza dinâmico. Repete até uma volta limpa. |
+| Volta | Percorrer a sequência do passo 0 ao último na vez guiada. Volta limpa = nenhum Note On errado. O ritmo não conta para a volta ser limpa. |
 | Tentativa | Percorrer a sequência na memória. Falha no primeiro Note On errado. |
+| Tempo de ataque | Instante em que a próxima nota deveria soar: o acerto anterior mais a duração do passo anterior no andamento. |
+| Cinza dinâmico | Realce da próxima tecla que escurece do acerto anterior até o tempo de ataque. |
+| Tempo elástico | O cinza anda no BPM real. Se a pessoa não toca no tempo de ataque, o tempo congela naquela tecla até ela acertar. |
 | Dia local | Data (AAAA-MM-DD) no fuso atual do aparelho, dada pelo `ClockPort`. |
 | Memória concluída | Fim de uma tentativa sem erro, numa lição, na música ou na revisão. |
 
@@ -30,25 +35,24 @@ Idioma ─► Conexão ─► Checklist ─► Prova de nota ─► Calibração
 ```
 
 - Cada etapa à esquerda é pulada quando o dado já existe no arquivo de progresso.
-- Teclado desconectado em qualquer etapa depois de Conexão leva à tela de conexão, exceto dentro de uma lição, onde a lição pausa (RF-15).
+- Teclado desconectado em qualquer etapa depois de Conexão leva à tela de conexão. A exceção é dentro de uma lição, onde a lição pausa (RF-15).
 - Na primeira abertura não há “Entre lições”: depois da calibração, a lição 1 começa direto.
-- “Entre lições” abre a próxima lição aberta por padrão.
+- “Entre lições” abre por padrão a próxima lição aberta.
 
 ## 3. Máquina de estados da lição
 
-Vale para lição e música. Estado interno: `fase`, `passo`, `voltaTemErro`, `falhasSeguidas`, `execuçãoTeveFalha`, `ignorarAté`, `pausa?`.
+Vale para lição e música. Estado interno: `fase`, `passo`, `voltaTemErro`, `falhasSeguidas`, `execuçãoTeveFalha`, `execuçãoUsouDica`, `ignorarAté`, `tAcerto`, `tAtaque`, `ritmo` (contagem da volta), `pausa?`.
 
 ```text
-            ┌────────────── OuvirAcionado ──────────────┐
-            ▼                                           │
- ┌──────┐  pose ok (ou Mão off)  ┌──────┐  volta limpa  ┌────────────┐  P-22  ┌─────────┐ concluiu ┌───────────┐
- │ Pose │ ─────────────────────► │ Loop │ ────────────► │ Transição  │ ─────► │ Memória │ ───────► │ Resultado │
- └──────┘                        └──────┘               └────────────┘        └─────────┘          └───────────┘
-    │ Ouvir                         ▲                                           │ erro
-    ▼                               │ P-21 falhas seguidas                      ▼
- ┌──────────────┐  fim             │                                    ┌────────────────┐  P-25
- │ Demonstração │ ────────────────►│◄────────────────────────────────── │ RetornoDeErro  │ ─────► Memória (passo 0)
- └──────────────┘                                                       └────────────────┘
+                                     item inédito
+ ┌──────┐  pose ok (ou Mão off)  ┌──────────────┐  fim + fade da mão  ┌─────────┐  volta limpa  ┌───────────┐  P-22  ┌─────────┐ concluiu ┌───────────┐
+ │ Pose │ ─────────────────────► │ Demonstração │ ──────────────────► │ Guiada  │ ────────────► │ Transição │ ─────► │ Memória │ ───────► │ Resultado │
+ └──────┘ ─┐                     └──────────────┘ ◄── Ouvir ───────── └─────────┘               └───────────┘        └─────────┘          └───────────┘
+    │      └── pose ok, item já visto ───────────────────────────────────► ▲                                             │ erro
+    │ Ouvir                                                                │ P-21 falhas seguidas                        ▼
+    ▼                                                                      │                                   ┌────────────────┐  P-25
+ Demonstração                                                              └────────────────────────────────── │ RetornoDeErro  │ ─────► Memória (passo 0)
+                                                                                                               └────────────────┘
 
  Qualquer fase ── cabo caiu / rajada / foco perdido ──► Pausado(motivo, fase anterior) ── retomar ──► ver tabela
 ```
@@ -57,51 +61,87 @@ Vale para lição e música. Estado interno: `fase`, `passo`, `voltaTemErro`, `f
 
 | Fase | Entrada | Condição | Efeito |
 |---|---|---|---|
-| Pose | `PoseMudou(true)` | Mão ligada | Loop, passo 0. Evento `FaseMudou(Loop)`, `AlvoMudou`. |
-| Pose | `MãoAlternada(false)` | — | Loop, passo 0. |
-| Pose | `OuvirAcionado` | Conectado | Demonstração. Comandos `EnviarNoteOn/Off` agendados por `P-09`/`P-10`. |
-| Pose | `NoteOn` | — | Ignorado (não é erro, não é acerto). Atalhos de botão (`P-27`) são tratados pelo adapter de UI antes. |
+| Pose | `PoseMudou(true)` | Mão ligada, item inédito (`demoSeen` não contém o item) | Demonstração. |
+| Pose | `PoseMudou(true)` | Mão ligada, item já visto | Guiada, passo 0. Eventos `FaseMudou(Guiada)` e `AlvoMudou`. |
+| Pose | `MãoAlternada(false)` | — | Igual a `PoseMudou(true)`: Demonstração se o item for inédito, senão Guiada. |
+| Pose | `OuvirAcionado` | Conectado | Demonstração. |
+| Pose | `NoteOn` | — | Ignorado (não é erro nem acerto). O adapter de UI trata antes os atalhos de botão (`P-27`). |
+| Demonstração | entrada | — | Agenda `EnviarNoteOn` / `EnviarNoteOff` de cada passo no andamento do item: nota soando por `P-09` da duração do passo, velocity `P-11`, canal `P-12`. |
 | Demonstração | `Tick` | Hora de uma nota | `EnviarNoteOn` ou `EnviarNoteOff` e `DemoNota(passo)`. |
-| Demonstração | `Tick` | Última nota solta | Loop, passo 0. `ignorarAté = agora + P-08`. |
+| Demonstração | `Tick` | Última nota solta | Grava o item em `demoSeen` (`DemoVista`). Evento `MãoSome` (fade de `P-35`). Guiada, passo 0. `ignorarAté = agora + P-08`. |
 | Demonstração | `NoteOn` | — | Ignorado. |
-| Loop | `NoteOn(n)` | `t < ignorarAté` | Ignorado. |
-| Loop | `NoteOn(n)` | `n == alvo` | `NotaCerta`. Avança. No fim da sequência: `VoltaConcluída(limpa = !voltaTemErro)`. Se limpa → Transição; senão passo 0, `voltaTemErro = false`. |
-| Loop | `NoteOn(n)` | `n != alvo` | `NotaErrada(n, alvo)`. `voltaTemErro = true`. Passo não muda. |
-| Loop | `PoseMudou(*)` | — | Ignorado (RF-38). |
-| Transição | entrada | — | Na primeira volta limpa da execução, se estrelas < 1: grava 1 (`EstrelasMudaram`). |
+| Guiada | entrada | — | Passo 0 entra direto como **Ataque** (cor ativa), sem cinza e sem avaliação de ritmo. `tAcerto = null`. |
+| Guiada | `NoteOn(n)` | `t < ignorarAté` | Ignorado. |
+| Guiada | `NoteOn(n)` | `n == alvo` | `NotaCerta`. Se `tAtaque` existe, avalia o ritmo (§3.1) e emite `RitmoAvaliado`. Avança: `tAcerto = t`, `tAtaque = t + duração(passo anterior)`, `PróximaMudou(nota, tAcerto, tAtaque, mesmaTecla)`. No fim da sequência: `VoltaConcluída(limpa = !voltaTemErro, ritmo)`. Se limpa → Transição; senão passo 0, `voltaTemErro = false`. |
+| Guiada | `NoteOn(n)` | `n != alvo` | `NotaErrada(n, alvo)`. `voltaTemErro = true`. O passo e o `tAtaque` não mudam. |
+| Guiada | `Tick` | `t ≥ tAtaque` e estado ainda Antecipação | `AtaqueChegou(nota)`: a tecla vira cor ativa e o tempo congela até o Note On certo. |
+| Guiada | `OuvirAcionado` | Conectado | Demonstração. No fim volta para Guiada, passo 0, sem contar volta. |
+| Guiada | `PoseMudou(*)` | — | Ignorado (RF-38). |
+| Transição | entrada | — | Na primeira volta limpa da execução, se estrelas < 1: grava 1 (`EstrelasMudaram`). Guarda o `ritmo` dessa volta como ritmo da execução. |
 | Transição | `Tick` | `P-22` passou | Memória, passo 0. Note On nesse intervalo é ignorado. |
 | Memória | `NoteOn(n)` | `n == alvo` | Avança sem evento visual de cor. No último passo → Resultado. |
-| Memória | `NoteOn(n)` | `n != alvo` | `TentativaFalhou(n, alvo)`. `falhasSeguidas++`, `execuçãoTeveFalha = true`. Vai a RetornoDeErro. A falha só é confirmada `P-05` depois; se uma rajada for detectada nesse intervalo, ela é descartada. |
+| Memória | `Tick` | `P-33` sem Note On desde o início da tentativa ou do último acerto | `DicaDeMemória(alvo)`: a tecla esperada pisca em cinza claro por `P-34`. `execuçãoUsouDica = true`. Repete a cada `P-33` enquanto a pessoa não tocar. |
+| Memória | `NoteOn(n)` | `n != alvo` | `TentativaFalhou(n, alvo)`. `falhasSeguidas++`, `execuçãoTeveFalha = true`. Vai para RetornoDeErro. A falha só é confirmada `P-05` depois; se uma rajada for detectada nesse intervalo, ela é descartada. |
 | RetornoDeErro | `NoteOn` | — | Ignorado. |
-| RetornoDeErro | `Tick` | `P-25` passou | Se `falhasSeguidas ≥ P-21`: Loop, passo 0, `falhasSeguidas = 0`, `VoltouAoLoop`. Senão Memória, passo 0. |
-| Resultado | entrada | — | Estrelas da execução: 3 se `!execuçãoTeveFalha`, senão 2. Grava se maior que a salva. Atualiza dia seguido e `últimaMemória`. Recalcula desbloqueios. |
-| qualquer | `MidiDesconectado` | Fase ≠ Resultado | Pausado(Cabo). Na demonstração, envia Note Off pendente se ainda houver cabo e volta para Pose ao retomar. |
-| qualquer | rajada detectada | Loop ou Memória | Pausado(Rajada). Loop: passo volta ao que era antes da primeira nota da janela. Memória: a tentativa será refeita. |
+| RetornoDeErro | `Tick` | `P-25` passou | Se `falhasSeguidas ≥ P-21`: Guiada, passo 0, `falhasSeguidas = 0`, `VoltouAoGuiado` (sem demonstração automática; “Ouvir” fica disponível). Senão: Memória, passo 0. |
+| Resultado | entrada | — | Estrelas da execução pela regra do §8. Grava se for maior que a salva. Grava o melhor ritmo do item. Atualiza o dia seguido e `últimaMemória`. Recalcula os desbloqueios. |
+| qualquer | `MidiDesconectado` | Fase ≠ Resultado | Pausado(Cabo). Na demonstração, envia o Note Off pendente se ainda houver cabo, e volta para Pose ao retomar. |
+| qualquer | rajada detectada | Guiada ou Memória | Pausado(Rajada). Na Guiada, o passo volta ao que era antes da primeira nota da janela. Na Memória, a tentativa será refeita. |
 | qualquer | `FocoPerdido` | Fase ≠ Resultado | Pausado(Foco). |
 | Pausado(Cabo) | `MidiConectado` | — | Retoma. |
 | Pausado(Rajada) | `Tick` | `P-07` sem Note On | Retoma. |
 | Pausado(Foco) | `Continuar` | — | Retoma. `SairDaAula` encerra a execução sem mudar estrelas. |
 
-Retomada: Loop volta no mesmo passo. Memória volta no passo 0 sem somar falha. Transição e RetornoDeErro reiniciam o seu tempo. Demonstração volta para Pose.
+Retomada:
+- **Guiada:** volta no mesmo passo, já em Ataque. A nota da retomada não tem avaliação de ritmo.
+- **Memória:** volta no passo 0, sem somar falha.
+- **Transição e RetornoDeErro:** reiniciam o seu tempo.
+- **Demonstração:** volta para Pose, e o item continua inédito.
+
+### 3.1 Cinza dinâmico e ritmo
+
+Na Guiada, cada tecla da sequência passa por três estados:
+
+| Estado | Quando | Visual (03 §2) |
+|---|---|---|
+| Antecipação | De `tAcerto` (acerto da nota anterior) até `tAtaque` | Cinza que escurece. Intensidade = `P-29 + (1 − P-29) × progresso`, com `progresso = (t − tAcerto) / (tAtaque − tAcerto)`. |
+| Ataque | De `tAtaque` até o Note On certo, sem limite (tempo elástico) | Cor ativa. |
+| Acerto | Note On certo | Verde por `P-23`. Depois, a tecla tocada fica na cor ativa enquanto estiver pressionada (até o Note Off dela ou até a próxima virar Ataque), como **tecla atual**. A próxima entra em Antecipação no instante do acerto. |
+
+O domínio emite só `PróximaMudou` (com `tAcerto` e `tAtaque`) e `AtaqueChegou`. O adapter calcula o progresso a cada quadro pelo mesmo `ClockPort`.
+
+Avaliação do Note On certo de um passo que tinha `tAtaque` (todo passo, menos o passo 0 da volta e o passo de uma retomada):
+
+```text
+d = t − tAtaque
+d < −P-30           → Adiantado
+−P-30 ≤ d ≤ P-31    → NoTempo
+d > P-31            → Atrasado
+```
+
+- Adiantado e Atrasado avançam do mesmo jeito que NoTempo. O app mostra “Adiantado” ou “Atrasado” acima da tecla por `P-32` e não mostra nada quando a nota sai no tempo.
+- `ritmo` da volta = `{ noTempo, avaliadas }`. Ele é zerado no começo de cada volta.
+- **Mesma tecla em seguida:** quando a próxima nota é a mesma tecla, a tecla fica com contorno na cor ativa e só o centro faz o ciclo de cinza. Isso mostra que é para tocar de novo, e não para segurar a nota.
 
 ### Revisão (RF-44)
 
 ```text
 Memória(item) ─ erro ─► RetornoDeErro ─► Ofertas { Ouvir? , Com guia? }
       ▲                                     │ Ouvir      → Demonstração → Ofertas
-      │                                     │ Com guia   → Loop por uma volta (limpa ou não) → Ofertas
+      │                                     │ Com guia   → Guiada por uma volta (limpa ou não) → Ofertas
       └──────── primeiro Note On ───────────┘
 Memória concluída → `RevisãoConcluída`, dia seguido, sem mudar estrelas → Entre lições
 ```
 
-- Item da revisão: `últimaMemória.item`; se for `SONG1`, usa `L12`.
-- Na revisão não há fase Pose, não há volta automática ao loop por `P-21` e não há botão de pular.
-- “Ouvir” e “Com guia” valem uma vez cada por revisão. Usados, somem das ofertas.
-- Em Ofertas, um Note On igual ao primeiro passo inicia a tentativa e conta como acerto dela. Qualquer outro Note On (que não seja atalho de botão) inicia a tentativa e a falha na hora.
+- Item da revisão: `últimaMemória.item`. Se for `SONG1`, a revisão usa `L12`.
+- A revisão não tem fase Pose, demonstração automática, volta automática à Guiada por `P-21` nem botão de pular.
+- A dica de memória (`P-33`) vale também na revisão.
+- “Ouvir” e “Com guia” valem uma vez cada por revisão. Depois de usados, somem das ofertas.
+- Em Ofertas, um Note On igual ao primeiro passo inicia a tentativa e conta como acerto dela. Qualquer outro Note On (que não seja atalho de botão) inicia a tentativa e a faz falhar na hora.
 
 ### Quando a revisão é pedida
 
-Na abertura, depois da verificação do dó central: `hoje = max(ClockPort.hoje, últimoDiaVisto)`; pedir revisão se `últimaMemória != null` e `últimaMemória.dia < hoje`. Uma revisão concluída grava `últimaMemória.dia = hoje`, então ela não se repete no mesmo dia.
+Na abertura, depois da verificação do dó central: `hoje = max(ClockPort.hoje, últimoDiaVisto)`. A revisão é pedida se `últimaMemória != null` e `últimaMemória.dia < hoje`. Uma revisão concluída grava `últimaMemória.dia = hoje`, então ela não se repete no mesmo dia.
 
 ## 4. Eventos
 
@@ -112,7 +152,7 @@ Na abertura, depois da verificação do dó central: `hoje = max(ClockPort.hoje,
 | `NoteOn` | nota, velocity 1–127, t | `MidiInPort` |
 | `NoteOff` | nota, t | `MidiInPort` (inclui Note On com velocity 0) |
 | `MidiConectado` / `MidiDesconectado` | t | `MidiInPort` |
-| `PoseMudou` | ok, t | `HandInputPort` (tolerâncias `P-13`–`P-17` aplicadas no adapter) |
+| `PoseMudou` | ok, t | `HandInputPort` (as tolerâncias `P-13`–`P-17` são aplicadas no adapter) |
 | `OuvirAcionado`, `ComGuiaAcionado`, `Continuar`, `SairDaAula`, `Próxima`, `DeNovo` | t | Card (pinça ou tecla de atalho) |
 | `MãoAlternada` | ligada | Card ou configurações |
 | `FocoPerdido` / `FocoRecuperado` | t | Ciclo de vida do app |
@@ -123,14 +163,20 @@ Na abertura, depois da verificação do dó central: `hoje = max(ClockPort.hoje,
 | Evento | Dados | Quem consome |
 |---|---|---|
 | `FaseMudou` | fase, item | Card, mão branca |
-| `AlvoMudou` | nota, dedo, índice, lição do trecho (na música) | Realce âmbar, mão branca, card (nome do dedo, etiqueta) |
+| `AlvoMudou` | nota, dedo, índice, lição do trecho (na música) | Realce em cor ativa, card (nome do dedo, etiqueta) |
+| `PróximaMudou` | nota, tAcerto, tAtaque, mesmaTecla | Realce em cinza dinâmico |
+| `AtaqueChegou` | nota | Realce em cor ativa |
 | `NotaCerta` | nota | Realce verde |
 | `NotaErrada` | tocada, esperada | Realce vermelho |
-| `VoltaConcluída` | limpa | Card |
-| `TentativaFalhou` | tocada, esperada, falhasSeguidas | Âmbar na esperada, vermelho na tocada, mão branca por `P-25` |
-| `VoltouAoLoop` | — | Card “Mais uma vez com guia.” |
-| `MemóriaConcluída` | primeiraTentativa | Realce verde na última tecla |
-| `DemoNota` | nota, dedo, ligada | Mão branca, realce |
+| `RitmoAvaliado` | nota, d (ms), classe: NoTempo, Adiantado, Atrasado | Aviso acima da tecla |
+| `VoltaConcluída` | limpa, ritmo | Card |
+| `DicaDeMemória` | nota | Piscada cinza na tecla |
+| `TentativaFalhou` | tocada, esperada, falhasSeguidas | Âmbar na esperada, vermelho na tocada, por `P-25` |
+| `VoltouAoGuiado` | — | Card “Mais uma vez com guia.” com “Ouvir” |
+| `MemóriaConcluída` | primeiraTentativa, usouDica | Realce verde na última tecla |
+| `DemoNota` | nota, dedo, ligada | Mão branca, realce em cor ativa |
+| `DemoVista` | item | Progresso |
+| `MãoSome` | — | Fade da mão branca por `P-35` |
 | `EnviarNoteOn` / `EnviarNoteOff` | nota, velocity, canal | `MidiOutPort` |
 | `EstrelasMudaram` | item, de, para | Card de resultado, progresso |
 | `ItemDesbloqueado` | item | Entre lições, progresso |
@@ -144,19 +190,24 @@ Na abertura, depois da verificação do dó central: `hoje = max(ClockPort.hoje,
 
 ## 5. Catálogo de lições
 
-Embutido no app, lido pelo `LessonCatalogPort`. Formato:
+O catálogo vem embutido no app e é lido pelo `LessonCatalogPort`. Formato:
 
 ```json
 {
   "catalogVersion": 1,
   "items": [
-    { "id": "L01", "number": 1, "noveltyKey": "lesson.01.novelty",
-      "steps": [ {"note": 60, "finger": 1}, {"note": 60, "finger": 1},
-                 {"note": 60, "finger": 1}, {"note": 60, "finger": 1} ] }
+    { "id": "L01", "number": 1, "noveltyKey": "lesson.01.novelty", "bpm": 60,
+      "steps": [ {"note": 60, "finger": 1, "beats": 1}, {"note": 60, "finger": 1, "beats": 1},
+                 {"note": 60, "finger": 1, "beats": 1}, {"note": 60, "finger": 1, "beats": 2} ] }
   ],
-  "song": { "id": "SONG1", "segments": ["L01","L02","L03","L04","L05","L06","L07","L08","L09","L10","L11","L12"] }
+  "song": { "id": "SONG1", "bpm": 60,
+            "segments": ["L01","L02","L03","L04","L05","L06","L07","L08","L09","L10","L11","L12"] }
 }
 ```
+
+- `bpm` ausente vale `P-10`. `beats` ausente vale 1.
+- Nas lições, toda nota dura 1 tempo e a última dura 2.
+- Na música, cada trecho usa as durações da sua lição, então a última nota de cada trecho dura 2 tempos e marca a respiração entre as frases.
 
 Conteúdo completo (dedo = nota: 60→1, 62→2, 64→3, 65→4, 67→5):
 
@@ -176,13 +227,17 @@ Conteúdo completo (dedo = nota: 60→1, 62→2, 64→3, 65→4, 67→5):
 | L12 | 60 64 67 64 60 60 62 64 65 67 |
 | SONG1 | L01 + L02 + … + L12, 50 passos |
 
-Validações do catálogo (teste T-DOM-30): toda nota em {60, 62, 64, 65, 67}; dedo coerente com a nota; ids únicos; números de 1 a 12 sem buraco; a música referencia só lições existentes.
+Validações do catálogo (teste T-DOM-30):
+- toda nota está em {60, 62, 64, 65, 67} e o dedo é coerente com a nota;
+- `beats` está entre 0,5 e 4 e `bpm` entre 40 e 120;
+- os ids são únicos e os números vão de 1 a 12 sem buraco;
+- a música referencia só lições existentes.
 
 O nome da nota vem da tabela de textos (`note.60` = “Dó” / “C”). O domínio nunca guarda texto.
 
 ## 6. Arquivo de progresso
 
-Um JSON em armazenamento privado do app (`progress.json`). Datas em `AAAA-MM-DD`.
+O progresso fica num JSON no armazenamento privado do app (`progress.json`). Datas em `AAAA-MM-DD`.
 
 ```json
 {
@@ -197,6 +252,8 @@ Um JSON em armazenamento privado do app (`progress.json`). Datas em `AAAA-MM-DD`
     "savedAt": "2026-10-30"
   },
   "stars": { "L01": 3, "L02": 2, "SONG1": 0 },
+  "demoSeen": ["L01", "L02"],
+  "rhythm": { "L01": { "onTime": 3, "judged": 3 }, "L02": { "onTime": 0, "judged": 1 } },
   "streak": { "current": 2, "best": 4, "lastCountedDay": "2026-10-30" },
   "lastMemory": { "item": "L02", "day": "2026-10-30" },
   "lastSeenDay": "2026-10-30"
@@ -204,16 +261,17 @@ Um JSON em armazenamento privado do app (`progress.json`). Datas em `AAAA-MM-DD`
 ```
 
 - `language` é `null` até a primeira escolha. `calibration` é `null` sem calibração. Os cantos ficam no espaço da âncora.
-- Desbloqueio não é gravado: é calculado das estrelas (RF-41).
-- Item ausente em `stars` vale 0.
-- Gravação atômica (RNF-09): escreve `progress.json.tmp`, força para o disco, copia o atual para `progress.json.bak`, renomeia o `.tmp` por cima do principal.
+- Desbloqueio não é gravado: ele é calculado das estrelas (RF-41).
+- Item ausente em `stars` vale 0. Item ausente em `demoSeen` é inédito.
+- `rhythm` guarda, por item, a volta limpa com a maior fração no tempo. Não afeta estrelas nem desbloqueio.
+- Gravação atômica (RNF-09): escreve `progress.json.tmp`, força para o disco, copia o atual para `progress.json.bak` e renomeia o `.tmp` por cima do principal.
 - Leitura: principal → se não abre ou não valida, `.bak` → se também falhar, o arquivo ruim vira `progress.corrupt-<data>.json`, o app começa do zero e mostra um aviso uma vez.
-- `schemaVersion` maior que o conhecido: não sobrescreve; abre como se fosse corrompido, sem apagar.
+- `schemaVersion` maior que o conhecido: o app não sobrescreve e abre como se o arquivo estivesse corrompido, sem apagar.
 - Migração: uma função por versão (`v1→v2`), testada com arquivo de exemplo.
 
 ## 7. Parâmetros
 
-Valores iniciais. Mudar um valor é mudar este quadro e rodar de novo o teste indicado.
+Valores iniciais. Para mudar um valor, mude este quadro e rode de novo o teste indicado.
 
 | ID | Nome | Valor | Origem do valor | Validado em |
 |---|---|---|---|---|
@@ -225,8 +283,8 @@ Valores iniciais. Mudar um valor é mudar este quadro e rodar de novo o teste in
 | P-06 | Rajada por ritmo | mais de 12 Note On em 1000 ms | Trilo humano fica abaixo de 10 por segundo | T-DOM-08b, T-MIDI-11, T-MIDI-12 |
 | P-07 | Silêncio para sair da rajada | 3000 ms | — | T-DOM-08c |
 | P-08 | Cauda do filtro de eco | 300 ms depois do último Note Off enviado | Folga sobre a latência USB | T-DOM-05, T-MIDI-07 |
-| P-09 | Duração da nota na demonstração | 700 ms | Andamento de 60 por minuto | T-MIDI-08 |
-| P-10 | Silêncio entre notas na demonstração | 300 ms | Idem (1 nota por segundo) | T-MIDI-08 |
+| P-09 | Fração soando na demonstração | 70 % da duração do passo | Notas separadas, fáceis de contar | T-DOM-04, T-MIDI-08 |
+| P-10 | Andamento padrão | 60 BPM | Um tempo por segundo, lento para iniciante | T-DOM-04, T-DOM-31 |
 | P-11 | Velocity enviada na demonstração | 80 | Faixa média | T-MIDI-08 |
 | P-12 | Canal MIDI de saída | 1 | Canal padrão do CT-S300 | T-MIDI-08 |
 | P-13 | Estabilidade da pose | 500 ms contínuos | RF-31 | T-POSE-01 |
@@ -237,21 +295,33 @@ Valores iniciais. Mudar um valor é mudar este quadro e rodar de novo o teste in
 | P-18 | Janela de amostragem da calibração | de 250 ms a 50 ms antes do Note On | O dedo cobre a tecla no último instante | T-CAL-02 |
 | P-19 | Tolerância de largura na calibração | ± 15 % de 35 × `P-20` | — | T-CAL-03 |
 | P-20 | Largura nominal da tecla branca | 23,5 mm (medir no CT-S300 real) | Tecla de tamanho normal | T-CAL-01 |
-| P-21 | Falhas de memória até voltar ao loop | 3 seguidas | — | T-DOM-14 |
+| P-21 | Falhas de memória até voltar à Guiada | 3 seguidas | — | T-DOM-14 |
 | P-22 | Pausa antes da memória | 1000 ms | — | T-DOM-12 |
 | P-23 | Verde de acerto | 150 ms | — | T-UX-08 |
 | P-24 | Vermelho de erro | 200 ms | — | T-UX-08 |
-| P-25 | Âmbar e mão branca depois de erro de memória | 1000 ms | — | T-DOM-13 |
+| P-25 | Âmbar depois de erro de memória | 1000 ms | — | T-DOM-13 |
 | P-26 | Tempo até a dica do cabo de dados | 10 s | — | T-ACC-03 |
 | P-27 | Teclas de atalho dos botões | 1º botão = nota baixa calibrada (36 com shift 0), 2º = +2, 3º = +4 | Fora de 60–67 | T-ACC-20 |
 | P-28 | Alvo de latência Note On → realce | 80 ms | RNF-01 | T-MIDI-09 |
+| P-29 | Intensidade inicial do cinza | 15 % | Quase imperceptível no começo da espera | T-DOM-32, T-UX-13 |
+| P-30 | Tolerância para “adiantado” | 150 ms antes do tempo de ataque | Folga para iniciante a 60 BPM | T-DOM-33 |
+| P-31 | Tolerância para “atrasado” | 250 ms depois do tempo de ataque | A tecla já está colorida; dá tempo de reagir à cor | T-DOM-33 |
+| P-32 | Aviso “Adiantado” / “Atrasado” | 600 ms | — | T-UX-14 |
+| P-33 | Silêncio até a dica de memória | 3000 ms | — | T-DOM-34 |
+| P-34 | Piscada da dica de memória | 400 ms | — | T-DOM-34, T-UX-15 |
+| P-35 | Fade da mão branca ao fim da demonstração | 400 ms | — | T-ACC-06 |
 
 ## 8. Regras de cálculo, em resumo
 
 ```text
-estrelasDaExecução = memória concluída ? (execuçãoTeveFalha ? 2 : 3)
+estrelasDaExecução = memória concluída ? (execuçãoTeveFalha || execuçãoUsouDica ? 2 : 3)
                                        : (houve volta limpa ? 1 : 0)
 estrelasSalvas     = max(estrelasSalvas, estrelasDaExecução)
+
+ritmoDaExecução    = ritmo da primeira volta limpa da execução
+ritmoSalvo         = o de maior noTempo / avaliadas (empate: o mais recente)
+
+demonstraçãoAutomática(item) = item ∉ demoSeen   (revisão: nunca)
 
 aberto(L01)   = checklistConfirmado && calibração válida
 aberto(Ln)    = estrelas(Ln-1) >= 2

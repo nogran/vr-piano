@@ -57,7 +57,9 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `finger.4` | Anelar | Ring |
 | `finger.5` | Mínimo | Pinky |
 | `lesson.memory` | Agora de memória. | Now from memory. |
-| `lesson.backToLoop` | Mais uma vez com guia. | Once more with the guide. |
+| `lesson.backToGuide` | Mais uma vez com guia. | Once more with the guide. |
+| `rhythm.early` | Adiantado | Early |
+| `rhythm.late` | Atrasado | Late |
 | `shortcut.hint` | ou {key} | or {key} |
 | `note.60` | Dó | C |
 | `note.62` | Ré | D |
@@ -77,6 +79,7 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `result.3` | Você lembrou. | You remembered. |
 | `result.2` | Lição seguinte aberta. | Next lesson unlocked. |
 | `result.1` | Falta tocar de memória. | Still needs a memory pass. |
+| `result.rhythm` | No tempo: {n} de {m} | On time: {n} of {m} |
 | `between.next` | Próxima | Next |
 | `between.again` | De novo | Again |
 | `between.progress` | Progresso | Progress |
@@ -116,6 +119,7 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `progress.best` | Maior sequência: {n} | Best streak: {n} |
 | `progress.mastered` | De memória, sem erro: {n} lições | From memory, no mistakes: {n} lessons |
 | `progress.locked` | Fechada | Locked |
+| `progress.rhythm` | {n} de {m} no tempo | {n} of {m} on time |
 | `settings.language` | Idioma | Language |
 | `settings.hand` | Mão | Hand |
 | `settings.recalibrate` | Calibrar de novo | Calibrate again |
