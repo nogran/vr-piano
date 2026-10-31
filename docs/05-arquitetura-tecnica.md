@@ -24,7 +24,7 @@ domain.tests/                 NUnit, roda com dotnet test
 unity/                        projeto Unity
   Assets/App/Adapters/        MIDI, mão, teclado, persistência, relógio, catálogo
   Assets/App/Presentation/    card, realce, mão branca, painéis
-  Assets/App/Content/         catálogo de lições (JSON) e tabela de textos
+  Assets/App/Content/         catálogo e uma música por arquivo (formato do 06 §5), tabela de textos
   Assets/Plugins/Android/     AAR da ponte MIDI
 android-midi-bridge/          projeto Kotlin que gera o AAR
 tools/                        reprodutor de sessões MIDI gravadas

@@ -75,7 +75,8 @@ Cada trecho tem três fases: **assistir**, **tocar guiado** e **tocar de memóri
 3. [Conceito do protótipo em AR](docs/03-conceito-prototipo-ar.md): camadas, cores, card, mão branca e recorte do protótipo.
 4. [Testes](docs/04-testes.md): casos, matriz de rastreabilidade e ordem de execução.
 5. [Arquitetura técnica](docs/05-arquitetura-tecnica.md): stack, ponte MIDI no Android, manifest, calibração, desempenho.
-6. [Modelo do domínio](docs/06-modelo-de-dominio.md): máquina de estados, eventos, catálogo, arquivo de progresso e parâmetros.
+6. [Modelo do domínio](docs/06-modelo-de-dominio.md): máquina de estados, eventos, formato de música, arquivo de progresso e parâmetros.
 7. [Textos da interface](docs/07-textos-da-interface.md): todas as frases em pt-BR e inglês.
+8. [Roadmap: importação de músicas](docs/08-roadmap-importacao.md): MIDI e MusicXML depois da v1, e o formato de música que a v1 já usa.
 
 Quando dois documentos divergirem, vale o 06 para regra e números, e o 01 para escopo.
