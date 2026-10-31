@@ -110,7 +110,9 @@ Origem na borda esquerda da frente da tecla branca mais grave, na superfície da
 
 - Original (RN-04): modelada e animada para este app; nenhum asset de mão da Meta é reutilizado.
 - Mão direita, rig com 5 dedos, até 10 mil triângulos.
-- Material branco fosco, com contorno suave para separar do passthrough claro.
+- Anatomia de mão adulta real: palma, nós dos dedos, três falanges por dedo (duas no polegar), polegar saindo da base da palma. Sem unha, ruga ou textura de pele.
+- Estilo das mãos do sistema do Quest: cinza-claro fosco, borda mais clara contra o fundo (fresnel), some em degradê no pulso. Contorno suave onde um dedo passa na frente de outro, para separar do passthrough claro.
+- Sombra de contato falsa (decal) sob a mão, não sombra em tempo real (§8). Referência: `docs/visao/capa-licao1.jpg`.
 - Pose base: posição de cinco dedos, dedos levemente curvos, polegar sobre a tecla 60.
 - Animação por dedo: descer ~120 ms, segurar enquanto a nota soa, subir ~120 ms.
 - Destaque do dedo da vez: cor âmbar no dedo, igual à da tecla alvo.

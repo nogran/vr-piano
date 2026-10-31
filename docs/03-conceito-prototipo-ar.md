@@ -53,7 +53,7 @@ Botões altos o suficiente para pinça folgada. Cada botão mostra, numa linha m
 
 ## 4. Mão branca
 
-Branca fosca, mão direita, asset original. Sem pele, sem vidro, sem segunda mão. Detalhes do asset: [05 §7](05-arquitetura-tecnica.md#7-mão-branca-asset).
+Branca fosca, mão direita, asset original, com anatomia de mão real e o visual das mãos do sistema do Quest (some em degradê no pulso). Sem pele, sem vidro, sem segunda mão. Detalhes do asset: [05 §7](05-arquitetura-tecnica.md#7-mão-branca-asset).
 
 - **Pose.** Parada na posição de cinco dedos. Card: “Ponha a mão assim.” Pose aceita (RF-31): começa o loop.
 - **Demonstração.** Ao apertar “Ouvir”, a mão desce o dedo de cada nota junto com o som do piano.
@@ -144,7 +144,7 @@ Fora desse recorte, as outras lições são dados do catálogo, não cena nova.
 
 A referência visual vigente é a prova de conceito em `docs/visao/poc/` (um quadro por passo, mostrado no README) e a capa `docs/visao/capa-licao1.jpg`. Nos quadros, os balões roxos são explicação e não fazem parte do app.
 
-A capa é a foto de passthrough com a camada do app desenhada por cima, como num print do headset: card da pose com “Ouvir”, “Mão” e as teclas de atalho, e a mão branca em escala real com o polegar no dó central.
+A capa é a foto de passthrough com a camada do app desenhada por cima, como num print do headset: card da pose com “Ouvir”, “Mão” e as teclas de atalho, e a mão branca em 3D, em escala real, vista de trás como a pessoa a vê, com o polegar no dó central e um dedo por tecla até o sol.
 
 As fotos antigas (`quest-*.jpg`) ficam só como referência de clima e estão substituídas:
 
