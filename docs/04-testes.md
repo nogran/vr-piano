@@ -29,7 +29,7 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 | T-DOM-01b | L01 em `demoSeen`, em Pose | `PoseMudou(true)` | `FaseMudou(Guiada)`, `AlvoMudou(60, 1, 0)`. Nenhum comando de envio | RF-31, RF-31a |
 | T-DOM-02 | L01 em Pose; (a) inédita, (b) já vista | `MãoAlternada(false)` | (a) Demonstração, com `DemoNota` e envio, sem esperar pose; (b) Guiada no passo 0 | RF-32c |
 | T-DOM-03 | L01 em Pose | `NoteOn(60)` | Nenhum evento de acerto ou erro. Fase continua Pose | RF-31 |
-| T-DOM-04 | L03 em Pose, conectado, 60 BPM, durações 1, 1, 2 | `OuvirAcionado` em t=0 | Comandos: On 60 em 0, Off 60 em 700, On 62 em 1000, Off 62 em 1700, On 64 em 2000, Off 64 em 3400 (velocity `P-11`, canal `P-12`); `DemoNota` para cada um; depois do último Off: `DemoVista(L03)`, `MãoSome`, Guiada no passo 0 | RF-14, RF-31a, P-09, P-10 |
+| T-DOM-04 | L03 em Pose, conectado: `start_time_ms` 0, 1000, 2000 e `duration_ms` 1000, 1000, 2000, velocity 80 | `OuvirAcionado` em t=0 | Comandos: On 60 em 0, Off 60 em 700, On 62 em 1000, Off 62 em 1700, On 64 em 2000, Off 64 em 3400 (velocity `P-11`, canal `P-12`); `DemoNota` para cada um; depois do último Off: `DemoVista(L03)`, `MãoSome`, Guiada no passo 0 | RF-14, RF-31a, P-09, P-10 |
 | T-DOM-05 | Demonstração da L01 terminou em t=T | `NoteOn(60)` em T+299 e em T+301 | O primeiro é ignorado; o segundo é `NotaCerta`. Note On durante a demonstração também é ignorado | RF-31a, P-08 |
 | T-DOM-06 | L01 na Guiada | Quatro `NoteOn(60)` | Quatro `NotaCerta`, `VoltaConcluída(limpa)`, `FaseMudou(Transição)`, estrelas 0→1 | RF-32, RF-35 |
 | T-DOM-07 | Guiada | 8 `NoteOn` com velocity 100; depois um com 70 | `VelocityFixa(true)` no 8º, `VelocityFixa(false)` no 9º. Nenhum efeito em acerto ou fase | RF-13, P-03 |
@@ -75,7 +75,8 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 | T-DOM-26 | `lastMemory` = (SONG1, D−1) | Abrir em D | A revisão usa a sequência da L12 | RF-44 |
 | T-DOM-27 | Revisão da L02 | Erra; `OuvirAcionado`; erra; `ComGuiaAcionado`; erra | Depois do 1º erro, ofertas Ouvir e Com guia; depois do Ouvir, só Com guia; depois do Com guia, nenhuma. Em Ofertas, `NoteOn(60)` inicia a tentativa como acerto; `NoteOn(64)` inicia e falha | RF-44 |
 | T-DOM-28 | Revisão da L02, estrelas da L02 = 2 | Conclui com erro antes | `RevisãoConcluída`; dia seguido conta; L02 continua 2; `lastMemory.day` = D; abrir de novo em D não pede revisão | RF-43, RF-44 |
-| T-DOM-30 | Catálogo embutido | Validar | As regras do 06 §5 passam; L01–L12 batem com a tabela, com última nota de 2 tempos; SONG1 tem 50 passos | RF-30 |
+| T-DOM-30 | Catálogo embutido | Validar | As duas camadas de validação do 06 §5 passam; L01–L12 batem com a tabela, com 1000 ms entre notas e última nota de 2000 ms; SONG1 tem 12 trechos e 50 passos, iguais às lições com tempos deslocados | RF-30 |
+| T-DOM-30b | Arquivos de música inválidos: `hand` LEFT; `chord_group_id` preenchido; `delta_to_hit_ms` diferente da diferença de `start_time_ms`; `start_time_ms` voltando; nota 61 | Carregar | Cada um é recusado com o motivo; nenhum vira lição. O exemplo da 5ª Sinfonia do 08 §3 passa na camada geral e é recusado só pelas restrições da v1 | RF-30 |
 
 ## 2. Adapters sem headset (T-ADP)
 
@@ -242,7 +243,7 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 | RF-22 | T-ADP-02, T-CAL-03, T-CAL-04 |
 | RF-23 | T-ADP-02, T-CAL-05, T-CAL-07, T-MIDI-06 |
 | RF-24 | T-ADP-03, T-ACC-05 |
-| RF-30 | T-DOM-30 |
+| RF-30 | T-DOM-30, T-DOM-30b |
 | RF-31 | T-DOM-01, T-DOM-01b, T-DOM-03, T-ADP-04, T-POSE-01, T-POSE-02, T-POSE-03, T-ACC-06 |
 | RF-31a | T-DOM-01, T-DOM-01b, T-DOM-04, T-DOM-05, T-DOM-35, T-MIDI-07, T-MIDI-08, T-ACC-06, T-ACC-07 |
 | RF-32 | T-DOM-06, T-DOM-09, T-DOM-31, T-DOM-32, T-ACC-06, T-ACC-08, T-ACC-26, T-UX-08, T-UX-13 |

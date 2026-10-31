@@ -8,15 +8,16 @@ O domínio é uma biblioteca pura. Ele recebe **entradas** (fatos do mundo, já 
 
 | Termo | Significado |
 |---|---|
-| Passo | Uma nota MIDI, um dedo (1 = polegar … 5 = mínimo) e uma duração em tempos. |
+| Passo | Um evento de nota do formato de música (§5): nota MIDI, dedo (1 = polegar … 5 = mínimo), instante, duração e velocity. |
 | Sequência | Lista ordenada de passos de uma lição ou da música, com um andamento (BPM). |
+| Trecho | Um bloco da música (`chunk`). Nas lições há um trecho; na música, doze. |
 | Item | Uma lição (`L01`–`L12`) ou a música (`SONG1`). |
 | Execução | Do início de um item até o resultado ou até “Sair da aula”. |
 | Demonstração | A mão branca toca a sequência no andamento, com o piano soando e a tecla acesa junto. Toca sozinha na primeira vez que a pessoa entra num item (item inédito). Depois disso, só quando ela pede com “Ouvir”. |
 | Vez guiada | A pessoa toca a sequência com a tecla da vez colorida e a próxima em cinza dinâmico. Repete até uma volta limpa. |
 | Volta | Percorrer a sequência do passo 0 ao último na vez guiada. Volta limpa = nenhum Note On errado. O ritmo não conta para a volta ser limpa. |
 | Tentativa | Percorrer a sequência na memória. Falha no primeiro Note On errado. |
-| Tempo de ataque | Instante em que a próxima nota deveria soar: o acerto anterior mais a duração do passo anterior no andamento. |
+| Tempo de ataque | Instante em que a próxima nota deveria soar: o acerto anterior mais o `delta_to_hit_ms` dela. |
 | Cinza dinâmico | Realce da próxima tecla que escurece do acerto anterior até o tempo de ataque. |
 | Tempo elástico | O cinza anda no BPM real. Se a pessoa não toca no tempo de ataque, o tempo congela naquela tecla até ela acertar. |
 | Dia local | Data (AAAA-MM-DD) no fuso atual do aparelho, dada pelo `ClockPort`. |
@@ -66,13 +67,13 @@ Vale para lição e música. Estado interno: `fase`, `passo`, `voltaTemErro`, `f
 | Pose | `MãoAlternada(false)` | — | Igual a `PoseMudou(true)`: Demonstração se o item for inédito, senão Guiada. |
 | Pose | `OuvirAcionado` | Conectado | Demonstração. |
 | Pose | `NoteOn` | — | Ignorado (não é erro nem acerto). O adapter de UI trata antes os atalhos de botão (`P-27`). |
-| Demonstração | entrada | — | Agenda `EnviarNoteOn` / `EnviarNoteOff` de cada passo no andamento do item: nota soando por `P-09` da duração do passo, velocity `P-11`, canal `P-12`. |
+| Demonstração | entrada | — | Agenda `EnviarNoteOn` em `start_time_ms` e `EnviarNoteOff` em `start_time_ms + duration_ms × P-09`, com a velocity da nota (`P-11` se ausente) e canal `P-12`. Instantes contados a partir do primeiro passo. |
 | Demonstração | `Tick` | Hora de uma nota | `EnviarNoteOn` ou `EnviarNoteOff` e `DemoNota(passo)`. |
 | Demonstração | `Tick` | Última nota solta | Grava o item em `demoSeen` (`DemoVista`). Evento `MãoSome` (fade de `P-35`). Guiada, passo 0. `ignorarAté = agora + P-08`. |
 | Demonstração | `NoteOn` | — | Ignorado. |
 | Guiada | entrada | — | Passo 0 entra direto como **Ataque** (cor ativa), sem cinza e sem avaliação de ritmo. `tAcerto = null`. |
 | Guiada | `NoteOn(n)` | `t < ignorarAté` | Ignorado. |
-| Guiada | `NoteOn(n)` | `n == alvo` | `NotaCerta`. Se `tAtaque` existe, avalia o ritmo (§3.1) e emite `RitmoAvaliado`. Avança: `tAcerto = t`, `tAtaque = t + duração(passo anterior)`, `PróximaMudou(nota, tAcerto, tAtaque, mesmaTecla)`. No fim da sequência: `VoltaConcluída(limpa = !voltaTemErro, ritmo)`. Se limpa → Transição; senão passo 0, `voltaTemErro = false`. |
+| Guiada | `NoteOn(n)` | `n == alvo` | `NotaCerta`. Se `tAtaque` existe, avalia o ritmo (§3.1) e emite `RitmoAvaliado`. Avança: `tAcerto = t`, `tAtaque = t + delta_to_hit_ms(próximo passo)`, `PróximaMudou(nota, tAcerto, tAtaque, mesmaTecla)`. No fim da sequência: `VoltaConcluída(limpa = !voltaTemErro, ritmo)`. Se limpa → Transição; senão passo 0, `voltaTemErro = false`. |
 | Guiada | `NoteOn(n)` | `n != alvo` | `NotaErrada(n, alvo)`. `voltaTemErro = true`. O passo e o `tAtaque` não mudam. |
 | Guiada | `Tick` | `t ≥ tAtaque` e estado ainda Antecipação | `AtaqueChegou(nota)`: a tecla vira cor ativa e o tempo congela até o Note On certo. |
 | Guiada | `OuvirAcionado` | Conectado | Demonstração. No fim volta para Guiada, passo 0, sem contar volta. |
@@ -188,28 +189,60 @@ Na abertura, depois da verificação do dó central: `hoje = max(ClockPort.hoje,
 | `VelocityFixa` | ligada | Aviso, esconde a faixa |
 | `GravarProgresso` | instantâneo do progresso | `ProgressStorePort` |
 
-## 5. Catálogo de lições
+## 5. Formato de música e catálogo
 
-O catálogo vem embutido no app e é lido pelo `LessonCatalogPort`. Formato:
+Cada lição e a música do nível 1 são arquivos no **formato de música**, o mesmo que o importador futuro de MIDI e MusicXML vai gerar ([08 §3](08-roadmap-importacao.md#3-formato-de-música-o-mesmo-da-v1)). O domínio, o realce, o cinza dinâmico e a mão 3D só leem esse formato. Assim, importar música depois é escrever um tradutor, sem mexer na lição.
+
+O catálogo vem embutido no app e é lido pelo `LessonCatalogPort`: um índice com a ordem das lições e um arquivo por música.
 
 ```json
 {
-  "catalogVersion": 1,
-  "items": [
-    { "id": "L01", "number": 1, "noveltyKey": "lesson.01.novelty", "bpm": 60,
-      "steps": [ {"note": 60, "finger": 1, "beats": 1}, {"note": 60, "finger": 1, "beats": 1},
-                 {"note": 60, "finger": 1, "beats": 1}, {"note": 60, "finger": 1, "beats": 2} ] }
-  ],
-  "song": { "id": "SONG1", "bpm": 60,
-            "segments": ["L01","L02","L03","L04","L05","L06","L07","L08","L09","L10","L11","L12"] }
+  "catalog_version": 1,
+  "lessons": ["L01","L02","L03","L04","L05","L06","L07","L08","L09","L10","L11","L12"],
+  "song": "SONG1"
 }
 ```
 
-- `bpm` ausente vale `P-10`. `beats` ausente vale 1.
-- Nas lições, toda nota dura 1 tempo e a última dura 2.
-- Na música, cada trecho usa as durações da sua lição, então a última nota de cada trecho dura 2 tempos e marca a respiração entre as frases.
+Lição 1 (`L01.json`):
 
-Conteúdo completo (dedo = nota: 60→1, 62→2, 64→3, 65→4, 67→5):
+```json
+{
+  "song_id": "L01",
+  "title_key": "lesson.01.novelty",
+  "bpm": 60,
+  "bpm_map": [],
+  "time_signature": "4/4",
+  "source_format": "NATIVE",
+  "raw_file_url": null,
+  "practice": "whole",
+  "chunks": [
+    { "chunk_index": 1, "start_time_ms": 0, "end_time_ms": 5000, "measure_range": [1, 2],
+      "active_hands": "RH", "label_lesson": 1,
+      "notes": [
+        { "order": 1, "pitch": 60, "note_name": "C4", "hand": "RIGHT", "finger": 1,
+          "lookahead_start_ms": null, "start_time_ms": 0, "duration_ms": 1000,
+          "delta_to_hit_ms": null, "chord_group_id": null, "velocity": 80 },
+        { "order": 2, "pitch": 60, "note_name": "C4", "hand": "RIGHT", "finger": 1,
+          "lookahead_start_ms": 0, "start_time_ms": 1000, "duration_ms": 1000,
+          "delta_to_hit_ms": 1000, "chord_group_id": null, "velocity": 80 },
+        { "order": 3, "pitch": 60, "note_name": "C4", "hand": "RIGHT", "finger": 1,
+          "lookahead_start_ms": 1000, "start_time_ms": 2000, "duration_ms": 1000,
+          "delta_to_hit_ms": 1000, "chord_group_id": null, "velocity": 80 },
+        { "order": 4, "pitch": 60, "note_name": "C4", "hand": "RIGHT", "finger": 1,
+          "lookahead_start_ms": 2000, "start_time_ms": 3000, "duration_ms": 2000,
+          "delta_to_hit_ms": 1000, "chord_group_id": null, "velocity": 80 }
+      ] }
+  ]
+}
+```
+
+Como o domínio usa os campos:
+- **Passo** = um item de `notes`. A sequência de uma execução é a concatenação dos `notes` de todos os trechos, em ordem (`practice: "whole"`).
+- **Tempo de ataque** na vez guiada = acerto anterior + `delta_to_hit_ms` (§3.1). O instante absoluto `start_time_ms` só vale na demonstração.
+- **Demonstração**: Note On em `start_time_ms`, Note Off em `start_time_ms + duration_ms × P-09`, velocity da nota.
+- **Etiqueta do card** = `lesson.label` (“Lição {n}”) com o `label_lesson` do trecho do passo atual. Na `SONG1`, é a lição de origem do trecho.
+
+Conteúdo da v1, a 60 BPM (um tempo = 1000 ms). Toda nota dura 1 tempo e a última de cada lição dura 2. Dedo = nota: 60→1, 62→2, 64→3, 65→4, 67→5.
 
 | Item | Notas MIDI |
 |---|---|
@@ -225,15 +258,22 @@ Conteúdo completo (dedo = nota: 60→1, 62→2, 64→3, 65→4, 67→5):
 | L10 | 67 65 64 62 60 |
 | L11 | 60 64 67 64 60 |
 | L12 | 60 64 67 64 60 60 62 64 65 67 |
-| SONG1 | L01 + L02 + … + L12, 50 passos |
+| SONG1 | 12 trechos, um por lição, na ordem: 50 passos. Cada trecho começa onde o anterior termina, então o intervalo depois da última nota de um trecho é de 2 tempos e marca a respiração entre as frases. |
 
-Validações do catálogo (teste T-DOM-30):
-- toda nota está em {60, 62, 64, 65, 67} e o dedo é coerente com a nota;
-- `beats` está entre 0,5 e 4 e `bpm` entre 40 e 120;
-- os ids são únicos e os números vão de 1 a 12 sem buraco;
-- a música referencia só lições existentes.
+Validações do formato (teste T-DOM-30), em duas camadas.
 
-O nome da nota vem da tabela de textos (`note.60` = “Dó” / “C”). O domínio nunca guarda texto.
+Valem para qualquer música, inclusive a importada no futuro:
+- `lookahead_start_ms` é o `start_time_ms` do passo anterior e `delta_to_hit_ms` é a diferença. O primeiro passo da música tem os dois nulos.
+- `start_time_ms` cresce dentro e entre os trechos. `duration_ms > 0`. `velocity` entre 1 e 127. `finger` entre 1 e 5. `pitch` entre 21 e 108.
+- `chunk_index` começa em 1, sem buraco. O `start_time_ms` e o `end_time_ms` do trecho cobrem as notas dele.
+- `bpm` entre 40 e 120.
+
+Restrições da v1 (o domínio da v1 recusa o arquivo se uma delas falhar):
+- `hand` = `RIGHT`, `active_hands` = `RH`, `chord_group_id` nulo, `bpm_map` vazio, `practice` = `whole`.
+- Toda nota está em {60, 62, 64, 65, 67} e o dedo é coerente com a nota.
+- O catálogo lista 12 lições existentes, sem repetição. Os trechos da `SONG1` são iguais às lições, com os tempos deslocados.
+
+O nome exibido da nota vem da tabela de textos (`note.60` = “Dó” / “C”). `note_name` existe só para depuração. O domínio nunca guarda texto de interface.
 
 ## 6. Arquivo de progresso
 
@@ -283,9 +323,9 @@ Valores iniciais. Para mudar um valor, mude este quadro e rode de novo o teste i
 | P-06 | Rajada por ritmo | mais de 12 Note On em 1000 ms | Trilo humano fica abaixo de 10 por segundo | T-DOM-08b, T-MIDI-11, T-MIDI-12 |
 | P-07 | Silêncio para sair da rajada | 3000 ms | — | T-DOM-08c |
 | P-08 | Cauda do filtro de eco | 300 ms depois do último Note Off enviado | Folga sobre a latência USB | T-DOM-05, T-MIDI-07 |
-| P-09 | Fração soando na demonstração | 70 % da duração do passo | Notas separadas, fáceis de contar | T-DOM-04, T-MIDI-08 |
-| P-10 | Andamento padrão | 60 BPM | Um tempo por segundo, lento para iniciante | T-DOM-04, T-DOM-31 |
-| P-11 | Velocity enviada na demonstração | 80 | Faixa média | T-MIDI-08 |
+| P-09 | Fração soando na demonstração | 70 % de `duration_ms` | Notas separadas, fáceis de contar | T-DOM-04, T-MIDI-08 |
+| P-10 | Andamento das lições da v1 | 60 BPM | Um tempo por segundo, lento para iniciante | T-DOM-04, T-DOM-31 |
+| P-11 | Velocity da demonstração quando a nota não traz uma | 80 | Faixa média | T-MIDI-08 |
 | P-12 | Canal MIDI de saída | 1 | Canal padrão do CT-S300 | T-MIDI-08 |
 | P-13 | Estabilidade da pose | 500 ms contínuos | RF-31 | T-POSE-01 |
 | P-14 | Confiança mínima do tracking | “alta” do SDK para a mão direita | — | T-POSE-03 |

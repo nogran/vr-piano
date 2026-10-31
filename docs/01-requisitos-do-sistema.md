@@ -15,7 +15,7 @@ Planejamento. Sem implementação neste documento. Números ajustáveis (tempos,
 | Som do app | O app só envia notas ao piano na demonstração. Na vez guiada e na memória, o piano soa só o que a pessoa toca (`Local Control` ligado). |
 | Tracking | A pose libera o início da lição. Depois disso, perder o tracking não pausa nem erra; a lição segue pelo MIDI. |
 | O que não entra | Esteira de notas caindo, combo, vidas, partitura, mão esquerda, acordes. |
-| Conteúdo | 12 lições autorais, cerca de 5 minutos cada, e a música do nível 1. Sem importar MIDI ou MusicXML. |
+| Conteúdo | 12 lições autorais, cerca de 5 minutos cada, e a música do nível 1, escritas no formato de música que o importador futuro também vai gerar. Importar MIDI ou MusicXML fica para depois da v1 ([08](08-roadmap-importacao.md)). |
 | Gamificação | 0–3 estrelas por lição, dias seguidos, quadro de progresso no aparelho. |
 | Idioma | Português (Brasil) e inglês, escolha explícita na primeira tela e nas configurações. |
 | Distribuição da v1 | Sideload de desenvolvimento. Sem Meta Store, sem compra, sem anúncio. |
@@ -56,7 +56,7 @@ Tempo é ensinado, mas não reprova. O cinza dinâmico mostra a cadência real (
 
 ### Currículo
 
-Posição: dedo 1 no dó central (nota MIDI 60), 2 no ré (62), 3 no mi (64), 4 no fá (65), 5 no sol (67). Só teclas brancas. Nome exibido em pt-BR: Dó Ré Mi Fá Sol. Em inglês: C D E F G. O domínio guarda nota MIDI e dedo; o texto é localização. Cada lição é **uma** sequência; o catálogo formal está em [06 §5](06-modelo-de-dominio.md#5-catálogo-de-lições).
+Posição: dedo 1 no dó central (nota MIDI 60), 2 no ré (62), 3 no mi (64), 4 no fá (65), 5 no sol (67). Só teclas brancas. Nome exibido em pt-BR: Dó Ré Mi Fá Sol. Em inglês: C D E F G. O domínio guarda nota MIDI e dedo; o texto é localização. Cada lição é **uma** sequência; o formato e o catálogo estão no [06 §5](06-modelo-de-dominio.md#5-formato-de-música-e-catálogo).
 
 | Lição | Matéria nova | Sequência | Notas |
 |---|---|---|---|
@@ -92,7 +92,7 @@ Posição: dedo 1 no dó central (nota MIDI 60), 2 no ré (62), 3 no mi (64), 4 
 | RF-11 | Cada Note On entregue ao domínio contém nota MIDI, velocity 1–127 e o instante de recebimento. Note On com velocity 0 é tratado como Note Off. A velocity do Note Off é ignorada (o CT-S300 envia 64). Mensagens que não são nota (clock, active sensing, control change, program change) são descartadas antes do domínio. |
 | RF-12 | Antes da primeira lição, um checklist pede: ritmo desligado, song player parado, `MIDI Out Octave Shift = 0`, `Touch Response = Normal`, `MIDI Out Velocity = Off`, `Local Control` ligado. O usuário confirma os cinco itens. |
 | RF-13 | Se as últimas `P-03` Note On da sessão tiverem a mesma velocity, um aviso não bloqueante sugere conferir `MIDI Out Velocity = Off` e o indicador de faixa se esconde. Ele volta quando chega uma velocity diferente. |
-| RF-14 | A demonstração envia ao teclado Note On e Note Off, uma nota por vez, no andamento e nas durações do item (`P-09`, `P-10`, velocity `P-11`, canal `P-12`). É o único momento em que o app envia notas. Nada é pontuado. |
+| RF-14 | A demonstração envia ao teclado Note On e Note Off, uma nota por vez, nos instantes, durações e velocities do formato de música (`P-09`, `P-11` quando a nota não traz velocity, canal `P-12`). É o único momento em que o app envia notas. Nada é pontuado. |
 | RF-15 | Se o cabo cair durante a lição, a lição pausa. Na vez guiada, retoma no mesmo passo, com a tecla já colorida. Na memória, a tentativa recomeça do início sem contar como falha. Durante a demonstração, a demonstração é cancelada e a lição volta à pose. Estrelas gravadas não mudam. |
 | RF-16 | Rajada (`P-04`/`P-05` ou `P-06`) pausa a lição e avisa para desligar ritmo ou song. As notas da rajada não contam como erro. A lição retoma depois de `P-07` de silêncio, com a mesma regra do RF-15. |
 
@@ -112,7 +112,7 @@ Máquina de estados completa em [06 §3](06-modelo-de-dominio.md#3-máquina-de-e
 
 | ID | Requisito |
 |---|---|
-| RF-30 | Uma lição é uma sequência ordenada de passos com um andamento (BPM). Cada passo tem nota MIDI, dedo (1–5) e duração em tempos. |
+| RF-30 | Cada lição e a música são arquivos no formato de música (06 §5): metadados, trechos e eventos de nota com nota MIDI, mão, dedo (1–5), instante, duração e velocity. O app só lê esse formato. A v1 recusa arquivos fora das restrições da v1 (mão direita, sem acorde, notas 60–67). |
 | RF-31 | **Pose.** No começo de cada lição a mão branca fica parada na posição de cinco dedos e o card diz “Ponha a mão assim.”, com o botão “Ouvir” e o controle “Mão”. A mão direita rastreada que cumpre `P-13`–`P-17` sobre as teclas dó–sol calibradas conta como pose correta e leva à demonstração (se o item for inédito) ou à vez guiada. Antes disso, se a mão sai da pose, o reconhecimento recomeça. A pose não dá estrela. Note On nesta fase não conta. |
 | RF-31a | **Demonstração.** Na primeira vez que a pessoa entra num item (item inédito), a demonstração começa sozinha depois da pose. Quando ela termina uma vez, o item deixa de ser inédito, e a demonstração passa a acontecer só com “Ouvir”, no card da pose e no da vez guiada. A demonstração envia a sequência ao piano (RF-14). A mão branca desce o dedo de cada nota junto com o som, e a tecla acende na cor ativa no instante da nota. No fim, a mão some em fade (`P-35`) e a vez guiada começa, com ou sem pose reconhecida. Note On recebido durante a demonstração e até `P-08` depois dela não conta. |
 | RF-32 | **Vez guiada.** Não há mão branca. A tecla da vez fica na cor ativa e o card mostra o nome do dedo. Assim que a pessoa acerta, a próxima tecla aparece em cinza dinâmico. O cinza escurece de `P-29` até o tom cheio no tempo de ataque (acerto anterior + duração do passo no andamento), quando a tecla vira cor ativa. Se a pessoa não toca, a tecla espera colorida, sem limite (tempo elástico). Note On na nota da vez: verde por `P-23` e avança, e a tecla tocada segue na cor ativa enquanto estiver pressionada. Outra nota: vermelho por `P-24` na tecla tocada, e o passo e o tempo de ataque não mudam. O primeiro passo de cada volta já começa colorido. Ao fim da sequência, a vez guiada recomeça do primeiro passo. Regras completas no [06 §3.1](06-modelo-de-dominio.md#31-cinza-dinâmico-e-ritmo). |
@@ -178,7 +178,7 @@ Essa escolha de host é decisão de planejamento para não reabrir na implementa
 | `MidiOutPort` | Tocar e soltar uma nota no instrumento | Mesmo cabo, saída para o CT-S300 | Sintetizador do headset |
 | `KeyboardPosePort` | Modelo de teclas ancorado no mundo, salvar e recuperar pose | Calibração de dois pontos + âncora do Quest | Detecção automática do teclado por câmera |
 | `HandInputPort` | Pinça, arraste, ponta do indicador para calibrar, sinal “pose de cinco dedos” | Hand tracking do Quest | Controle físico, detecção de dedo na tecla |
-| `LessonCatalogPort` | As 12 lições, a música e os textos por idioma | Catálogo embutido | Loja de músicas, arquivo do usuário |
+| `LessonCatalogPort` | As 12 lições e a música, no formato de música | Catálogo embutido | Importador de MIDI e MusicXML ([08](08-roadmap-importacao.md)), loja de músicas |
 | `ProgressStorePort` | Estrelas, dias, idioma, “Mão”, checklist, calibração, última memória | Arquivo local no aparelho | Conta, nuvem, leaderboard |
 | `ClockPort` | Instante monotônico e o dia local | Relógio do aparelho | — |
 
@@ -220,7 +220,7 @@ Um único arquivo de progresso, esquema em [06 §6](06-modelo-de-dominio.md#6-ar
 - Mão esquerda, as duas mãos, acordes, pedal, dinâmica como critério de passe.
 - Reconhecer qual dedo tocou.
 - Outros teclados e outros protocolos, além da porta já desenhada.
-- Importar música, gravar performance, compartilhar, modo multijogador.
+- Importar música (planejado depois da v1, no [08](08-roadmap-importacao.md)), gravar performance, compartilhar, modo multijogador.
 - Aftertouch. O instrumento não envia.
 - Loja da Meta, compra, conta Meta como identidade do app.
 - Quest 2 e controles como interação principal.
