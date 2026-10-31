@@ -165,6 +165,8 @@ Fora desse recorte, as outras lições são dados do catálogo, não cena nova.
 
 A referência visual vigente é a prova de conceito em `docs/visao/poc/` (um quadro por passo, mostrado no README) e a capa `docs/visao/capa-licao1.jpg`. Nos quadros, os balões roxos são explicação e não fazem parte do app.
 
+A mão branca é sempre o mesmo modelo 3D, na capa e em todos os quadros: o mesmo esqueleto, as mesmas proporções e o mesmo material, vistos do mesmo ângulo que a pessoa vê o teclado. Quadro novo com mão usa esse modelo, nunca um desenho 2D. Muda só a pose (dedo pressionado) e a cor do dedo da vez na demonstração.
+
 A capa é a foto de passthrough com a camada do app desenhada por cima, como num print do headset: card da pose com “Ouvir”, “Mão” e as teclas de atalho, e a mão branca em 3D, em escala real, vista de trás como a pessoa a vê, com o polegar no dó central e um dedo por tecla até o sol.
 
 As fotos antigas (`quest-*.jpg`) ficam só como referência de clima e estão substituídas:
