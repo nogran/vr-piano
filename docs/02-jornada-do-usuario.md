@@ -67,36 +67,15 @@ Não há home antes desta lição. O painel diz “Lição 1 · Dó” / “Less
 
 ### Posição
 
-Antes do som, só a mão branca fica parada nas teclas da mão direita: polegar no dó, os outros quatro dedos curvos sobre ré, mi, fá e sol. O card mostra “Lição 1”, “Ponha a mão assim.” / “Lesson 1”, “Place your hand like this.” e o botão branco “Ouvir” / “Hear”. A pose não é julgada. Clicar em Ouvir começa a simulação do trecho com essa mesma mão.
+A mão branca fica parada: polegar no dó, os outros quatro sobre ré, mi, fá e sol. O card diz “Ponha a mão assim.” / “Place your hand like this.” e tem “Ouvir” / “Hear” e o controle “Mão” / “Hand”.
 
-### Ouvir
+Ela põe a mão direita em cima dessa pose. Quando o Quest vê a mão estável sobre essas teclas, o card troca para “Polegar” / “Thumb” e o polegar da mão branca acende. Se a mão sai, o card volta.
 
-A mão branca toca o trecho na frente da pessoa. Na lição 1 o polegar desce no dó quatro vezes, devagar, e os outros dedos ficam na posição. Cada descida acende a tecla e o CT-S300 soa junto. A pessoa não precisa tocar.
+### Loop
 
-O card passa a “Olhe e ouça.” / “Watch and listen.” “Ouvir de novo” / “Hear again” repete a simulação. “Tocar” / “Play” entrega a vez.
+A mão branca repete a sequência sem parar. Na lição 1 o polegar desce no dó quatro vezes, a tecla acende, o piano soa, e tudo recomeça. O dedo da vez fica marcado na mão branca. Ela toca junto até a sequência sair limpa. Aí a aula 2 abre.
 
-### Guiado
-
-O painel troca para “Toque a tecla acesa.” / “Play the lit key.”
-
-O dó central acende em âmbar. O polegar do modelo fica nessa tecla. Acima dele, “1” e “Dó” (ou “C”). As outras teclas ficam apagadas.
-
-- Nota certa: flash verde, a mesma tecla apaga e acende de novo para a próxima repetição. Na quarta, o guiado acaba.
-- Nota errada: a tecla que ela tocou fica vermelha um instante, o dó continua aceso, a contagem não anda.
-
-Não há relógio na tela.
-
-### Memória
-
-O painel diz “Agora de memória.” / “Now from memory.” Um segundo depois as luzes somem, e a mão branca some com elas.
-
-Ela toca quatro dó.
-
-- Sequência certa de primeira: 3 estrelas. Painel: “Você lembrou.” / “You remembered.”
-- Errou no caminho, viu a tecla acender, recomeçou o pedaço e concluiu: 2 estrelas. “Lição 2 aberta.” / “Lesson 2 unlocked.”
-- Saiu no meio do guiado, sem memória: 1 estrela fica gravada se o guiado chegou ao fim; a lição 2 continua fechada. Se nem o guiado terminou, 0 estrelas.
-
-O indicador leve / médio / forte muda com o toque e nunca fica vermelho.
+“Mão” desligada esconde a mão branca. Ficam a cor da tecla e o nome do dedo no card. O loop não espera a pose.
 
 ## 6. Entre lições
 
@@ -113,13 +92,13 @@ Não há mapa de 12 fases espalhado no espaço. A próxima lição é uma ação
 
 Matéria: emendar. Dois pedaços, dó–ré–mi e ré–dó, depois a frase inteira.
 
-Para cada pedaço novo: ouvir → guiado → memória. Ao passar o segundo pedaço, o app pede a frase acumulada direto de memória, sem ouvir de novo. Errar a frase acumulada acende a nota esperada e reinicia só essa tentativa, não os pedaços já feitos.
+Para cada aula nova o ciclo é o mesmo: pose, loop da sequência, repetir até sair limpo. A mão branca marca o dedo da vez.
 
-A mão branca fosca continua sozinha na posição de cinco dedos. No pedaço dó–ré–mi, o polegar, o indicador e o médio descem um por vez. Ela some na memória.
+## 8. Música do nível 1
 
-## 8. Outro dia — lembrar
+Com as doze sequências feitas, abre a música. É as doze em ordem, no mesmo loop. A pessoa toca a peça inteira repetindo a ordem dos dedos que já aprendeu, uma sequência depois da outra.
 
-Ela coloca o headset, o cabo conecta, o dó central confirma a calibração.
+## 9. Outro dia — lembrar
 
 Antes da lição nova, o painel diz “Toca a frase de ontem.” / “Play yesterday’s phrase.” Sem luz.
 
@@ -128,7 +107,7 @@ Antes da lição nova, o painel diz “Toca a frase de ontem.” / “Play yeste
 
 Se ela abrir de novo no mesmo dia, a revisão não se repete.
 
-## 9. Quadro de progresso
+## 10. Quadro de progresso
 
 Aberto pelo botão “Progresso”. Painel ao lado do teclado, quatro linhas:
 
@@ -141,15 +120,16 @@ Abaixo, as 12 lições com 0–3 estrelas e a próxima aberta. Lição fechada n
 
 Sem lista de jogadores, sem nome, sem compartilhar.
 
-## 10. Configurações
+## 11. Configurações
 
 No mesmo painel de progresso, embaixo:
 
 - Idioma: Português / English. Trocar aqui reconstrói os textos e não mexe nas estrelas (RF-03).
+- “Mão” / “Hand”: ligada mostra a mão branca. Desligada deixa só a cor na tecla (RF-32c).
 - “Calibrar de novo” / “Calibrate again”.
 - “Checklist do teclado” / “Keyboard checklist”.
 
-## 11. Interrupções
+## 12. Interrupções
 
 | O que acontece | O que ela vê | O que é gravado |
 |---|---|---|
@@ -170,6 +150,6 @@ Tocar, de memória, dó–ré–mi–fá–sol, o caminho de volta, e dó–mi�
 Um adulto que nunca usou o app:
 
 1. Escolhe o idioma, liga o cabo, marca o checklist e calibra sem outra pessoa lendo um manual externo.
-2. Entende, só pela troca de painel, que primeiro ouve, depois segue uma tecla, depois as luzes apagam de propósito.
+2. Entende, pelo card, que primeiro põe a mão, depois o dedo marcado no loop é o que ela repete até a sequência sair limpa.
 3. Sai da lição 1 sabendo repetir os quatro dó com o headset no colo.
 4. No dia seguinte, reconhece a tela “frase de ontem” como revisão, não como lição nova.

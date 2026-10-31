@@ -38,11 +38,10 @@ Base usada, reduzida ao mínimo que cabe num teclado de 61 teclas e numa sessão
 
 - **Ouvir antes de tocar** (método Suzuki, a parte que serve aqui): a frase soa no próprio piano, a tecla acende junto, a pessoa só assiste.
 - **Uma novidade por lição** (carga cognitiva): uma nota nova ou um gesto novo (subir, descer, saltar).
-- **Posição fixa de cinco dedos** (Alfred / Faber, primeiro volume): polegar no dó central, até o mínimo no sol. Desde a lição 1 só a mão branca fosca aparece desenhada, nas teclas da mão direita, e mostra qual dedo desce. A mão da pessoa não é desenhada. O app não compara pose. A tecla vem do MIDI.
-- **Pedaços pequenos e emenda** (prática aditiva): 2 a 4 notas, memória imediata, só então o próximo pedaço, depois o trecho inteiro.
-- **Recordação, não reestudo** (retrieval practice): o modo que desbloqueia a próxima lição é tocar sem luz. Se errar, a tecla certa acende um instante e o pedaço recomeça.
-- **Revisão no dia seguinte**: ao abrir o app noutro dia, a primeira tarefa é a frase da última lição, de memória, antes de qualquer nota nova.
-- **Guia que some**: a mão branca fosca, o nome da nota e o número do dedo existem ao ouvir e no modo guiado, nas teclas da mão direita. Na memória somem juntos. Se a pessoa erra, a mão branca volta um instante no dedo certo e some de novo.
+- **Posição de cinco dedos** (Alfred / Faber): polegar no dó central até o mínimo no sol. A mão branca mostra essa pose. O Quest reconhece quando a mão direita da pessoa está nessa postura sobre as teclas de casa. Aí o card muda e a mão branca marca o próximo dedo. A tecla tocada continua vindo do MIDI.
+- **Loop e repetição**: a mão branca repete a sequência da aula sem parar. A pessoa toca junto, decora a ordem dos dedos e repete até sair limpo.
+- **Cada aula é uma sequência.** O nível 1 junta as doze sequências numa música só.
+- **Mão opcional**: dá para esconder a mão branca e ficar só com a cor na tecla.
 
 Dinâmica fica de fora da aprovação. O CT-S300 não tem aftertouch. O chart MIDI transmite Note On com velocity 1–127 e Note Off sempre em 64. O manual não diz o que `MIDI Out Velocity = Off` faz com esse número; a leitura usada no checklist vem de quem mediu o aparelho, não de uma frase da Casio. Mostrar leve / médio / forte habitua o ouvido sem transformar a lição num teste de força. Se a velocity vier fixa, a faixa some e a lição continua.
 
@@ -52,7 +51,7 @@ Tempo também fica de fora da aprovação. A demonstração é lenta e separada,
 
 Posição: dedo 1 no dó central (nota MIDI 60), 2 no ré, 3 no mi, 4 no fá, 5 no sol. Só teclas brancas. Nome exibido em pt-BR: Dó Ré Mi Fá Sol. Em inglês: C D E F G. O domínio guarda nota MIDI e dedo; o texto é localização.
 
-| Lição | Matéria nova | Trecho de memória que desbloqueia a próxima |
+| Lição | Matéria nova | Sequência |
 |---|---|---|
 | 1 | Dó, dedo 1 | Dó, quatro vezes |
 | 2 | Ré, dedo 2 | Dó–Ré |
@@ -65,9 +64,10 @@ Posição: dedo 1 no dó central (nota MIDI 60), 2 no ré, 3 no mi, 4 no fá, 5 
 | 9 | Cinco dedos subindo | Dó–Ré–Mi–Fá–Sol |
 | 10 | Cinco dedos descendo | Sol–Fá–Mi–Ré–Dó |
 | 11 | Salto dentro da posição | Dó–Mi–Sol–Mi–Dó |
-| 12 | Revisão | A frase da 11 e a subida da 9, de memória, ouvir só se errar |
+| 12 | Revisão | A frase da 11 e a subida da 9 |
+| Música | Nível 1 | As doze sequências em ordem, como uma peça |
 
-Cada lição nova segue o ciclo: ouvir o pedaço, tocar com guia, tocar de memória, repetir com o pedaço acumulado. A lição 12 começa direto na recordação.
+Cada aula ensina uma sequência. A mão branca fica em loop nessa sequência. A próxima abre quando a pessoa toca a sequência inteira uma vez, acompanhando o loop, sem nota errada. A música do nível 1 abre quando as doze estão feitas.
 
 ## 4. Requisitos funcionais
 
@@ -106,25 +106,27 @@ Cada lição nova segue o ciclo: ouvir o pedaço, tocar com guia, tocar de memó
 | ID | Requisito |
 |---|---|
 | RF-30 | Uma lição é uma sequência de pedaços. Cada pedaço tem uma lista ordenada de notas esperadas (nota MIDI + dedo sugerido). |
-| RF-31 | O botão Ouvir dispara a simulação do trecho. O piano toca o pedaço, a tecla acende e a mão branca fosca, no lugar da mão direita, desce o dedo de cada nota em sincronia, mostrando como tocar. Os outros dedos ficam na posição de cinco dedos. Ouvir de novo repete a mesma simulação. Nada é pontuado. |
-| RF-32 | Modo guiado: exatamente uma tecla alvo acesa, com nome, número do dedo e a mão branca fosca com esse dedo na tecla, no lugar da mão direita. O app espera sem limite de tempo. Note On na nota alvo avança. Qualquer outra Note On não avança, marca a tecla premida e mantém o alvo. |
-| RF-32a | Antes do primeiro ouvir de cada lição, a mão branca fosca fica parada na posição de cinco dedos, nas teclas onde a mão real direita entra. O card mostra o título da lição, “Ponha a mão assim.” e o botão Ouvir. A pose não é pontuada. Clicar em Ouvir tira a pose parada e começa a simulação do trecho. |
-| RF-32b | A única mão desenhada na lição é a de simulação: branca fosca, mão direita, no estilo do tutorial de mãos do Quest, nas teclas onde a mão direita deve ficar. O app não desenha a mão da pessoa. |
+| RF-31 | Com a pose aceita, a mão branca entra em loop na sequência da aula. A cada nota, o dedo correspondente acende na mão e a tecla acende junto. O piano soa o trecho no mesmo tempo. O loop recomeça sozinho. A pessoa toca junto. Uma passagem MIDI limpa da sequência completa a aula. |
+| RF-32 | Durante o loop, a mão branca marca só o próximo dedo. Os outros ficam na posição de casa. Note On na nota da vez avança o passo. Outra nota não avança, pinta a tecla tocada de vermelho e o loop segue no mesmo passo. |
+| RF-32a | No começo da aula a mão branca fica parada na posição de cinco dedos e o card diz “Ponha a mão assim.” O tracking da mão direita, sobre as teclas dó–sol calibradas, com a palma para baixo e os dedos abertos, estável por cerca de meio segundo, conta como pose correta. Aí o card troca para o nome do próximo dedo e esse dedo acende na mão branca. Se a mão sai da pose, o card volta para “Ponha a mão assim.” e o loop pausa. A pose não dá estrela. A nota continua sendo o MIDI. |
+| RF-32b | A única mão desenhada é a de simulação: branca fosca, mão direita, no estilo do tutorial de mãos do Quest. O app não desenha a mão da pessoa. |
+| RF-32c | Existe um controle “Mão” / “Hand”, ligado por padrão. Desligado, a mão branca some na hora e a aula segue só com a cor da tecla. Com a mão desligada, a checagem de pose não bloqueia o loop. A escolha persiste. |
+| RF-32d | O fim do nível 1 é uma música: as doze sequências tocadas em ordem, no mesmo loop. Ela abre quando as doze aulas estão completas. |
 | RF-33 | Qualquer velocity 1–127 satisfaz a nota. A faixa leve / médio / forte atualiza um indicador pequeno e não altera acerto. |
 | RF-34 | Notas sobrepostas são aceitas. A sequência comparada é a dos Note On, não a limpeza da soltura. |
-| RF-35 | Modo memória: nenhuma tecla começa acesa e a mão branca fica ausente. A pessoa toca a sequência do pedaço. Erro acende a nota esperada, a mão branca reaparece no dedo certo dessa tecla por cerca de um segundo, e o pedaço recomeça. A lição inteira não reinicia. |
-| RF-36 | Ao concluir um pedaço de memória, o próximo pedaço começa no modo ouvir. O último passo da lição é o trecho acumulado, de memória. |
-| RF-37 | Durante a lição há uma instrução curta por vez: ouvir, tocar a tecla acesa, ou tocar de memória. |
-| RF-37a | O menu da lição é o card aprovado: retângulo escuro de cantos arredondados, etiqueta “Lição N”, uma frase branca e, quando há uma ação, um botão branco de texto escuro. No passo da pose a frase é “Ponha a mão assim.” e o botão é “Ouvir”. Durante o toque o card não tem botão. |
-| RF-38 | Perder o hand tracking durante a lição não pausa, não erra e não esconde o guia das teclas. |
-| RF-39 | A fase ouvir e os menus aceitam pinça. Se o tracking de mão falhar no menu, um equivalente por tecla (nota combinada, mostrada no painel) avança a mesma ação. |
+| RF-35 | Errar a nota não reinicia a aula inteira. A tecla errada fica vermelha, a tecla da vez continua acesa, o dedo marcado na mão branca não muda, e o loop espera essa nota. |
+| RF-36 | A aula é uma sequência. Completar a sequência uma vez sem nota errada abre a próxima. A música do nível 1 é a junção das doze, na ordem. |
+| RF-37 | O card mostra uma frase por vez. Antes da pose: “Ponha a mão assim.” Com a pose certa: o nome do próximo dedo (“Polegar”, “Indicador”, “Médio”, “Anelar”, “Mínimo” / “Thumb”, “Index”, “Middle”, “Ring”, “Pinky”). |
+| RF-37a | O menu é o card aprovado: retângulo escuro de cantos arredondados, etiqueta “Lição N”, uma frase branca. Na pose há o botão “Ouvir”, que também liga o loop se a pessoa não quiser esperar o reconhecimento. Durante o loop o card não tem botão. O controle “Mão” fica nesse card. |
+| RF-38 | Perder o tracking da mão pausa o loop e devolve o card para “Ponha a mão assim.” Não conta como nota errada. A cor da tecla continua. |
+| RF-39 | Os botões do card aceitam pinça. Se o tracking falhar no menu, a tecla indicada no card faz a mesma ação. |
 
 ### Progresso
 
 | ID | Requisito |
 |---|---|
-| RF-40 | Estrelas por lição, de 0 a 3, só sobem. 1 = terminou o guiado e não a memória final. 2 = terminou a memória final com um ou mais reinícios de pedaço. 3 = memória final correta na primeira passagem, sem nota errada. |
-| RF-41 | A lição N+1 só abre quando a lição N tem pelo menos 2 estrelas. A lição 1 abre após calibração e checklist. |
+| RF-40 | Estrelas por aula, de 0 a 3, só sobem. 2 = a sequência saiu limpa depois de algum erro. 3 = a primeira volta do loop saiu limpa. Completar a sequência limpa abre a próxima. |
+| RF-41 | A aula N+1 abre quando a N foi completada limpa. A aula 1 abre após calibração e checklist. A música abre quando as doze estão completas. |
 | RF-42 | Repetir uma lição pode subir a estrela. Não desce. |
 | RF-43 | Dias seguidos: um dia local do aparelho conta se houve pelo menos uma memória concluída (lição ou revisão). A contagem zera quando um dia local passa sem isso. Uma falha no meio do dia não zera. |
 | RF-44 | Se a última memória concluída foi noutro dia local, a abertura pede essa frase de memória antes da próxima lição nova. Errar oferece ouvir uma vez, guiar uma vez e tentar de novo. Concluir a revisão conta para o dia seguido. |
@@ -213,12 +215,12 @@ Dá para implementar:
 
 - Nota certa ou errada. O CT-S300 é USB-MIDI class-compliant (micro-B, sem driver, aparece como CASIO USB-MIDI) e o Quest 3 abre teclado dessa classe direto no USB-C. O mesmo caminho já funciona com outro Casio (Privia) no Quest 3, com um pedido de permissão. O cabo tem que ser de dados, micro-B no teclado e USB-C no headset.
 - Modo ouvir no alto-falante do próprio teclado. O CT-S300 recebe Note On e toca. O app manda a frase; o domínio ignora, por um instante, as notas que ele mesmo acabou de enviar.
-- Nome da nota, uma tecla acesa, memória com luz apagada, estrelas, idioma, progresso no aparelho.
-- Mão só para pinça no painel e para apontar na calibração.
+- Nome da nota, cor na tecla, mão branca em loop, pose da mão direita sobre dó–sol, estrelas, idioma, progresso no aparelho.
+- Mão branca para mostrar a pose e o próximo dedo. Pinça no card e o dedo na calibração usam o tracking. A nota não.
 
 Não dá, e o app não promete:
 
-- Saber qual dedo desceu. O erro da ponta do dedo no Quest 3 fica em torno de 1,7 cm, com latência que passa de 200 ms. A tecla branca tem cerca de 2,2 cm. Quem acertou é o Note On.
+- Saber qual dedo desceu na tecla. O erro da ponta do dedo no Quest 3 fica em torno de 1,7 cm. A pose que o app aceita é a mão direita sobre o bloco dó–sol, palma para baixo, dedos abertos. Quem acertou a nota é o Note On.
 - Aftertouch. O chart de transmissão marca aftertouch como ausente.
 - Dinâmica de soltura. O Note Off sai sempre com velocity 64.
 - Carregar o headset e ler MIDI ao mesmo tempo. Há uma porta USB-C.

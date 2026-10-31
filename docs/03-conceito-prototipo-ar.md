@@ -54,14 +54,12 @@ Botões altos o suficiente para pinça folgada. O botão em foco mostra, numa li
 
 Regra do sistema: na lição o app desenha uma mão só, a de simulação. Ela é branca fosca, mão direita, no estilo do tutorial de mãos do Quest. Sem pele, sem vidro, sem segunda mão.
 
-A mão da pessoa não é desenhada. O passthrough pode mostrá-la porque a câmera a vê. O app não coloca outra mão ao lado, por cima ou espelhada. A branca fica nas teclas da mão direita e mostra onde pôr a sua. O MIDI não olha para a mão.
+A mão da pessoa não é desenhada. O passthrough pode mostrá-la. O app só desenha a branca e compara a pose grossa: mão direita sobre dó–sol, palma para baixo, dedos abertos, estável por cerca de meio segundo.
 
-Pose, do primeiro dia: pulso do lado de quem toca, nós altos, dedos curvos e próximos, um dedo por tecla branca. Polegar de lado no dó central, 2 no ré, 3 no mi, 4 no fá, 5 no sol. Polegar à esquerda da mão, mínimo à direita.
-
-- **Posição.** A mão branca fica parada nessas teclas. O card leva a etiqueta da lição, “Ponha a mão assim.” / “Place your hand like this.” e o botão branco “Ouvir” / “Hear”. A pose não é pontuada.
-- **Ouvir.** O clique anima essa mesma mão no trecho: só o dedo da nota atual desce na tecla que está soando. Na lição 1 o polegar desce quatro vezes no dó. Na lição 2 o polegar desce no dó e o indicador desce no ré.
-- **Guiado.** A mão branca fica no dedo da tecla acesa. Não toca o trecho sozinha.
-- **Memória.** A mão branca some junto com as luzes. No erro, volta um segundo no dedo certo e some outra vez.
+- **Posição.** Card: “Ponha a mão assim.” A mão branca parada. Pose aceita: o card passa a ser o nome do próximo dedo e esse dedo acende na mão branca.
+- **Loop.** A mesma mão repete a sequência. O dedo da nota atual fica marcado. A tecla correspondente acende. O piano soa. No fim, recomeça. A pessoa copia até a sequência sair limpa no MIDI.
+- **Mão desligada.** Some a malha branca. Ficam a cor da tecla e o nome do dedo no card. A pose não bloqueia.
+- **Música.** Depois das doze aulas, o loop é a junção das sequências, em ordem.
 
 ## 5. Fluxo espacial da calibração
 

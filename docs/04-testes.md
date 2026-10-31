@@ -77,7 +77,8 @@ Participante: adulto que não viu o desenho das telas. Tarefa lida em voz alta u
 |---|---|---|---|
 | T-UX-01 | “Escolha a língua, ligue o teclado e deixe o app pronto para a primeira lição.” Checklist impresso só com os nomes das funções Casio, igual ao painel | Conclui sem o condutor mostrar onde tocar | jornada §13 |
 | T-UX-02 | “Faça a lição 1 até o fim.” | Descreve que primeiro copiou a mão, depois as luzes e a mão sumiram e ela teve que lembrar. Termina com 2 ou 3 estrelas | jornada §13, RF-37, RF-32a |
-| T-UX-02b | Na pose da lição 1, olhar a mão e o card | A única mão desenhada é a branca, direita, nas teclas da mão direita. O card tem a etiqueta da lição, a frase e o botão branco Ouvir. Na memória a mão branca sai e o card fica sem botão | RF-31, RF-32a, RF-32b, RF-35, RF-37a |
+| T-UX-02b | Na aula 1, pôr a mão direita sobre a mão branca | O card sai de “Ponha a mão assim.” para “Polegar” e o polegar da mão branca acende. Tirar a mão devolve o card anterior e pausa o loop | RF-32a, RF-37, RF-38 |
+| T-UX-02c | Com o loop rodando, desligar “Mão” | A malha some. A tecla da vez continua colorida. O loop não pede pose | RF-32c |
 | T-UX-03 | Headset no colo, logo após T-UX-02: “Toca o que a lição pediu.” | Quatro dó na posição, sem o app | sucesso da seção 2 dos requisitos |
 | T-UX-04 | No dia seguinte: “Abre e faz o que o app pedir primeiro.” | Entra na revisão, não pede para pular para a lição 2 | RF-44, jornada §8 |
 | T-UX-05 | Lição 1 com uma luva fina ou mão parcialmente fechada, tracking instável, depois de calibrado | A lição termina. Nenhum erro é atribuído à mão | RF-38, RNF-07 |
