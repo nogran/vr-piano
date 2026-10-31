@@ -50,10 +50,12 @@ Se T-MIDI-00 mostrar que o `MidiManager` não lista o CT-S300 no Quest, a ponte 
 - `timestampNanos` vem de `System.nanoTime()` (o mesmo relógio do `onSend`).
 - O `ClockPort` do app usa esse mesmo relógio, pela ponte, para o instante monotônico. O dia local vem do relógio de parede do Android, no fuso atual.
 - Em teste, o `ClockPort` é falso e controlado pelo cenário.
+- A avaliação de ritmo (RF-32a) usa o `timestampNanos` do Note On, e não o instante do quadro em que o evento foi drenado. Assim a fila de até um quadro não vira atraso falso.
+- O cinza dinâmico é calculado pelo adapter de realce a cada quadro, com `tAcerto` e `tAtaque` do evento `PróximaMudou` e o mesmo relógio. A tecla usa o mesmo material instanciado do realce, com a cor e a intensidade como propriedades.
 
 ### Envio
 
-Comandos `EnviarNoteOn/Off` do domínio são executados no mesmo quadro, por uma fila na ponte que chama `MidiInputPort.send` fora da thread principal. A granularidade de quadro (≈14 ms) é suficiente para a demonstração de 1 nota por segundo.
+Comandos `EnviarNoteOn/Off` do domínio são executados no mesmo quadro, por uma fila na ponte que chama `MidiInputPort.send` fora da thread principal. A granularidade de quadro (≈14 ms) é suficiente para a demonstração nos andamentos do catálogo (40 a 120 BPM).
 
 ## 4. Manifest Android
 
@@ -115,7 +117,8 @@ Origem na borda esquerda da frente da tecla branca mais grave, na superfície da
 - Sombra de contato falsa (decal) sob a mão, não sombra em tempo real (§8). Referência: `docs/visao/capa-licao1.jpg`.
 - Pose base: posição de cinco dedos, dedos levemente curvos, polegar sobre a tecla 60.
 - Animação por dedo: descer ~120 ms, segurar enquanto a nota soa, subir ~120 ms.
-- Destaque do dedo da vez: cor âmbar no dedo, igual à da tecla alvo.
+- Destaque do dedo na demonstração: o dedo que desce fica na cor ativa, igual à da tecla.
+- Fim da demonstração: fade de `P-35` até sumir. A mão não aparece na vez guiada nem na memória.
 - Escala: largura da mão casada com 5 passos de tecla branca do teclado calibrado.
 
 ## 8. Desempenho e latência
