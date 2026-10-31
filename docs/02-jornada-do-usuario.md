@@ -1,36 +1,33 @@
 # Jornada do usuário
 
-Adulto iniciante, sozinho, Quest 3 ou 3S, CT-S300 na mesa, cabo Micro-B para USB-C já ao alcance. Sem conta. Textos abaixo são o conteúdo da interface, nos dois idiomas.
+Adulto iniciante, sozinho, Quest 3 ou 3S, CT-S300 na mesa, cabo Micro-B para USB-C já ao alcance. Sem conta. Os textos exatos, nos dois idiomas, estão em [07 · Textos da interface](07-textos-da-interface.md); aqui aparecem em pt-BR.
 
 ## Visão única
 
 ```text
 Idioma → cabo e checklist → qualquer tecla → calibrar → lição 1
-        → ouvir → guiado → memória → estrelas
-        → (outro dia) lembrar a frase → próxima lição
+        → pose → (ouvir) → loop até sair limpo → memória → estrelas
+        → (outro dia) frase da última vez → próxima lição
         → quadro de progresso, quando quiser
 ```
 
-A pessoa olha para o piano o tempo todo. O menu é um card escuro acima do teclado: etiqueta da lição, uma frase, e um botão branco quando ela precisa escolher.
+A pessoa olha para o piano o tempo todo. O menu é um card escuro acima do teclado: etiqueta da lição, uma frase e, quando ela precisa escolher, botões brancos.
 
 ## 1. Primeira abertura
 
-O passthrough mostra a sala. Um painel pequeno, central, dois botões grandes:
-
-- Português
-- English
+O passthrough mostra a sala. Um painel pequeno, central, dois botões grandes: “Português” e “English”.
 
 Não há terceiro botão e não há idioma pré-marcado. A escolha grava na hora (RF-01, RF-02).
 
-Em seguida, uma linha: “Sente-se de frente para o teclado.” / “Sit facing the keyboard.” Sem tutorial de gesto. A próxima tela já é o cabo.
+Em seguida, uma linha: “Sente-se de frente para o teclado.” Sem tutorial de gesto. A próxima tela já é o cabo.
 
 ## 2. Conectar o CT-S300
 
-Painel com o estado em uma palavra: “Procurando teclado…” / “Looking for keyboard…”
+Painel com o estado em uma frase: “Procurando teclado…”. Se o Quest pedir permissão de USB, uma linha explica e o pedido do sistema aparece. Negado: “Sem permissão, o app não ouve o teclado.” e o botão “Pedir de novo” (RF-10).
 
-Quando o USB-MIDI enumera: “Teclado conectado.” / “Keyboard connected.”
+Quando o USB-MIDI enumera: “Teclado conectado.”
 
-Checklist, cada item é uma linha que a pessoa marca com pinça. Se a mão não estiver rastreada, a nota dó central marca o item em foco (RF-39):
+Checklist, cada item é uma linha que a pessoa marca com pinça. Se a mão não estiver rastreada, a tecla branca mais grave do teclado marca o item em foco e a seguinte passa ao próximo item (RF-39):
 
 1. Ritmo desligado. Song parado.
 2. MIDI Out Octave Shift em 0.
@@ -38,85 +35,106 @@ Checklist, cada item é uma linha que a pessoa marca com pinça. Se a mão não 
 4. MIDI Out Velocity em Off.
 5. Local Control ligado.
 
-Botão “Pronto” / “Done” só acende com os cinco marcados e o cabo conectado (RF-12).
+O botão “Pronto” só acende com os cinco marcados e o cabo conectado (RF-12).
 
-Se o cabo não aparece em cerca de dez segundos, uma linha extra: “Use um cabo de dados, Micro-B no teclado e USB-C no headset.” / “Use a data cable, Micro-B on the keyboard and USB-C on the headset.” Sem QR code, sem site.
+Se o cabo não aparece em `P-26`, uma linha extra: “Use um cabo de dados, Micro-B no teclado e USB-C no headset.” Sem QR code, sem site.
 
 ## 3. Prova de que a nota chega
 
-“Toque qualquer tecla.” / “Press any key.”
+“Toque qualquer tecla.”
 
-A tecla que chegar no MIDI acende no modelo ainda sem posição final, num teclado esquemático no painel, com o nome da nota. Isso prova o cabo antes de investir na calibração. Velocity aparece discreta: “leve”, “médio” ou “forte” / “soft”, “medium”, “loud”.
+A tecla que chegar no MIDI acende num teclado esquemático dentro do painel, com o nome da nota. Isso prova o cabo antes de investir na calibração. A velocity aparece discreta: “leve”, “médio” ou “forte”.
 
 ## 4. Calibrar
 
 Duas ordens, uma por vez.
 
-1. “Aponte o indicador para a tecla branca da esquerda e toque.” / “Point at the leftmost white key and press it.”
-2. “Aponte o indicador para a tecla branca da direita e toque.” / “Point at the rightmost white key and press it.”
+1. “Aponte o indicador para a tecla branca da esquerda e toque.”
+2. “Aponte o indicador para a tecla branca da direita e toque.”
 
-O realce passa a cobrir o piano real. “Ajuste se precisar.” / “Nudge if you need to.” Pinça nos cantos do modelo (RF-22).
+Se os dois toques não baterem com um teclado de 61 teclas: “Não bateu. Vamos de novo.” e volta ao primeiro ponto (RF-22).
 
-Verificação: “Toque o dó central.” / “Press middle C.” O realce do dó central tem que estar na tecla que enviou a nota 60. Acertou: entra na lição 1. Errou: volta ao ponto 1 da calibração, sem texto de culpa.
+O realce passa a cobrir o piano real. “Ajuste se precisar.” Pinça nas quatro alças dos cantos.
+
+Verificação: “Toque o dó central.” O realce do dó central tem que estar na tecla que enviou a nota 60. Acertou: entra na lição 1. Errou: volta ao ponto 1 da calibração, sem texto de culpa.
 
 Nas aberturas seguintes, só a verificação do dó central. Se coincidir, a calibração longa não aparece (RF-23).
 
 ## 5. Lição 1 — primeira vez
 
-Não há home antes desta lição. O painel diz “Lição 1 · Dó” / “Lesson 1 · C” e a fase.
+Não há tela inicial antes desta lição. O card mostra a etiqueta “Lição 1”.
 
-### Posição
+### Pose
 
-A mão branca fica parada: polegar no dó, os outros quatro sobre ré, mi, fá e sol. O card diz “Ponha a mão assim.” / “Place your hand like this.” e tem “Ouvir” / “Hear” e o controle “Mão” / “Hand”.
+A mão branca fica parada: polegar no dó, os outros quatro sobre ré, mi, fá e sol. O card diz “Ponha a mão assim.” e tem o botão “Ouvir” e o controle “Mão”.
 
-Ela põe a mão direita em cima dessa pose. Quando o Quest vê a mão estável sobre essas teclas, o card troca para “Polegar” / “Thumb” e o polegar da mão branca acende. Se a mão sai, o card volta.
+Ela põe a mão direita em cima da mão branca. Quando o Quest vê a mão estável nessa posição, o loop começa (RF-31).
+
+### Ouvir (opcional)
+
+Se ela aperta “Ouvir”, o card diz “Olhe e ouça.”, o CT-S300 toca os quatro dós devagar e a mão branca desce o polegar junto de cada som. No fim, o loop começa, mesmo que a mão dela ainda não esteja na pose (RF-31a). Fora do “Ouvir”, o app nunca toca o piano.
 
 ### Loop
 
-A mão branca repete a sequência sem parar. Na lição 1 o polegar desce no dó quatro vezes, a tecla acende, o piano soa, e tudo recomeça. O dedo da vez fica marcado na mão branca. Ela toca junto até a sequência sair limpa. Aí a aula 2 abre.
+O dó acende em âmbar, o polegar da mão branca acende e o card diz “Polegar”. A mão branca espera. Ela toca o dó: verde breve, a tecla apaga e acende de novo para a próxima repetição. Depois do quarto dó, o loop recomeça.
 
-“Mão” desligada esconde a mão branca. Ficam a cor da tecla e o nome do dedo no card. O loop não espera a pose.
+Se ela toca outra tecla: vermelho breve nessa tecla, o dó continua aceso, o card continua “Polegar”. A volta deixa de ser limpa, mas ela segue tocando.
+
+Se ela tira a mão ou o Quest perde a mão, nada muda: o loop segue pelo MIDI (RF-38).
+
+### Memória
+
+Na primeira volta sem erro, o card diz “Agora de memória.”. Um segundo depois, luz, nome e mão branca somem juntos. Ela toca os quatro dós sem ajuda.
+
+Se erra: o dó acende em âmbar por um segundo, a tecla tocada fica vermelha, a mão branca aparece com o polegar, e tudo apaga. Ela recomeça do primeiro dó. Depois de três erros seguidos, o card diz “Mais uma vez com guia.” e o loop volta (RF-36).
+
+### Estrelas
+
+Três marcas no card. “Você lembrou.” se saiu na primeira tentativa (3); “Lição seguinte aberta.” se precisou de mais de uma (2).
+
+“Mão” desligada esconde a mão branca, pula a pose e deixa a cor da tecla e o nome do dedo no card.
 
 ## 6. Entre lições
 
-Painel curto, ainda no piano:
+Card curto, ainda acima do piano:
 
-- Estrelas desta lição.
-- “Próxima” / “Next”, só se a atual tem 2 ou 3.
-- “De novo” / “Again”.
-- “Progresso” / “Progress”.
+- Estrelas da lição que acabou.
+- “Próxima”, se a atual tem 2 ou 3 estrelas.
+- “De novo”.
+- “Progresso”.
+
+Cada botão mostra, numa linha menor, a tecla de atalho (“ou Dó2”).
 
 Não há mapa de 12 fases espalhado no espaço. A próxima lição é uma ação. A lista completa mora no progresso, em texto, para não virar um tabuleiro.
 
 ## 7. Lição no meio do currículo (exemplo: lição 5)
 
-Matéria: emendar. Dois pedaços, dó–ré–mi e ré–dó, depois a frase inteira.
-
-Para cada aula nova o ciclo é o mesmo: pose, loop da sequência, repetir até sair limpo. A mão branca marca o dedo da vez.
+Matéria: ida e volta. Sequência dó–ré–mi–ré–dó. O ciclo é o mesmo: pose, loop até uma volta sair limpa, memória. A mão branca marca o dedo da vez: polegar, indicador, médio, indicador, polegar.
 
 ## 8. Música do nível 1
 
-Com as doze sequências feitas, abre a música. É as doze em ordem, no mesmo loop. A pessoa toca a peça inteira repetindo a ordem dos dedos que já aprendeu, uma sequência depois da outra.
+Quando as doze lições têm 2 ou mais estrelas, o card entre lições diz “A música do nível 1 abriu.”. A música são as doze sequências em ordem, 50 notas, no mesmo ciclo pose → loop → memória. A etiqueta do card mostra de que lição é o trecho atual. As estrelas da música aparecem à parte no progresso.
 
 ## 9. Outro dia — lembrar
 
-Antes da lição nova, o painel diz “Toca a frase de ontem.” / “Play yesterday’s phrase.” Sem luz.
+Depois da verificação do dó central, antes de qualquer lição, o card diz “Frase da última vez.” e, em seguida, “Toque de memória.” Sem luz e sem mão branca.
 
-- Acertou: “Lembrou.” / “Remembered.” O dia seguido soma. A lição nova começa no ouvir.
-- Errou: a tecla certa pisca, o pedaço recomeça. Botões “Ouvir” e “Com guia” / “Hear” e “With guide”, uma vez cada, depois memória de novo. Não há punição de estrela da lição antiga. Concluir essa revisão soma o dia seguido (RF-44).
+- Acertou: “Lembrou.” O dia seguido soma. Vai para o card entre lições.
+- Errou: o retorno de erro da memória (âmbar, vermelho, mão branca por um segundo). Depois aparecem “Ouvir” e “Com guia”, cada um uma vez. Tocar a primeira nota recomeça a tentativa. Não há botão de pular, e a estrela da lição antiga não muda (RF-44).
 
-Se ela abrir de novo no mesmo dia, a revisão não se repete.
+Se ela abrir de novo no mesmo dia, a revisão não se repete. Se a última coisa lembrada foi a música, a revisão é a sequência da lição 12.
 
 ## 10. Quadro de progresso
 
-Aberto pelo botão “Progresso”. Painel ao lado do teclado, quatro linhas:
+Aberto pelo botão “Progresso”. Painel ao lado do teclado:
 
 - Estrelas: 14/36
+- Música: 0/3
 - Dias seguidos: 3
 - Maior sequência: 3
 - De memória, sem erro: 4 lições
 
-Abaixo, as 12 lições com 0–3 estrelas e a próxima aberta. Lição fechada não entra no modo ouvir por um atalho. Dá para repetir qualquer lição já aberta.
+Abaixo, as 12 lições e a música com 0–3 estrelas e a próxima aberta. Item fechado é texto opaco, sem botão. Dá para repetir qualquer item aberto.
 
 Sem lista de jogadores, sem nome, sem compartilhar.
 
@@ -125,31 +143,31 @@ Sem lista de jogadores, sem nome, sem compartilhar.
 No mesmo painel de progresso, embaixo:
 
 - Idioma: Português / English. Trocar aqui reconstrói os textos e não mexe nas estrelas (RF-03).
-- “Mão” / “Hand”: ligada mostra a mão branca. Desligada deixa só a cor na tecla (RF-32c).
-- “Calibrar de novo” / “Calibrate again”.
-- “Checklist do teclado” / “Keyboard checklist”.
+- “Mão”: ligada mostra a mão branca. Desligada deixa só a cor na tecla (RF-32c).
+- “Calibrar de novo”.
+- “Checklist do teclado”.
 
 ## 12. Interrupções
 
 | O que acontece | O que ela vê | O que é gravado |
 |---|---|---|
-| Cabo sai | “Teclado desconectado. A lição pausou.” / “Keyboard disconnected. Lesson paused.” | Estrelas anteriores intactas. O pedaço atual não vira erro. |
-| Cabo volta | A fase pausada continua | — |
-| Oito notas com a mesma velocity | “Velocity fixa. No teclado, MIDI Out Velocity em Off.” / “Velocity is fixed. On the keyboard, set MIDI Out Velocity to Off.” Dá para fechar o aviso. | Nada |
-| Ritmo ou song cospe várias notas | “Pare o ritmo ou a música do teclado.” / “Stop the keyboard rhythm or song.” Lição pausada. | O pedaço não conta como erro |
-| Headset sai no meio | Ao voltar, a lição retoma o pedaço, modo ouvir desse pedaço | Estrelas já concedidas permanecem |
-| Mão some no meio da música | Nada. A lição segue pelo MIDI | — |
-| Mão some num botão | A linha do painel diz qual tecla equivale ao botão em foco | — |
+| Cabo sai | “Teclado desconectado. A lição pausou.” | Estrelas anteriores intactas. Nada vira erro. |
+| Cabo volta | No loop, o mesmo passo. Na memória, a tentativa recomeça sem contar falha. Na demonstração, volta à pose. | — |
+| Oito notas com a mesma velocity | “Velocity fixa. No teclado, MIDI Out Velocity em Off.” Dá para fechar o aviso. | Nada |
+| Ritmo ou song soltam várias notas | “Pare o ritmo ou a música do teclado.” Lição pausada; retoma após 3 s de silêncio. | Nada vira erro |
+| Botão Meta ou headset tirado | Ao voltar, “Lição pausada.” com “Continuar” e “Sair da aula”. | Estrelas já concedidas permanecem |
+| Mão some no meio do loop ou da memória | Nada. A lição segue pelo MIDI. | — |
+| Mão some num menu | A linha do botão em foco diz qual tecla faz a mesma ação. | — |
 
-## 12. O que ela é capaz de fazer ao fim da lição 12
+## 13. O que ela é capaz de fazer ao fim da lição 12
 
-Tocar, de memória, dó–ré–mi–fá–sol, o caminho de volta, e dó–mi–sol–mi–dó, com a mão direita na posição inicial, sem luz e sem esteira. Não lê pauta. Não usa a mão esquerda. Não é cobrada de tempo nem de força.
+Tocar, de memória, dó–ré–mi–fá–sol, o caminho de volta e dó–mi–sol–mi–dó, com a mão direita na posição inicial, sem luz e sem esteira. Não lê pauta. Não usa a mão esquerda. Não é cobrada de tempo nem de força.
 
-## 13. Critério de jornada aceita
+## 14. Critério de jornada aceita
 
 Um adulto que nunca usou o app:
 
 1. Escolhe o idioma, liga o cabo, marca o checklist e calibra sem outra pessoa lendo um manual externo.
-2. Entende, pelo card, que primeiro põe a mão, depois o dedo marcado no loop é o que ela repete até a sequência sair limpa.
-3. Sai da lição 1 sabendo repetir os quatro dó com o headset no colo.
-4. No dia seguinte, reconhece a tela “frase de ontem” como revisão, não como lição nova.
+2. Entende, pelo card, que primeiro põe a mão, depois repete o dedo marcado no loop e, por fim, toca sem luz.
+3. Sai da lição 1 sabendo repetir os quatro dós com o headset no colo.
+4. No dia seguinte, reconhece a tela “Frase da última vez.” como revisão, não como lição nova.

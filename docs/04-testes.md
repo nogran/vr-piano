@@ -1,113 +1,282 @@
 # Testes
 
-Casos da v1. Os de domínio (lição, estrela, desbloqueio, dia seguido, filtro de eco) rodam sem headset. Os de MIDI, passthrough e jornada rodam com Quest 3 ou 3S e CT-S300, cabo de dados Micro-B para USB-C, teclado na alimentação dele.
+Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou a regra ([06](06-modelo-de-dominio.md)) que ele trava. A matriz da §10 prova que nenhum requisito ficou sem teste.
 
-Setup comum do teclado nos testes de lição, salvo quando o caso muda de propósito: ritmo off, song parado, octave shift 0, Touch Response Normal, MIDI Out Velocity Off, Local Control on.
+## 0. Ambiente e ferramentas
 
-## 1. Aceite
+| Grupo | Onde roda | Como |
+|---|---|---|
+| T-DOM, T-ADP, T-PER, T-TXT, T-BUILD-01 | Máquina de desenvolvimento, sem headset | `dotnet test` (domínio) e Unity Test Framework (adapters). Rodam a cada commit. |
+| T-MIDI, T-CAL, T-POSE, T-ACC, T-PERF, T-BUILD-02/03 | Quest 3 e Quest 3S + CT-S300 | Build de desenvolvimento com log (05 §9). |
+| T-UX | Headset, com participante | Adulto que não viu o desenho das telas. A tarefa é lida em voz alta uma vez, sem apontar tecla. |
+| T-REV | Revisão humana | Checklist antes de fechar a v1. |
 
-| ID | Dado | Ação | Aceite | Requisito |
+**Cenário de domínio.** Os testes T-DOM são escritos como: estado inicial do progresso + lista de entradas com instante (`t=0 PoseMudou(true)`, `t=500 NoteOn(60, 64)`, `t=… Tick`) → lista esperada de eventos e comandos. O `ClockPort` é falso. Uma sessão gravada no headset (05 §9) pode virar um cenário novo sem reescrita.
+
+**Dublês.** `MidiIn` e `MidiOut` falsos (o de saída registra os comandos), `ClockPort` falso com dia local ajustável, `ProgressStore` em memória com falha injetável, catálogo real.
+
+**Setup do teclado** nos testes de headset, salvo quando o caso muda de propósito: ritmo off, song parado, octave shift 0, Touch Response Normal, MIDI Out Velocity Off, Local Control on, alimentação própria, cabo de dados Micro-B para USB-C.
+
+**Revisão no dia seguinte em headset.** Build de desenvolvimento tem um ajuste escondido que soma um dia ao `ClockPort`. Os casos que dependem de outro dia usam esse ajuste ou o relógio do sistema.
+
+## 1. Domínio (T-DOM)
+
+### Lição
+
+| ID | Dado | Quando | Então | Req. |
 |---|---|---|---|---|
-| T-ACC-01 | App recém-instalado, sem arquivo de progresso | Abrir | Aparecem só “Português” e “English”, nenhum dos dois marcado | RF-01 |
+| T-DOM-01 | L01 em Pose, Mão ligada | `PoseMudou(true)` | `FaseMudou(Loop)`, `AlvoMudou(60, 1, 0)` | RF-31 |
+| T-DOM-02 | L01 em Pose | `MãoAlternada(false)` | Loop no passo 0, sem esperar pose | RF-32c |
+| T-DOM-03 | L01 em Pose | `NoteOn(60)` | Nenhum evento de acerto ou erro. Fase continua Pose | RF-31 |
+| T-DOM-04 | L03 em Pose, conectado | `OuvirAcionado` em t=0 | Comandos: On 60 em 0, Off 60 em 700, On 62 em 1000, Off 62 em 1700, On 64 em 2000, Off 64 em 2700 (velocity `P-11`, canal `P-12`); `DemoNota` para cada um; Loop no passo 0 depois do último Off | RF-14, RF-31a |
+| T-DOM-05 | Demonstração da L01 terminou em t=T | `NoteOn(60)` em T+299 e em T+301 | O primeiro é ignorado; o segundo é `NotaCerta`. Note On durante a demonstração também é ignorado | RF-31a, P-08 |
+| T-DOM-06 | L01 no Loop | Quatro `NoteOn(60)` | Quatro `NotaCerta`, `VoltaConcluída(limpa)`, `FaseMudou(Transição)`, estrelas 0→1 | RF-32, RF-35 |
+| T-DOM-07 | Loop | 8 `NoteOn` com velocity 100; depois um com 70 | `VelocityFixa(true)` no 8º, `VelocityFixa(false)` no 9º. Nenhum efeito em acerto ou fase | RF-13, P-03 |
+| T-DOM-08 | L01 no Loop, passo 2 | 3 `NoteOn` (60, 64, 67) em 40 ms | `LiçãoPausada(Rajada)`. Passo volta a 2. Nenhuma falha contada | RF-16, P-04, P-05 |
+| T-DOM-08b | Loop | 13 `NoteOn` em 1000 ms; noutro cenário, alternância 60/62 a cada 100 ms por 5 s | O primeiro pausa por rajada. O segundo (10 por segundo) não pausa | RF-16, P-06 |
+| T-DOM-08c | Pausado(Rajada) | Silêncio de 2999 ms com um Note On no meio; depois 3000 ms sem nada | Só retoma depois de 3000 ms contínuos de silêncio | RF-16, P-07 |
+| T-DOM-09 | L02 no Loop, alvo 60 | `NoteOn(64)`; depois 60, 62 | `NotaErrada(64, 60)`, passo continua 0; a volta termina não limpa e o loop recomeça sem ir para a memória | RF-32, RF-35 |
+| T-DOM-10 | Loop, alvo 60 | `NoteOn(60)` com velocity 1, 49, 50, 89, 90, 127 | Todos são acerto. Faixas: Leve, Leve, Médio, Médio, Forte, Forte | RF-33, P-01, P-02 |
+| T-DOM-11 | L02 no Loop | `NoteOn(60)`, `NoteOn(62)` sem `NoteOff(60)` entre eles | Os dois são acerto | RF-34 |
+| T-DOM-12 | Transição | `NoteOn(60)` 500 ms depois de entrar; `Tick` em 1000 ms | O Note On é ignorado. Memória começa em 1000 ms | RF-35, P-22 |
+| T-DOM-13 | L03 na Memória, passo 1 | `NoteOn(65)`; `NoteOn(60)` 300 ms depois; `Tick` em 1000 ms | `TentativaFalhou(65, 62)`; o Note On durante o retorno de erro é ignorado; Memória volta ao passo 0 | RF-36, P-25 |
+| T-DOM-14 | Memória | Três tentativas falhas seguidas | `VoltouAoLoop` depois da 3ª. Uma volta limpa leva de novo à memória; concluir dá 2 estrelas | RF-36, P-21 |
+| T-DOM-15 | Execuções da L01 | (a) memória limpa na 1ª tentativa; (b) uma falha e depois conclusão; (c) sair na memória depois da volta limpa; (d) sair no loop sem volta limpa | (a) 3, (b) 2, (c) 1, (d) 0 | RF-40 |
+| T-DOM-16 | L01 com 3 estrelas; L02 com 2 | Execução da L01 que vale 2; execução da L02 que vale 3 | L01 continua 3. L02 sobe para 3 | RF-42 |
+| T-DOM-17 | Progresso variado | Calcular abertos | L01 fechada sem checklist ou sem calibração. L02 fechada com L01 em 1, aberta com L01 em 2. SONG1 fechada com 11 lições ≥ 2 e uma em 1; aberta com as 12 ≥ 2 | RF-41, RF-32d |
+| T-DOM-18 | (a) Loop no passo 2; (b) Memória no passo 3 com uma falha anterior; (c) Demonstração | `MidiDesconectado`, depois `MidiConectado` | (a) volta no passo 2; (b) volta no passo 0, `falhasSeguidas` igual, a execução ainda vale no máximo 2; (c) volta para Pose e nenhum comando de envio sai depois da desconexão. Estrelas salvas iguais | RF-15, RNF-08 |
+| T-DOM-18b | Memória limpa até o passo 3, sem falha | `MidiDesconectado`, `MidiConectado`, conclui sem erro | 3 estrelas: a queda não conta como falha | RF-15, RF-40 |
+| T-DOM-19 | Loop | `FocoPerdido`, `Continuar`; noutro cenário, `SairDaAula` | Retoma no passo; sair encerra sem mudar estrelas | RF-39a |
+| T-DOM-20 | Loop | `PoseMudou(false)` e nenhum dado de mão por 60 s, depois Note On certos | Nenhuma pausa, a lição termina | RF-38, RNF-07 |
+| T-DOM-21 | SONG1 no Loop | Percorrer os 50 passos | `AlvoMudou` traz a lição do trecho certo em cada passo (passos 0–3 → L01, 4–5 → L02 … 40–49 → L12). Conclusão grava estrelas da SONG1 | RF-32d |
+
+### Dia seguido e revisão
+
+| ID | Dado | Quando | Então | Req. |
+|---|---|---|---|---|
+| T-DOM-22 | `lastCountedDay` = D−1, current 3, best 3 | Memória concluída em D; outra em D | current 4, best 4; a segunda não muda nada | RF-43 |
+| T-DOM-23 | `lastCountedDay` = D−3, current 5 | Abrir em D | current 0, best mantido, estrelas intactas. Memória concluída em D → current 1 | RF-43 |
+| T-DOM-24 | `lastSeenDay` = D | Abrir com o relógio em D−1 | Nenhuma revisão, nenhuma mudança de sequência; `lastSeenDay` continua D | RF-43 |
+| T-DOM-25 | `lastMemory` = (L03, D−1); noutro, (L03, D); noutro, nulo | Abrir em D | Só o primeiro pede revisão, com o item L03 | RF-44 |
+| T-DOM-26 | `lastMemory` = (SONG1, D−1) | Abrir em D | A revisão usa a sequência da L12 | RF-44 |
+| T-DOM-27 | Revisão da L02 | Erra; `OuvirAcionado`; erra; `ComGuiaAcionado`; erra | Depois do 1º erro, ofertas Ouvir e Com guia; depois do Ouvir, só Com guia; depois do Com guia, nenhuma. Em Ofertas, `NoteOn(60)` inicia a tentativa como acerto; `NoteOn(64)` inicia e falha | RF-44 |
+| T-DOM-28 | Revisão da L02, estrelas da L02 = 2 | Conclui com erro antes | `RevisãoConcluída`; dia seguido conta; L02 continua 2; `lastMemory.day` = D; abrir de novo em D não pede revisão | RF-43, RF-44 |
+| T-DOM-30 | Catálogo embutido | Validar | As regras do 06 §5 passam; L01–L12 batem com a tabela; SONG1 tem 50 passos | RF-30 |
+
+## 2. Adapters sem headset (T-ADP)
+
+| ID | Caso | Aceite | Req. |
+|---|---|---|---|
+| T-ADP-01 | Parser MIDI com bytes gravados: Note On v0, running status, clock, active sensing, CC, program change, Note On em canal 2 | Note On v0 vira Note Off; running status resolvido; o resto descartado; canal não importa | RF-11 |
+| T-ADP-02 | Matemática da calibração com pontos sintéticos: (a) 36 e 96 a 822,5 mm; (b) 36 e 95; (c) 36 e 96 a 600 mm; (d) 48 e 108 | (a) aceito, passo 23,5 mm; (b) recusado (95 não é branca); (c) recusado por `P-19`; (d) aceito, dó central é a 8ª tecla branca a partir da esquerda (com 36, seria a 15ª) | RF-22, RF-23 |
+| T-ADP-03 | Mapa do teclado: `lowNote` 36; `lowNote` 72 | 61 teclas, 36 brancas, pretas nas posições do 05 §6. Com 72, a nota 60 está fora do alcance e a lição é recusada | RF-24 |
+| T-ADP-04 | Detector de pose com quadros de mão gravados: pose correta; palma a 50°; polegar duas teclas ao lado; palma a 20 cm; mão esquerda; pose correta por 400 ms | Só a primeira vira `PoseMudou(true)`, depois de 500 ms | RF-31, P-13–P-17 |
+| T-ADP-05 | Teclas de atalho com `lowNote` 36 e 48 | Botões mapeados em 36/38/40 e 48/50/52; o rótulo mostra “Dó2/Ré2/Mi2” e “Dó3/Ré3/Mi3” | RF-39, P-27 |
+
+## 3. Persistência (T-PER)
+
+| ID | Caso | Aceite | Req. |
+|---|---|---|---|
+| T-PER-01 | Gravar e ler um progresso com todos os campos preenchidos | Leitura idêntica | RF-46 |
+| T-PER-02 | Falha injetada em cada etapa da gravação (meio do `.tmp`, depois do `.tmp`, depois do `.bak`, antes do rename) | Toda leitura seguinte dá a versão anterior completa ou a nova completa | RNF-09, RNF-08 |
+| T-PER-03 | Principal truncado, `.bak` bom | Lê o `.bak` | RNF-08 |
+| T-PER-04 | Principal e `.bak` ilegíveis | Arquivo vira `progress.corrupt-<data>.json`, app começa do zero, aviso uma vez | RNF-08 |
+| T-PER-05 | `schemaVersion` 99 | Não sobrescreve; o arquivo continua no disco | RNF-08 |
+| T-PER-06 | `stars` sem a L05 | L05 lida como 0; nenhum desbloqueio gravado no arquivo | RF-41 |
+
+## 4. Textos e build (T-TXT, T-BUILD)
+
+| ID | Caso | Aceite | Req. |
+|---|---|---|---|
+| T-TXT-01 | Tabela de textos | Toda chave tem pt-BR e en, não vazios; toda chave usada no app existe | RF-03 |
+| T-TXT-02 | Frases do card | Nenhuma passa de 32 caracteres | RNF-05 |
+| T-BUILD-01 | Assembly do domínio | Não referencia `UnityEngine`, Android nem OpenXR; `dotnet test` passa numa máquina sem Unity | RNF-11 |
+| T-BUILD-02 | Manifest final do APK (`aapt dump`) | Sem `INTERNET`; com MIDI, USB host, hand tracking, passthrough e âncora | RNF-04 |
+| T-BUILD-03 | `adb install` no Quest 3 e no 3S | Instala e abre na tela de idioma | RN-01 |
+
+## 5. MIDI no Quest (T-MIDI)
+
+Fazer T-MIDI-00 e 01 antes de qualquer trabalho visual fino.
+
+| ID | Caso | Procedimento | Aceite | Req. |
+|---|---|---|---|---|
+| T-MIDI-00 | Caminho da ponte | App mínimo lista os aparelhos do `MidiManager` com o CT-S300 ligado | Registrar no 05 §12 se o CT-S300 aparece (nome, portas). Se não aparece, o caminho reserva USB host vira o principal | 05 §3 |
+| T-MIDI-01 | Enumeração | CT-S300 ligado, cabo no USB-C do Quest, app em “Procurando teclado…” | Passa a conectado sem PC no meio. Nome do aparelho no log | RF-10 |
+| T-MIDI-02 | As 61 teclas | Tocar cada tecla uma vez, brancas e pretas | 61 Note On distintos (36–96), um Note Off para cada, sem nota fantasma | RF-11 |
+| T-MIDI-03 | Velocity viva | `MIDI Out Velocity = Off`, Touch Response Normal; a mesma tecla, 8 toques fracos e 8 fortes | Os valores mudam. Registrar a distribuição para conferir `P-01`/`P-02`. Se não mudarem, a faixa de velocity sai do protótipo | RF-33 |
+| T-MIDI-04 | Velocity travada | `MIDI Out Velocity = 100`, 8 toques de forças diferentes | Aviso de velocity fixa; as notas continuam contando | RF-13 |
+| T-MIDI-05 | Note Off | Soltar devagar e rápido | O domínio não lê a velocity 64 do Note Off como dinâmica | RF-11 |
+| T-MIDI-06 | Octave shift | Shift +1, calibrar de novo, tocar a tecla física que agora envia 60 | O realce do dó central fica nessa tecla. A lição 1 segue tocável | RF-23 |
+| T-MIDI-07 | Eco | “Ouvir” na L09, ninguém encosta no teclado, gravar o MIDI de entrada | Ou não volta Note On, ou o que volta cai na demonstração ou na cauda `P-08`. Nenhum acerto ou erro é marcado. Se pontuar, falha | RF-31a |
+| T-MIDI-08 | Demonstração audível | “Ouvir” na L01 e na L03 | O CT-S300 soa as notas com 1 s de intervalo (± 50 ms no log). A mão branca desce o dedo junto de cada som | RF-14, RF-31a |
+| T-MIDI-09 | Latência | Note On de uma tecla fora da lição, com log do instante de recepção e do quadro em que o realce muda, 20 amostras | Mediana abaixo de `P-28` no Quest 3 e no Quest 3S | RNF-01 |
+| T-MIDI-10 | Queda de cabo | Tirar o Micro-B (a) no loop, (b) na memória | Pausa visível. Religar: (a) mesmo passo, (b) tentativa do início. Estrelas anteriores iguais | RF-15 |
+| T-MIDI-11 | Ritmo e song | Ligar um ritmo no CT-S300 durante o loop; depois o song player | Registrar no 05 §12 se essas notas chegam pelo USB. Se chegam: pausa com o aviso, sem somar erro | RF-16 |
+| T-MIDI-12 | Trilo | Alternar duas teclas o mais rápido possível por 5 s no loop | Nenhuma nota perdida no log. Nenhuma pausa por rajada. A regra de acerto continua valendo para a nota da vez | RF-16, P-06 |
+| T-MIDI-13 | Permissão USB | Se o sistema pedir permissão: negar, depois “Pedir de novo” e permitir | Mensagem do RF-10; depois de permitir, conectado | RF-10 |
+
+## 6. Calibração (T-CAL)
+
+| ID | Caso | Aceite | Req. |
+|---|---|---|---|
+| T-CAL-01 | Medir o CT-S300 com régua | Medidas gravadas no 05 §6 e `P-20` atualizado | 05 §6 |
+| T-CAL-02 | 10 calibrações seguidas, sem ajuste por pinça | Em pelo menos 8, o centro do realce das teclas 60–67 fica a menos de ¼ de tecla branca do centro real | RF-20, RF-21 |
+| T-CAL-03 | Tocar duas teclas que não são as pontas | Recusa com “Não bateu. Vamos de novo.” | RF-22 |
+| T-CAL-04 | Ajuste pelas alças | Depois do ajuste, as 61 teclas ficam a menos de ¼ de tecla do centro real | RF-22 |
+| T-CAL-05 | Fechar e abrir o app; depois mover o teclado 10 cm e abrir | Primeiro: só a verificação do dó central. Segundo: a verificação falha e a calibração completa é pedida | RF-23 |
+| T-CAL-06 | Calibrar, tocar 15 minutos, olhar o realce do dó | O realce ainda está na tecla, ou a pessoa recalibra sozinha e as estrelas seguem lá | RNF-06 |
+| T-CAL-07 | Apagar as âncoras salvas do app e abrir | Calibração completa pedida, sem erro | RF-23 |
+
+## 7. Pose (T-POSE)
+
+Três pessoas com mãos de tamanhos diferentes, luz normal de sala.
+
+| ID | Caso | Aceite | Req. |
+|---|---|---|---|
+| T-POSE-01 | Pôr a mão direita sobre a mão branca, 10 vezes por pessoa | Reconhecida em até 2 s em pelo menos 9 de 10 | RF-31 |
+| T-POSE-02 | Poses erradas: palma para cima, mão duas teclas ao lado, mão a 20 cm de altura, punho fechado | Nenhuma reconhecida em 10 tentativas cada | RF-31 |
+| T-POSE-03 | Mão esquerda na pose; luz fraca | Esquerda não é aceita. Com luz fraca, sem travar: “Ouvir” e “Mão” continuam funcionando | RF-31, RF-31a |
+| T-POSE-04 | Tirar a mão do campo de visão no meio do loop | O loop continua e termina pelo MIDI | RF-38 |
+
+## 8. Aceite ponta a ponta (T-ACC)
+
+| ID | Dado | Ação | Aceite | Req. |
+|---|---|---|---|---|
+| T-ACC-01 | App recém-instalado | Abrir | Só “Português” e “English”, nenhum marcado | RF-01 |
 | T-ACC-02 | Idioma ainda não escolhido | Matar o app na primeira tela e abrir de novo | A escolha é pedida outra vez | RF-02 |
-| T-ACC-03 | Idioma pt-BR gravado, cabo conectado, checklist feito, calibração válida | Abrir no mesmo dia, depois de já ter jogado | Não pede idioma. Pede só a verificação do dó central se a âncora existir | RF-02, RF-23 |
-| T-ACC-04 | Checklist incompleto | Tentar “Pronto” | A lição não começa | RF-12 |
-| T-ACC-05 | Sem calibração válida | Disparar o fluxo da lição 1 por qualquer atalho | A lição não começa; a calibração é o próximo passo | RF-24 |
-| T-ACC-06 | Lição 1, modo guiado, alvo dó | Note On 60, velocity 20; repetir até as quatro | Avança as quatro. Faixa mostra leve. Termina o guiado com direito a 1 estrela se parar aqui | RF-32, RF-33, RF-40 |
-| T-ACC-07 | Lição 1, guiado, alvo dó | Note On 62 | Realce vermelho em mi, dó continua alvo, passo não avança | RF-32 |
-| T-ACC-08 | Lição 1, memória | Quatro Note On 60, sem outra nota, na primeira tentativa | 3 estrelas. Lição 2 abre | RF-35, RF-40, RF-41 |
-| T-ACC-09 | Lição 1, memória | Uma nota errada, depois quatro dó corretos | 2 estrelas. Lição 2 abre. A estrela não fica em 1 | RF-35, RF-40, RF-41 |
-| T-ACC-10 | Lição 1 com 1 estrela apenas | Abrir a lição 2 | Não abre | RF-41 |
-| T-ACC-11 | Lição 1 com 3 estrelas | Repetir a memória e errar | Continua 3 estrelas | RF-42 |
-| T-ACC-12 | Lição 5 | Concluir os dois pedaços e errar a frase acumulada | Só a tentativa acumulada reinicia. Os pedaços anteriores seguem concluídos nesta sessão | RF-36 |
-| T-ACC-13 | Última memória concluída no dia local anterior | Abrir o app, calibração ok | A primeira tarefa é a frase anterior, sem ouvir automático | RF-44 |
-| T-ACC-14 | Revisão do dia falha e depois é concluída | Observar o contador | O dia conta. A estrela da lição antiga não desce | RF-43, RF-44 |
-| T-ACC-15 | Memória concluída hoje | Abrir de novo hoje | A revisão não reaparece | RF-44 |
-| T-ACC-16 | Um dia local inteiro sem memória concluída | Abrir no dia seguinte ao vazio | Dias seguidos voltam a zero. Estrelas permanecem | RF-43 |
-| T-ACC-17 | Qualquer fase pontuada | Inspecionar a cena | Não há nota caindo, cronômetro, combo, pauta nem avaliação de timing | seção 8 dos requisitos |
-| T-ACC-18 | Progresso com várias lições | Abrir o quadro | Mostra n/36, dias atual e maior, contagem de lições em 3 estrelas. Sem outro jogador | RF-45 |
+| T-ACC-03 | Sem cabo | Esperar na tela de conexão | A dica do cabo de dados aparece depois de `P-26` | RF-10 |
+| T-ACC-04 | Checklist com 4 itens | Tentar “Pronto” | Não acende; a lição não começa | RF-12 |
+| T-ACC-05 | Sem calibração válida | Tentar chegar à lição 1 por qualquer caminho | A calibração é o próximo passo | RF-20, RF-24 |
+| T-ACC-06 | L01 na pose | Pôr a mão na pose | O card troca para “Polegar”, o dó acende em âmbar, o polegar da mão branca acende | RF-31, RF-32, RF-37 |
+| T-ACC-07 | L01 na pose, mão fora | “Ouvir” | Demonstração; no fim o loop começa sem pose | RF-31a |
+| T-ACC-08 | L02 no loop, alvo dó | Tocar ré (62) | Vermelho no ré, dó continua âmbar, passo não avança | RF-32 |
+| T-ACC-09 | L01 | Volta limpa e memória sem erro | 3 estrelas, “Você lembrou.”, L02 abre | RF-40, RF-41 |
+| T-ACC-10 | L01 | Volta limpa, erro na memória, depois memória certa | 2 estrelas, L02 abre | RF-36, RF-40 |
+| T-ACC-11 | L01 com 1 estrela | Tentar abrir a L02 | Fechada | RF-41 |
+| T-ACC-12 | L01 com 3 estrelas | Repetir e errar a memória antes de concluir | Continua 3 | RF-42 |
+| T-ACC-13 | Memória da L03 | Errar três vezes seguidas | “Mais uma vez com guia.” e o loop volta | RF-36 |
+| T-ACC-14 | Memória concluída ontem | Abrir hoje | Depois do dó central, “Frase da última vez.”, sem demonstração automática | RF-44 |
+| T-ACC-15 | Revisão | Errar, usar “Ouvir”, concluir | Dia seguido soma; estrelas da lição revisada iguais | RF-43, RF-44 |
+| T-ACC-16 | Memória concluída hoje | Abrir de novo hoje | Sem revisão | RF-44 |
+| T-ACC-17 | Um dia inteiro sem memória concluída | Abrir no dia seguinte ao vazio | Dias seguidos em 0, estrelas intactas | RF-43 |
+| T-ACC-18 | Pose, demonstração, loop, memória, resultado, progresso | Inspecionar a cena | Só a mão branca é desenhada; card conforme RF-37a; nenhuma nota caindo, cronômetro, combo, pauta ou avaliação de timing | RF-32b, RF-37a, §8 do 01 |
+| T-ACC-19 | Progresso com várias lições e a música | Abrir o quadro | n/36, música n/3, dias atual e maior, lições em 3 estrelas, lista com abertas e fechadas. Sem outro jogador | RF-45 |
+| T-ACC-20 | Tracking de mão desligado nas configurações do Quest, já calibrado | Completar checklist, “Ouvir”, “Próxima” e “Continuar” só com as teclas de atalho | Todas as ações funcionam; os rótulos mostram as teclas certas | RF-39 |
+| T-ACC-21 | “Mão” desligada | Fechar e abrir o app, entrar numa lição | Continua desligada; a pose é pulada | RF-32c |
+| T-ACC-22 | Progresso de desenvolvimento com as 12 lições em 2 | Abrir a música e concluí-la | Abre, a etiqueta acompanha a lição do trecho, estrelas aparecem como música n/3 | RF-32d |
+| T-ACC-23 | pt-BR com estrelas | Trocar para inglês nas configurações e abrir a L02 | Nome sobre a tecla é C ou D; dedo “Thumb” ou “Index”; estrelas iguais | RF-03 |
+| T-ACC-24 | Loop | Botão Meta e voltar; depois “Sair da aula” | Pausa com “Continuar” e “Sair da aula”; sair não muda estrelas | RF-39a |
+| T-ACC-25 | Resultado com 3 estrelas aparecendo | Matar o app pelo sistema logo depois | Ao abrir, as 3 estrelas estão lá | RF-46 |
 
-## 2. Domínio, sem headset
+## 9. Experiência com participante (T-UX)
 
-Estes casos travam a regra antes de existir cena.
-
-| ID | Caso | Aceite |
-|---|---|---|
-| T-DOM-01 | Sequência esperada 60, 62, 64. Chega 60, 62, 64 | Pedaço completo, zero reinício |
-| T-DOM-02 | Esperado 60, 60. Chega um único 60 | Não completa |
-| T-DOM-03 | Esperado 60. Chega 60 com velocity 1 e outro ensaio com 127 | Os dois contam como acerto. Faixas diferentes |
-| T-DOM-04 | Note On certo com a nota anterior ainda sem Note Off | Conta. Sobreposição não é erro |
-| T-DOM-05 | Durante uma janela de saída marcada pelo `MidiOutPort`, chega Note On igual ao que foi enviado | Não entra na sequência do usuário |
-| T-DOM-06 | Fora de janela de saída, Note On 60 | Entra na sequência |
-| T-DOM-07 | Oito Note On seguidos com velocity idêntica | Sinal de velocity fixa ligado. A lição não é reprovada por isso |
-| T-DOM-08 | Três ou mais Note On com espaçamento curto numa lição de uma nota só | Sinal de rajada. Pedaço não incrementa erro |
-| T-DOM-09 | Memória final: errou e depois acertou na mesma execução. Noutra execução, a primeira passagem sai limpa | A execução com erro fica em 2. A execução seguinte, limpa na primeira entrada, sobe para 3. Quem já tem 3 não desce | RF-40, RF-42 |
-| T-DOM-10 | Troca de idioma | Notas MIDI do catálogo iguais. Só o rótulo muda | RF-03 |
-| T-DOM-11 | Nota 60 ausente do alcance informado pela calibração | A lição não inicia | mapa do teclado |
-| T-DOM-12 | Cabo cai com 2 estrelas já gravadas e pedaço corrente pela metade | Ao reconectar, estrelas seguem 2. O pedaço corrente não ganhou um erro extra | RF-15, RNF-08 |
-
-T-DOM-09 em detalhe, para não ambiguidade: 3 estrelas significam que, na execução em que a memória final foi vencida, a primeira entrada nesse modo já saiu limpa. Se a pessoa errou e depois acertou na mesma execução, o máximo dessa execução é 2. Noutra execução, entrada limpa sobe 2 para 3.
-
-## 3. Integração MIDI no Quest
-
-Fazer T-MIDI-01 antes de qualquer trabalho visual fino.
-
-| ID | Caso | Procedimento | Aceite |
+| ID | Tarefa | Aceite | Req. |
 |---|---|---|---|
-| T-MIDI-01 | Enumeração | CT-S300 ligado na alimentação dele, cabo de dados no USB-C do Quest, app em “procurando” | O estado passa a conectado sem PC no meio. Nome do dispositivo visível no log de desenvolvimento |
-| T-MIDI-02 | As 61 teclas | Tocar cada tecla uma vez, piano e sustenido | 61 Note On distintos, Note Off para cada um, sem nota fantasma |
-| T-MIDI-03 | Velocity viva | `MIDI Out Velocity = Off`, Touch Response Normal. A mesma tecla, toque fraco e toque forte, 8 pares | Os valores mudam entre os pares. Se não mudarem, o risco da seção 9 dos requisitos se confirma e a faixa de velocity sai do protótipo |
-| T-MIDI-04 | Velocity travada | `MIDI Out Velocity = 100`, tocar 8 vezes com forças diferentes | O app mostra o aviso de velocity fixa. As notas continuam contando para a lição |
-| T-MIDI-05 | Note Off | Soltar devagar e rápido | O domínio não lê a velocity 64 do Note Off como dinâmica |
-| T-MIDI-06 | Octave shift | Shift +1, calibrar de novo, tocar a tecla física que agora envia 60 | O realce do dó central fica nessa tecla. A lição 1 segue tocável |
-| T-MIDI-07 | Eco | Modo ouvir, ninguém encosta no teclado, gravar o MIDI de entrada | Ou não volta Note On, ou o que volta cai na janela filtrada e a pontuação permanece zerada. Se voltar e pontuar, o teste falha |
-| T-MIDI-08 | Demonstração audível | Clicar em Ouvir na lição 1 | O CT-S300 soa quatro dó, espaçados. A mão branca desce o polegar junto de cada som, nas teclas da mão direita |
-| T-MIDI-09 | Latência | Note On de uma tecla fora da lição, com log de tempo na recepção e no quadro em que o realce muda | Diferença abaixo de 80 ms no Quest 3, em pelo menos 20 amostras medianas | RNF-01 |
-| T-MIDI-10 | Queda de cabo | Tirar o Micro-B no guiado | Pausa visível. Religar retoma o mesmo passo. Estrelas anteriores iguais |
-| T-MIDI-11 | Song ou ritmo | Ligar um ritmo no CT-S300 durante a lição 1 | Pausa com o aviso de ritmo ou song, sem somar erro |
-| T-MIDI-12 | Trilo | Alternar duas teclas o mais rápido possível por 5 segundos no modo guiado | Nenhuma nota da alternância se perde no log. A regra de acerto continua valendo para a nota alvo |
+| T-UX-01 | “Escolha a língua, ligue o teclado e deixe o app pronto para a primeira lição.” Sentado, teclado na mesa | Conclui sem o condutor mostrar onde tocar | Jornada §14, RNF-03 |
+| T-UX-02 | “Faça a lição 1 até o fim.” | Descreve que primeiro pôs a mão como a branca, depois repetiu junto e por fim tocou sem luz. Termina com 2 ou 3 estrelas | RF-31–RF-37a |
+| T-UX-03 | Headset no colo, logo após T-UX-02: “Toca o que a lição pediu.” | Quatro dós com o polegar, sem o app | §2 do 01, RN-03 |
+| T-UX-04 | No dia seguinte: “Abre e faz o que o app pedir primeiro.” | Entra na revisão e a reconhece como revisão, não como lição nova | RF-44, RN-03 |
+| T-UX-05 | Lição 1 com luva fina ou mão parcialmente fechada, tracking instável, depois de calibrado | A lição termina. Nenhum erro é atribuído à mão | RF-38, RNF-07 |
+| T-UX-07 | Trocar o idioma para inglês no progresso e abrir a lição 2 | Encontra a configuração sozinho; nome e dedo em inglês | RF-03 |
+| T-UX-08 | Errar de propósito no loop e na memória | Em menos de um segundo aponta a tecla que o app quer, sem ler frase de erro | RF-32, RF-36 |
+| T-UX-10 | Desconectar o cabo e perguntar o que houve | Diz que pausou e que o teclado saiu. Não acha que perdeu as estrelas | RF-15 |
+| T-UX-11 | Desligar “Mão” no loop e perguntar o que mudou | A mão some; continua sabendo a tecla pela cor e o dedo pelo card | RF-32c |
+| T-UX-12 | Ler o card e o nome da nota a 50 cm, com a sala iluminada normalmente | Lê sem se aproximar | RNF-05 |
 
-T-MIDI-06 existe porque alguém vai deixar o shift fora de zero. A calibração nova é o conserto; o app não precisa adivinhar o shift antigo.
+T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca os quatro dós com o headset no colo, a lição não está pronta, mesmo com estrela no card.
 
-## 4. Experiência no headset
+## 10. Desempenho (T-PERF)
 
-Participante: adulto que não viu o desenho das telas. Tarefa lida em voz alta uma vez, sem apontar tecla.
-
-| ID | Tarefa | Aceite | Requisito |
+| ID | Caso | Aceite | Req. |
 |---|---|---|---|
-| T-UX-01 | “Escolha a língua, ligue o teclado e deixe o app pronto para a primeira lição.” Checklist impresso só com os nomes das funções Casio, igual ao painel | Conclui sem o condutor mostrar onde tocar | jornada §13 |
-| T-UX-02 | “Faça a lição 1 até o fim.” | Descreve que primeiro copiou a mão, depois as luzes e a mão sumiram e ela teve que lembrar. Termina com 2 ou 3 estrelas | jornada §13, RF-37, RF-32a |
-| T-UX-02b | Na aula 1, pôr a mão direita sobre a mão branca | O card sai de “Ponha a mão assim.” para “Polegar” e o polegar da mão branca acende. Tirar a mão devolve o card anterior e pausa o loop | RF-32a, RF-37, RF-38 |
-| T-UX-02c | Com o loop rodando, desligar “Mão” | A malha some. A tecla da vez continua colorida. O loop não pede pose | RF-32c |
-| T-UX-03 | Headset no colo, logo após T-UX-02: “Toca o que a lição pediu.” | Quatro dó na posição, sem o app | sucesso da seção 2 dos requisitos |
-| T-UX-04 | No dia seguinte: “Abre e faz o que o app pedir primeiro.” | Entra na revisão, não pede para pular para a lição 2 | RF-44, jornada §8 |
-| T-UX-05 | Lição 1 com uma luva fina ou mão parcialmente fechada, tracking instável, depois de calibrado | A lição termina. Nenhum erro é atribuído à mão | RF-38, RNF-07 |
-| T-UX-06 | Calibrar, tocar 15 minutos, olhar o realce do dó | O realce ainda está na tecla, ou a pessoa acha sozinha o caminho de recalibrar e as estrelas seguem lá | RNF-06 |
-| T-UX-07 | Trocar o idioma para inglês no progresso e abrir a lição 2 | O nome sobre a tecla é C, D ou E, conforme o alvo. Estrelas iguais às de antes da troca | RF-03 |
-| T-UX-08 | Errar de propósito no guiado e na memória | Em menos de um segundo aponta a tecla que o app quer, sem ler uma frase de erro | protótipo §10 |
-| T-UX-09 | Inspecionar ouvir, guiado, memória, progresso | Zero ocorrência de nota caindo, pentagrama ou cronômetro | T-ACC-17 |
-| T-UX-10 | Desconectar o cabo e perguntar o que houve | A pessoa diz que pausou e que o teclado saiu. Não acha que perdeu as estrelas | RF-15 |
-| T-UX-11 | Com tracking de mão desligado nas configurações do Quest, depois da calibração feita com tracking ligado | Botão do modo ouvir ainda avança pela tecla indicada no painel | RF-39 |
-
-T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca os quatro dó com o headset no colo, a lição não está pronta, mesmo com estrela na tela.
-
-## 5. Desempenho
-
-| ID | Caso | Aceite |
-|---|---|---|
 | T-PERF-01 | Lição 1 no Quest 3, passthrough ligado, duas mãos sobre as teclas | 72 fps estáveis no contador do sistema, sem queda prolongada quando o realce troca de tecla | RNF-02 |
 | T-PERF-02 | O mesmo no Quest 3S | Igual | RNF-02 |
-| T-PERF-03 | Avião do Quest, cabo MIDI local | Lição 1 completa | RNF-04 |
+| T-PERF-03 | Modo avião, cabo MIDI local | Lição 1 completa | RNF-04 |
+| T-PERF-04 | Sessão de 30 min, bateria cheia | Registrar o consumo no 05 §10 | 05 §10 |
+| T-PERF-05 | Abertura a frio no Quest 3 | Primeira tela útil em menos de 10 s | RNF-10 |
 
-## 6. Ordem de execução
+## 11. Revisão (T-REV)
 
-1. T-DOM-01 a T-DOM-12 na máquina de desenvolvimento.
-2. T-MIDI-01. Se falhar, parar. Não há o que calibrar.
-3. T-MIDI-02, 03, 05, 07, 08.
-4. Protótipo mínimo da seção 9 do conceito AR.
-5. T-MIDI-09, 10, 11 e T-UX-02, 03, 05, 08, 09.
-6. O resto antes de gravar as 12 lições como conteúdo fechado.
+| ID | Caso | Aceite | Req. |
+|---|---|---|---|
+| T-REV-01 | Assets, sons e textos | Todos originais; nenhum asset da Meta ou da Casio; nenhuma gravação de obra de terceiros | RN-04 |
+| T-REV-02 | Requisitos sem teste | A matriz abaixo não tem linha vazia | — |
 
-## 7. Fora destes testes
+## 12. Matriz de rastreabilidade
+
+| Requisito | Testes |
+|---|---|
+| RF-01 | T-ACC-01 |
+| RF-02 | T-ACC-02, T-PER-01 |
+| RF-03 | T-TXT-01, T-ACC-23, T-UX-07 |
+| RF-10 | T-MIDI-01, T-MIDI-13, T-ACC-03 |
+| RF-11 | T-ADP-01, T-MIDI-02, T-MIDI-05 |
+| RF-12 | T-ACC-04 |
+| RF-13 | T-DOM-07, T-MIDI-04 |
+| RF-14 | T-DOM-04, T-MIDI-08 |
+| RF-15 | T-DOM-18, T-DOM-18b, T-MIDI-10, T-UX-10 |
+| RF-16 | T-DOM-08, T-DOM-08b, T-DOM-08c, T-MIDI-11, T-MIDI-12 |
+| RF-20 | T-ACC-05, T-CAL-02 |
+| RF-21 | T-CAL-02 |
+| RF-22 | T-ADP-02, T-CAL-03, T-CAL-04 |
+| RF-23 | T-ADP-02, T-CAL-05, T-CAL-07, T-MIDI-06 |
+| RF-24 | T-ADP-03, T-ACC-05 |
+| RF-30 | T-DOM-30 |
+| RF-31 | T-DOM-01, T-DOM-03, T-ADP-04, T-POSE-01, T-POSE-02, T-POSE-03, T-ACC-06 |
+| RF-31a | T-DOM-04, T-DOM-05, T-MIDI-07, T-MIDI-08, T-ACC-07 |
+| RF-32 | T-DOM-06, T-DOM-09, T-ACC-06, T-ACC-08, T-UX-08 |
+| RF-32b | T-ACC-18 |
+| RF-32c | T-DOM-02, T-ACC-21, T-UX-11 |
+| RF-32d | T-DOM-17, T-DOM-21, T-ACC-22 |
+| RF-33 | T-DOM-10, T-MIDI-03 |
+| RF-34 | T-DOM-11 |
+| RF-35 | T-DOM-06, T-DOM-09, T-DOM-12 |
+| RF-36 | T-DOM-13, T-DOM-14, T-ACC-10, T-ACC-13, T-UX-08 |
+| RF-37 | T-ACC-06, T-UX-02 |
+| RF-37a | T-ACC-18, T-UX-02 |
+| RF-38 | T-DOM-20, T-POSE-04, T-UX-05 |
+| RF-39 | T-ADP-05, T-ACC-20 |
+| RF-39a | T-DOM-19, T-ACC-24 |
+| RF-40 | T-DOM-15, T-DOM-18b, T-ACC-09, T-ACC-10 |
+| RF-41 | T-DOM-17, T-PER-06, T-ACC-09, T-ACC-11 |
+| RF-42 | T-DOM-16, T-ACC-12 |
+| RF-43 | T-DOM-22, T-DOM-23, T-DOM-24, T-DOM-28, T-ACC-15, T-ACC-17 |
+| RF-44 | T-DOM-25, T-DOM-26, T-DOM-27, T-DOM-28, T-ACC-14, T-ACC-15, T-ACC-16, T-UX-04 |
+| RF-45 | T-ACC-19 |
+| RF-46 | T-PER-01, T-PER-02, T-ACC-25 |
+| RNF-01 | T-MIDI-09 |
+| RNF-02 | T-PERF-01, T-PERF-02 |
+| RNF-03 | T-UX-01 |
+| RNF-04 | T-BUILD-02, T-PERF-03 |
+| RNF-05 | T-TXT-02, T-UX-12 |
+| RNF-06 | T-CAL-06 |
+| RNF-07 | T-DOM-20, T-UX-05 |
+| RNF-08 | T-DOM-18, T-PER-02, T-PER-03, T-PER-04, T-PER-05 |
+| RNF-09 | T-PER-02 |
+| RNF-10 | T-PERF-05 |
+| RNF-11 | T-BUILD-01 |
+| RN-01 | T-BUILD-03 |
+| RN-02 | Sem teste: orienta decisões, não comportamento |
+| RN-03 | T-UX-03, T-UX-04 |
+| RN-04 | T-REV-01 |
+
+## 13. Ordem de execução
+
+1. T-DOM, T-ADP, T-PER, T-TXT e T-BUILD-01 na máquina de desenvolvimento. Escritos antes da cena; ficam vermelhos até o domínio existir.
+2. T-MIDI-00 e T-MIDI-01. Se o CT-S300 não conectar por nenhum dos dois caminhos, parar: não há o que calibrar.
+3. T-MIDI-02, 03, 05, 07, 08, 13 e T-CAL-01. Atualizar o 05 §12 e os parâmetros com o que for medido.
+4. Protótipo mínimo do 03 §9.
+5. T-CAL-02 a 05, T-POSE-01 a 04, T-MIDI-09 a 12 e T-ACC.
+6. T-UX-02, 03, 05 e 08 com participante.
+7. O resto, e só então gravar as 12 lições como conteúdo fechado.
+
+## 14. Pronto para a v1
+
+- Todos os T-DOM, T-ADP, T-PER, T-TXT e T-BUILD passando.
+- Todos os T-MIDI, T-CAL, T-POSE, T-ACC e T-PERF passando no Quest 3 e, onde o caso pede, no 3S.
+- T-UX-02, 03 e 04 aprovados com pelo menos três participantes.
+- T-REV-01 e T-REV-02 feitos.
+
+## 15. Fora destes testes
 
 Compra, conta, ranking online, Quest 2, Bluetooth, mão esquerda, leitura de pauta, dinâmica como passe e nota caindo. Não criar caso de teste para isso na v1.
