@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vr-piano sem VR</title>
+  <link rel="stylesheet" href="estilo.css">
+  <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <header>
+    <strong class="marca">vr-piano <span>sem VR</span></strong>
+    <span id="midi-status" class="pilula">Carregando o motor…</span>
+    <label>Entrada <select id="midi-entrada"></select></label>
+    <label>Saída <select id="midi-saida"></select></label>
+    <label class="check"><input type="checkbox" id="som-pc"> Som no computador</label>
+    <span class="espaco"></span>
+    <span id="quem"></span>
+    <button id="abrir-facilitador" class="discreto" hidden>Facilitador</button>
+  </header>
+
+  <main>
+    <section id="tela-entrada" hidden>
+      <h1>Quem vai tocar?</h1>
+      <p>O progresso fica guardado por nome, neste navegador.</p>
+      <form id="form-entrada">
+        <input id="nome" list="participantes" placeholder="Nome ou código" autocomplete="off" required>
+        <datalist id="participantes"></datalist>
+        <button type="submit">Entrar</button>
+      </form>
+    </section>
+
+    <section id="tela-entre" hidden>
+      <div id="resumo" class="resumo"></div>
+      <div id="grade" class="grade"></div>
+    </section>
+
+    <section id="tela-licao" hidden>
+      <div id="card" class="card"></div>
+    </section>
+
+    <div id="botoes" class="botoes"></div>
+    <svg id="teclado" role="img" aria-label="Teclado de 61 teclas"></svg>
+    <p class="ajuda">Sem teclado ligado: teclas <kbd>A</kbd> a <kbd>K</kbd> do computador ou clique nas teclas. Botões: <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>, ou Dó2, Ré2, Mi2 no teclado.</p>
+  </main>
+
+  <dialog id="facilitador">
+    <h2>Facilitador</h2>
+    <p id="fac-dia"></p>
+    <div class="linha">
+      <button id="fac-mais-um-dia">Simular dia seguinte</button>
+      <button id="fac-dia-real" class="discreto">Voltar ao dia real</button>
+    </div>
+    <label class="check"><input type="checkbox" id="fac-abrir-todas"> Abrir todas as lições</label>
+    <div class="linha">
+      <button id="fac-execucoes">Baixar execuções (CSV)</button>
+      <button id="fac-eventos">Baixar eventos (CSV)</button>
+    </div>
+    <div class="linha">
+      <button id="fac-apagar" class="perigo">Apagar progresso deste participante</button>
+      <button id="fac-trocar" class="discreto">Trocar participante</button>
+    </div>
+    <form method="dialog"><button>Fechar</button></form>
+  </dialog>
+</body>
+</html>

@@ -126,6 +126,7 @@ Máquina de estados completa em [06 §3](06-modelo-de-dominio.md#3-máquina-de-e
 | RF-35 | **Passagem limpa.** Uma volta da vez guiada é limpa quando vai do primeiro ao último passo sem nenhum Note On errado. O ritmo não conta para isso. A primeira volta limpa leva à memória: o card diz “Agora de memória.”, espera `P-22`, e cor, cinza e nome somem juntos. Note On nessa espera não conta. |
 | RF-36 | **Memória.** Nenhuma tecla acesa, sem mão branca, card só com a frase e sem botão. Note On certo avança sem cor. Note On errado encerra a tentativa: âmbar por `P-25` na nota esperada, vermelho por `P-24` na tocada, e a tentativa recomeça do primeiro passo. Depois de `P-21` tentativas falhas seguidas, a lição volta à vez guiada com “Mais uma vez com guia.”, sem demonstração automática e com “Ouvir” disponível. Completar a sequência conclui a memória: verde por `P-23` na última tecla e o resultado. |
 | RF-36a | **Dica de memória.** Se a pessoa fica `P-33` sem tocar na memória (desde o começo da tentativa ou desde o último acerto), a tecla esperada pisca em cinza claro por `P-34`. A piscada se repete a cada `P-33` sem nota. Usar a dica não é erro, mas a execução não ganha 3 estrelas (RF-40). |
+| RF-36b | **Juntar.** Depois da memória da lição N (N ≥ 2), a pessoa toca de memória as frases das lições 1 a N em sequência, até a música inteira na lição 12. Erro volta ao começo da frase, não ao começo de tudo. Depois de `P-21` falhas na mesma frase, cada tecla dela pisca como dica. Juntar não muda estrelas nem desbloqueio; grava até qual lição a pessoa toca de cor. |
 | RF-37 | O card mostra uma frase por vez: “Ponha a mão assim.”, “Olhe e ouça.”, o nome do dedo da vez (“Polegar”, “Indicador”, “Médio”, “Anelar”, “Mínimo” / “Thumb”, “Index”, “Middle”, “Ring”, “Pinky”), “Agora de memória.” ou o resultado. O resultado mostra as estrelas e a pontuação de ritmo da volta limpa (“No tempo: 3 de 4”). |
 | RF-37a | O menu é o card aprovado (`docs/visao/capa-licao1.jpg`): retângulo escuro de cantos arredondados, etiqueta “Lição N”, uma frase branca e, quando há escolha, botões brancos de texto escuro. Na vez guiada o card tem só “Ouvir”. Na memória o card não tem botão. |
 | RF-38 | Depois da pose, perder o tracking ou sair da pose não pausa, não erra e não esconde a cor da tecla. |
@@ -211,7 +212,7 @@ Um único arquivo de progresso, esquema em [06 §6](06-modelo-de-dominio.md#6-ar
 | RN-01 | O produto da v1 é um protótipo sideload para o próprio uso e teste. Não há preço, anúncio, conta nem ranking entre pessoas. |
 | RN-02 | O valor é retenção da frase, não duração de sessão nem número de notas por minuto. |
 | RN-03 | Critério para seguir além da v1: um adulto iniciante completa a lição 1 de memória na primeira sessão e, noutro dia, completa a revisão sem outra pessoa guiando. |
-| RN-04 | Conteúdo, marca, mão branca e áudio de interface são originais. Nenhum asset da Meta ou da Casio é copiado. Demonstração musical é MIDI enviado ao CT-S300, sem gravar obra de terceiros. |
+| RN-04 | Conteúdo, marca e áudio de interface são originais. Assets de terceiros só entram com licença aberta permissiva e crédito, como a malha da mão branca; nenhum asset proprietário da Meta ou da Casio é copiado. Demonstração musical é MIDI enviado ao CT-S300, sem gravar obra de terceiros. |
 
 ## 8. Fora de escopo
 

@@ -1,0 +1,64 @@
+{
+  "song_id": "L03",
+  "title_key": "lesson.03.novelty",
+  "bpm": 60,
+  "bpm_map": [],
+  "time_signature": "4/4",
+  "source_format": "NATIVE",
+  "raw_file_url": null,
+  "practice": "whole",
+  "chunks": [
+    {
+      "chunk_index": 1,
+      "start_time_ms": 0,
+      "end_time_ms": 4000,
+      "measure_range": [
+        1,
+        1
+      ],
+      "active_hands": "RH",
+      "label_lesson": 3,
+      "notes": [
+        {
+          "order": 1,
+          "pitch": 60,
+          "note_name": "C4",
+          "hand": "RIGHT",
+          "finger": 1,
+          "lookahead_start_ms": null,
+          "start_time_ms": 0,
+          "duration_ms": 1000,
+          "delta_to_hit_ms": null,
+          "chord_group_id": null,
+          "velocity": 80
+        },
+        {
+          "order": 2,
+          "pitch": 62,
+          "note_name": "D4",
+          "hand": "RIGHT",
+          "finger": 2,
+          "lookahead_start_ms": 0,
+          "start_time_ms": 1000,
+          "duration_ms": 1000,
+          "delta_to_hit_ms": 1000,
+          "chord_group_id": null,
+          "velocity": 80
+        },
+        {
+          "order": 3,
+          "pitch": 64,
+          "note_name": "E4",
+          "hand": "RIGHT",
+          "finger": 3,
+          "lookahead_start_ms": 1000,
+          "start_time_ms": 2000,
+          "duration_ms": 2000,
+          "delta_to_hit_ms": 1000,
+          "chord_group_id": null,
+          "velocity": 80
+        }
+      ]
+    }
+  ]
+}

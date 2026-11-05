@@ -1,0 +1,111 @@
+:root {
+  --fundo: #111318;
+  --painel: #1b1e25;
+  --borda: #2c313b;
+  --texto: #e8eaed;
+  --fraco: #9aa1ad;
+  --ativa: #f59e0b;
+  --acerto: #22c55e;
+  --erro: #ef4444;
+  --link: #93c5fd;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--borda);
+  background: var(--painel);
+}
+
+.marca span { color: var(--fraco); font-weight: 400; }
+.espaco { flex: 1; }
+.pilula { padding: 2px 10px; border-radius: 99px; background: #2a2f39; color: var(--fraco); font-size: 13px; }
+.pilula.ok { background: #14361f; color: #86efac; }
+.pilula.aviso { background: #3b2a0c; color: #fcd34d; }
+
+label { color: var(--fraco); font-size: 13px; }
+select, input, button { font: inherit; color: inherit; }
+select, input { background: #0d0f13; border: 1px solid var(--borda); border-radius: 6px; padding: 4px 8px; }
+.check { display: inline-flex; gap: 6px; align-items: center; }
+
+button {
+  background: #2b3240;
+  border: 1px solid #3a4252;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+button:hover { background: #343c4d; }
+button.principal { background: var(--ativa); border-color: var(--ativa); color: #1a1205; font-weight: 600; }
+button.discreto { background: transparent; }
+button.perigo { border-color: #7f1d1d; color: #fca5a5; background: transparent; }
+button small { opacity: .7; font-weight: 400; margin-left: 6px; }
+
+main { position: relative; max-width: 1400px; margin: 0 auto; padding: 24px 16px 40px; }
+
+#tela-entrada { max-width: 420px; margin: 40px auto; text-align: center; }
+#tela-entrada form { display: flex; gap: 8px; }
+#tela-entrada input { flex: 1; padding: 10px 12px; }
+
+.card {
+  max-width: 560px;
+  min-height: 150px;
+  margin: 0 auto 8px;
+  padding: 18px 22px;
+  border-radius: 14px;
+  background: #f5f6f8;
+  color: #111;
+  text-align: center;
+  position: relative;
+}
+.card .etiqueta { font-size: 13px; color: #6b7280; }
+.card .principal { font-size: 26px; font-weight: 600; margin: 4px 0; }
+.card .sub { font-size: 18px; color: #374151; }
+.card .estrelas { font-size: 40px; letter-spacing: 6px; color: var(--ativa); }
+.card .estrelas .apagada { color: #d1d5db; }
+.card .sair { position: absolute; top: 10px; right: 12px; font-size: 13px; padding: 2px 8px; color: #6b7280; border: 0; background: none; }
+.card .faixa { position: absolute; top: 12px; left: 14px; display: flex; gap: 3px; }
+.card .faixa i { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; }
+.card .faixa i.acesa { background: #6b7280; }
+
+.botoes { display: flex; justify-content: center; gap: 10px; min-height: 44px; margin: 12px 0 18px; flex-wrap: wrap; }
+
+#teclado { width: 100%; height: auto; display: block; user-select: none; touch-action: none; }
+#teclado rect { cursor: pointer; }
+
+.ajuda { color: var(--fraco); font-size: 13px; text-align: center; }
+kbd { border: 1px solid var(--borda); border-radius: 4px; padding: 0 5px; font-size: 12px; }
+
+.resumo { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: center; color: var(--fraco); margin-bottom: 16px; }
+.resumo b { color: var(--texto); }
+.grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.item {
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--painel);
+  border: 1px solid var(--borda);
+}
+.item.proximo { border-color: var(--ativa); }
+.item[disabled] { opacity: .45; cursor: default; }
+.item .nome { font-weight: 600; }
+.item .novidade, .item .ritmo { color: var(--fraco); font-size: 13px; }
+.item .est { color: var(--ativa); letter-spacing: 2px; }
+
+dialog { background: var(--painel); color: var(--texto); border: 1px solid var(--borda); border-radius: 12px; max-width: 460px; }
+dialog::backdrop { background: #0008; }
+dialog .linha { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.mao3d { position: absolute; pointer-events: none; z-index: 2; }

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- O mesmo fonte entra na Unity (VR) e no app web (WASM). netstandard2.1 e C# 9 são o que a Unity 6 compila. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>VrPiano.Dominio</RootNamespace>
+    <AssemblyName>VrPiano.Dominio</AssemblyName>
+  </PropertyGroup>
+
+</Project>

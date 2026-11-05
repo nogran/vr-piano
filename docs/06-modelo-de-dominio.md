@@ -22,6 +22,8 @@ O domínio é uma biblioteca pura. Ele recebe **entradas** (fatos do mundo, já 
 | Tempo elástico | O cinza anda no BPM real. Se a pessoa não toca no tempo de ataque, o tempo congela naquela tecla até ela acertar. |
 | Dia local | Data (AAAA-MM-DD) no fuso atual do aparelho, dada pelo `ClockPort`. |
 | Memória concluída | Fim de uma tentativa sem erro, numa lição, na música ou na revisão. |
+| Juntar | Depois da memória da lição N (N ≥ 2), tocar de memória as frases das lições 1 a N em sequência. Cada lição é um trecho de `SONG1`, então a sequência é a música até o trecho N. Na lição 12, é a música inteira. |
+| Frase | Na fase Juntar, o trecho de uma lição dentro da sequência. |
 
 ## 2. Fluxo do app
 
@@ -99,6 +101,29 @@ Retomada:
 - **Transição e RetornoDeErro:** reiniciam o seu tempo.
 - **Demonstração:** volta para Pose, e o item continua inédito.
 
+### Juntar
+
+```text
+Memória concluída ─ estrelas gravadas ─► Transição (P-22) ─► Juntar ─ fim da sequência ─► Resultado
+                                                               ▲  │ erro
+                                                               │  ▼
+                                                     RetornoDeErro (P-25), volta ao começo da frase
+```
+
+| Fase | Entrada | Condição | Efeito |
+|---|---|---|---|
+| Memória | Último passo certo | Lição 2 a 12, fora da revisão | Grava estrelas, ritmo, dia seguido e `últimaMemória`, como no Resultado. Vai para Transição e dela para Juntar, frase 1. |
+| Memória | Último passo certo | Lição 1, música ou revisão | Resultado, sem Juntar. |
+| Juntar | `NoteOn(n)` | `n == alvo` | Avança sem cor. Ao entrar na frase seguinte: `FraseJuntada(frase)`, e as falhas da frase voltam a 0. No último passo: `CadeiaConcluída(N)` e Resultado. |
+| Juntar | `NoteOn(n)` | `n != alvo` | `JuntarFalhou(n, alvo, falhasDaFrase)`. RetornoDeErro por `P-25`, depois volta ao primeiro passo da frase atual. |
+| Juntar | `Tick` | `P-33` sem Note On | `DicaDeMemória(alvo)`, como na Memória. |
+| Juntar | entrada ou acerto | `falhasDaFrase ≥ P-21` | `DicaDeMemória(alvo)` em cada passo da frase, até ela acabar. A pessoa nunca fica presa numa frase. |
+
+- Juntar não muda estrelas, não abre lição e não conta dia: tudo isso já foi gravado na memória da lição. A dica e a falha aqui não tiram estrela.
+- “Sair da aula” em Juntar encerra sem gravar `chain`.
+- Pausa em Juntar: ao retomar, volta ao começo da frase atual, sem somar falha.
+- A revisão do dia seguinte continua pedindo só a última frase (RF-44).
+
 ### 3.1 Cinza dinâmico e ritmo
 
 Na Guiada, cada tecla da sequência passa por três estados:
@@ -175,6 +200,9 @@ Na abertura, depois da verificação do dó central: `hoje = max(ClockPort.hoje,
 | `TentativaFalhou` | tocada, esperada, falhasSeguidas | Âmbar na esperada, vermelho na tocada, por `P-25` |
 | `VoltouAoGuiado` | — | Card “Mais uma vez com guia.” com “Ouvir” |
 | `MemóriaConcluída` | primeiraTentativa, usouDica | Realce verde na última tecla |
+| `JuntarFalhou` | tocada, esperada, falhasDaFrase | Âmbar na esperada, vermelho na tocada, por `P-25` |
+| `FraseJuntada` | frase | Card avança o número da frase |
+| `CadeiaConcluída` | até a lição | Resultado mostra quantas frases saíram seguidas |
 | `DemoNota` | nota, dedo, ligada | Mão branca, realce em cor ativa |
 | `DemoVista` | item | Progresso |
 | `MãoSome` | — | Fade da mão branca por `P-35` |
@@ -296,6 +324,7 @@ O progresso fica num JSON no armazenamento privado do app (`progress.json`). Dat
   "rhythm": { "L01": { "onTime": 3, "judged": 3 }, "L02": { "onTime": 0, "judged": 1 } },
   "streak": { "current": 2, "best": 4, "lastCountedDay": "2026-10-30" },
   "lastMemory": { "item": "L02", "day": "2026-10-30" },
+  "chain": 2,
   "lastSeenDay": "2026-10-30"
 }
 ```
@@ -306,6 +335,7 @@ O progresso fica num JSON no armazenamento privado do app (`progress.json`). Dat
 - `rhythm` guarda, por item, a volta limpa com a maior fração no tempo. Não afeta estrelas nem desbloqueio.
 - Gravação atômica (RNF-09): escreve `progress.json.tmp`, força para o disco, copia o atual para `progress.json.bak` e renomeia o `.tmp` por cima do principal.
 - Leitura: principal → se não abre ou não valida, `.bak` → se também falhar, o arquivo ruim vira `progress.corrupt-<data>.json`, o app começa do zero e mostra um aviso uma vez.
+- `chain`: maior N com Juntar concluído, ou seja, até qual lição a pessoa toca as frases de cor. Só sobe. Ausente vale 0.
 - `schemaVersion` maior que o conhecido: o app não sobrescreve e abre como se o arquivo estivesse corrompido, sem apagar.
 - Migração: uma função por versão (`v1→v2`), testada com arquivo de exemplo.
 
@@ -373,6 +403,9 @@ ao concluir memória no dia D:
   senão                               → current = 1
   best = max(best, current); lastCountedDay = D
   lastMemory = { item (ou o item revisado), D }
+
+ao concluir Juntar da lição N:
+  chain = max(chain, N)
 
 ao abrir no dia D:
   D = max(D, lastSeenDay); lastSeenDay = D

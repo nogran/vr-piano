@@ -57,6 +57,12 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `finger.4` | Anelar | Ring |
 | `finger.5` | Mínimo | Pinky |
 | `lesson.memory` | Agora de memória. | Now from memory. |
+| `lesson.join.intro` | Agora junte tudo. | Now put it all together. |
+| `lesson.join.count` | As {n} frases, de memória. | All {n} phrases, from memory. |
+| `lesson.join` | Junte tudo de memória. | Put it together from memory. |
+| `lesson.join.phrase` | Frase {i} de {n} | Phrase {i} of {n} |
+| `lesson.join.retry` | Do começo da frase. | From the start of the phrase. |
+| `result.join` | De cor: {n} frases seguidas. | By heart: {n} phrases in a row. |
 | `lesson.backToGuide` | Mais uma vez com guia. | Once more with the guide. |
 | `rhythm.early` | Adiantado | Early |
 | `rhythm.late` | Atrasado | Late |
@@ -118,6 +124,7 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `progress.streak` | Dias seguidos: {n} | Day streak: {n} |
 | `progress.best` | Maior sequência: {n} | Best streak: {n} |
 | `progress.mastered` | De memória, sem erro: {n} lições | From memory, no mistakes: {n} lessons |
+| `progress.chain` | De cor, seguidas: {n} frases | By heart, in a row: {n} phrases |
 | `progress.locked` | Fechada | Locked |
 | `progress.rhythm` | {n} de {m} no tempo | {n} of {m} on time |
 | `settings.language` | Idioma | Language |

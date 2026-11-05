@@ -63,6 +63,15 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 | T-DOM-36 | L01 na Guiada | `NoteOn(60)` | `PróximaMudou(60, t, t+1000, mesmaTecla = true)` | RF-32e |
 | T-DOM-37 | Guiada no passo 2, em Antecipação | `MidiDesconectado`, `MidiConectado`, `NoteOn` certo 3 s depois | Retoma com o passo 2 em Ataque. O acerto não gera `RitmoAvaliado` | RF-15, RF-32a |
 | T-DOM-38 | L01 com ritmo salvo 2 de 3 | Execução com volta limpa 3 de 3; outra com 1 de 3 | Ritmo salvo vira 3 de 3 e não cai. Estrelas iguais nos dois casos | RF-32a, RF-45 |
+| T-DOM-39 | L03 com a música carregada | Concluir a memória | Estrelas gravadas, Transição, Juntar com L01, L02 e L03 em sequência | RF-36b |
+| T-DOM-39b | L01 | Concluir a memória | Resultado, sem Juntar | RF-36b |
+| T-DOM-39c | L12 | Montar a sessão | A sequência de Juntar é a música inteira | RF-36b |
+| T-DOM-40 | Juntar na frase 2 | `NoteOn` errado | `JuntarFalhou`; depois de `P-25`, volta ao começo da frase 2; estrelas iguais | RF-36b |
+| T-DOM-41 | Juntar na frase 1 | 3 falhas seguidas | `DicaDeMemória` em cada passo da frase; na frase seguinte, não | RF-36b |
+| T-DOM-42 | `chain` = 5, depois `chain` = 0 | Concluir Juntar de L03; concluir Juntar de L02 | `CadeiaConcluída`; `chain` fica 5 no primeiro e vira 2 no segundo | RF-36b |
+| T-DOM-43 | Juntar na frase 2 | `FocoPerdido`, `Continuar` | Volta ao começo da frase 2, sem falha | RF-36b |
+| T-DOM-44 | Juntar | Sair da aula | Encerrada; estrelas ficam; `chain` não muda | RF-36b |
+| T-DOM-45 | Revisão de L03 | Concluir a memória | Resultado, sem Juntar | RF-36b |
 
 ### Dia seguido e revisão
 
@@ -221,7 +230,7 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 
 | ID | Caso | Aceite | Req. |
 |---|---|---|---|
-| T-REV-01 | Assets, sons e textos | Todos originais; nenhum asset da Meta ou da Casio; nenhuma gravação de obra de terceiros | RN-04 |
+| T-REV-01 | Assets, sons e textos | Originais ou com licença aberta permissiva e crédito; nenhum asset proprietário da Meta ou da Casio; nenhuma gravação de obra de terceiros | RN-04 |
 | T-REV-02 | Requisitos sem teste | A matriz abaixo não tem linha vazia | — |
 
 ## 12. Matriz de rastreabilidade
@@ -257,6 +266,7 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 | RF-35 | T-DOM-06, T-DOM-09, T-DOM-12 |
 | RF-36 | T-DOM-13, T-DOM-14, T-ACC-10, T-ACC-13, T-UX-08 |
 | RF-36a | T-DOM-15, T-DOM-34, T-ACC-27, T-UX-15 |
+| RF-36b | T-DOM-39, T-DOM-39b, T-DOM-39c, T-DOM-40 a T-DOM-45 |
 | RF-37 | T-ACC-06, T-ACC-26, T-UX-02 |
 | RF-37a | T-ACC-18, T-UX-02 |
 | RF-38 | T-DOM-20, T-POSE-04, T-UX-05 |

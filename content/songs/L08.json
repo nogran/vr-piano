@@ -1,0 +1,51 @@
+{
+  "song_id": "L08",
+  "title_key": "lesson.08.novelty",
+  "bpm": 60,
+  "bpm_map": [],
+  "time_signature": "4/4",
+  "source_format": "NATIVE",
+  "raw_file_url": null,
+  "practice": "whole",
+  "chunks": [
+    {
+      "chunk_index": 1,
+      "start_time_ms": 0,
+      "end_time_ms": 3000,
+      "measure_range": [
+        1,
+        1
+      ],
+      "active_hands": "RH",
+      "label_lesson": 8,
+      "notes": [
+        {
+          "order": 1,
+          "pitch": 65,
+          "note_name": "F4",
+          "hand": "RIGHT",
+          "finger": 4,
+          "lookahead_start_ms": null,
+          "start_time_ms": 0,
+          "duration_ms": 1000,
+          "delta_to_hit_ms": null,
+          "chord_group_id": null,
+          "velocity": 80
+        },
+        {
+          "order": 2,
+          "pitch": 67,
+          "note_name": "G4",
+          "hand": "RIGHT",
+          "finger": 5,
+          "lookahead_start_ms": 0,
+          "start_time_ms": 1000,
+          "duration_ms": 2000,
+          "delta_to_hit_ms": 1000,
+          "chord_group_id": null,
+          "velocity": 80
+        }
+      ]
+    }
+  ]
+}
