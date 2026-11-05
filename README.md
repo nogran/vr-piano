@@ -4,7 +4,7 @@
 
 Aprenda piano com o Meta Quest 3/3S e um teclado Casio CT-S300 de verdade. Sem notas caindo: é chamada e resposta, direto nas teclas. Uma mão 3D toca o trecho, você repete com as teclas guiando o dedo e o tempo, e depois as luzes apagam para você tocar de cabeça.
 
-Planejamento e o começo do código: o motor do jogo já roda na tela provisória web/ (veja Código, no fim). As imagens abaixo são a prova de conceito visual: mostram o que a pessoa vê no headset, passo a passo.
+Planejamento e o começo do código: o motor do jogo já roda na versão web/ (veja Código, no fim). As imagens abaixo são a prova de conceito visual: mostram o que a pessoa vê no headset, passo a passo.
 
 > Os balões roxos são explicação desta página. Eles não aparecem no app.
 
@@ -85,7 +85,7 @@ Quando dois documentos divergirem, vale o 06 para regra e números, e o 01 para 
 
 ## Código
 
-- [`domain/`](domain): o motor do jogo em C#, sem Unity. O mesmo código vai para o app em Unity, com builds para Quest e Windows, e para a tela provisória web/.
+- [`domain/`](domain): o motor do jogo em C#, sem Unity. O mesmo código vai para o app em Unity e para a versão web/, e a pessoa escolhe entre web e VR.
 - [`domain.tests/`](domain.tests): os testes T-DOM. Rode com `dotnet test domain.tests`.
 - [`content/`](content): Brilha, Brilha e Ode à Alegria no formato do 06 §5, e os textos gerados do docs/07. As lições antigas estão em `content/legado/`.
-- [`web/`](web): a tela provisória web/, no navegador com o CT-S300 ligado no PC. Serve para testar o método de aula até a migração para Unity.
+- [`web/`](web): a versão web, no navegador com o CT-S300 ligado no PC. É a opção sem headset e hoje serve também para testar o método de aula.

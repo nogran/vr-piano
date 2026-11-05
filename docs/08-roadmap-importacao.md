@@ -158,7 +158,7 @@ O formato de música não muda. A tela do piano, o cinza dinâmico e a mão 3D c
 
 ## 7. Ideias para pensar (31/10/2026)
 
-Anotadas depois do primeiro teste da tela provisória web/. Ainda não são requisito.
+Anotadas depois do primeiro teste da versão web/. Ainda não são requisito.
 
 - **Peças importadas com a audição e o Juntar.** A audição inteira (RF-54) e o Juntar por trechos (RF-56) já existem para as músicas nativas. Falta decidir como valem para peças importadas.
 - **Biblioteca de peças com níveis.** A pessoa escolhe as sinfonias e peças de que mais gosta e aprende essas. Cada peça tem arranjos por nível de dificuldade: mão direita só com a melodia, depois com mais notas, depois as duas mãos. Sinfonia é música de orquestra, então cada nível é um arranjo para piano. Depende das entregas 1 e 2 e da decisão sobre acordes e mão esquerda (§4).
