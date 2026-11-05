@@ -156,3 +156,11 @@ O formato de música não muda. A tela do piano, o cinza dinâmico e a mão 3D c
 - Arquivos MusicXML de referência: com e sem `<fingering>`, duas pautas, acorde.
 - Ida e volta: importar, gerar JSON, validar contra o esquema do 06 §5, tocar a demonstração e comparar o MIDI enviado com o original (mesma ordem, intervalos dentro de ± 1 ms).
 - Arquivo fora do alcance do teclado: transposto ou recusado, nunca truncado em silêncio.
+
+## 7. Ideias para pensar (31/10/2026)
+
+Anotadas depois do primeiro teste do app sem VR. Ainda não são requisito.
+
+- **Ouvir a música inteira antes da lição.** Antes de cada lição, a pessoa pode ouvir a peça completa, para saber aonde aquela frase leva. Pede um arquivo com a peça toda além dos trechos (o MIDI importado já tem), e um botão "Ouvir a música" no card entre lições.
+- **Biblioteca de peças com níveis.** A pessoa escolhe as sinfonias e peças de que mais gosta e aprende essas. Cada peça tem arranjos por nível de dificuldade: mão direita só com a melodia, depois com mais notas, depois as duas mãos. Sinfonia é música de orquestra, então cada nível é um arranjo para piano. Depende das entregas 1 e 2 e da decisão sobre acordes e mão esquerda (§4).
+- **Aprender acumulando até a música toda.** Feito para as 12 lições: é a fase Juntar (06 §3, RF-36b). Falta decidir se a revisão do dia seguinte também deve pedir as frases acumuladas, e como isso vale para peças importadas.

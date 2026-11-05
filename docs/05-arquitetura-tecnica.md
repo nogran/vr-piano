@@ -9,22 +9,27 @@ Como o app será construído, no nível de decisão. Sem código. A regra de neg
 | Engine | Unity 6 LTS, URP | Versão exata fixada no primeiro commit de código (§11). |
 | XR | Meta XR Core SDK + Meta XR Interaction SDK, backend OpenXR | Passthrough, hand tracking, pinça, âncora espacial. |
 | Linguagem | C# no app e no domínio; Kotlin na ponte MIDI Android | — |
-| Domínio | Assembly separado, sem referência a `UnityEngine` (`noEngineReferences`) | Os mesmos fontes compilam num projeto .NET de testes (RNF-11). |
+| Domínio | Assembly separado, sem referência a `UnityEngine` (`noEngineReferences`), `netstandard2.1` e C# 9 | Os mesmos fontes compilam no projeto .NET de testes (RNF-11) e no app sem VR. |
+| App sem VR | .NET em WebAssembly (`JSExport`) + HTML/JS com Web MIDI | O mesmo domínio, com o teclado na tela. Serve para testar o método de aula com pessoas antes do headset. |
 | Testes do domínio | NUnit via `dotnet test` | Roda sem licença Unity, em qualquer máquina e em CI. |
 | Testes de adapter | Unity Test Framework (EditMode e PlayMode) | Persistência, mapa do teclado, pose com dados gravados. |
 | Android | arm64-v8a, IL2CPP, Vulkan, `minSdk 32`, `targetSdk` exigido pelo Horizon OS na data do build | — |
 | Distribuição | APK de desenvolvimento por `adb install` | Sem loja (RN-01). |
 
-## 2. Estrutura do repositório (prevista)
+## 2. Estrutura do repositório
+
+Um repositório só: o domínio, o conteúdo e os testes mudam juntos, e os dois apps usam a mesma cópia.
 
 ```text
 docs/                         planejamento (este conjunto)
+content/                      catálogo e uma música por arquivo (formato do 06 §5), lidos pelos dois apps
 domain/                       domínio puro (C#), sem Unity
 domain.tests/                 NUnit, roda com dotnet test
-unity/                        projeto Unity
+web/                          app sem VR: domínio em WebAssembly, casca em HTML/JS com Web MIDI
+unity/                        projeto Unity (previsto)
   Assets/App/Adapters/        MIDI, mão, teclado, persistência, relógio, catálogo
   Assets/App/Presentation/    card, realce, mão branca, painéis
-  Assets/App/Content/         catálogo e uma música por arquivo (formato do 06 §5), tabela de textos
+  Assets/App/Content/         tabela de textos; o catálogo vem de content/
   Assets/Plugins/Android/     AAR da ponte MIDI
 android-midi-bridge/          projeto Kotlin que gera o AAR
 tools/                        reprodutor de sessões MIDI gravadas
@@ -110,10 +115,10 @@ Origem na borda esquerda da frente da tecla branca mais grave, na superfície da
 
 ## 7. Mão branca (asset)
 
-- Original (RN-04): modelada e animada para este app; nenhum asset de mão da Meta é reutilizado.
+- Malha aberta (RN-04): `generic-hand` de `@webxr-input-profiles/assets` (MIT, Copyright 2019 Amazon), com crédito. A pose e a animação são deste app. Confirmar a origem da malha antes de publicar o app.
 - Mão direita, rig com 5 dedos, até 10 mil triângulos.
 - Anatomia de mão adulta real: palma, nós dos dedos, três falanges por dedo (duas no polegar), polegar saindo da base da palma. Sem unha, ruga ou textura de pele.
-- Estilo das mãos do sistema do Quest: cinza-claro fosco, borda mais clara contra o fundo (fresnel), some em degradê no pulso. Contorno suave onde um dedo passa na frente de outro, para separar do passthrough claro.
+- Estilo das mãos do sistema do Quest: cinza-claro fosco, contorno cinza-azulado mais escuro (fresnel), some em degradê no pulso. Contorno suave onde um dedo passa na frente de outro, para separar do passthrough claro.
 - Sombra de contato falsa (decal) sob a mão, não sombra em tempo real (§8). Referência: `docs/visao/capa-licao1.jpg`.
 - Pose base: posição de cinco dedos, dedos levemente curvos, polegar sobre a tecla 60.
 - Animação por dedo: descer ~120 ms, segurar enquanto a nota soa, subir ~120 ms.
@@ -157,7 +162,7 @@ Preencher no primeiro commit de código. Daí em diante, mudar uma versão é de
 | Meta XR Interaction SDK | — |
 | Android Gradle Plugin / Kotlin | — |
 | `targetSdk` | — |
-| .NET SDK dos testes de domínio | — |
+| .NET SDK dos testes de domínio e do app sem VR | 10.0.403 |
 | Firmware do Quest nos testes de aceite | — |
 
 ## 12. O que só o hardware responde

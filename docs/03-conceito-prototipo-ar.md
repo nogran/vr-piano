@@ -68,7 +68,7 @@ Botões altos o suficiente para pinça folgada. Cada botão mostra, numa linha m
 
 ## 4. Mão branca
 
-Branca fosca, mão direita, asset original, com anatomia de mão real e o visual das mãos do sistema do Quest (some em degradê no pulso). Sem pele, sem vidro, sem segunda mão. Detalhes do asset: [05 §7](05-arquitetura-tecnica.md#7-mão-branca-asset).
+Branca fosca, mão direita, malha aberta com licença MIT, com anatomia de mão real e o visual das mãos do sistema do Quest (some em degradê no pulso). Sem pele, sem vidro, sem segunda mão. Detalhes do asset: [05 §7](05-arquitetura-tecnica.md#7-mão-branca-asset).
 
 - **Pose.** Parada na posição de cinco dedos. Card: “Ponha a mão assim.” Com a pose aceita (RF-31), começa a demonstração (item inédito) ou a vez guiada.
 - **Demonstração.** A mão toca a sequência no andamento: o dedo desce na cor ativa junto com o som do piano e com a tecla acesa. É automática na primeira vez no item; depois, só com “Ouvir”.
