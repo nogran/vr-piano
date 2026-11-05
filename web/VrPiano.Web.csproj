@@ -14,7 +14,7 @@
     <ProjectReference Include="..\domain\VrPiano.Dominio.csproj" />
   </ItemGroup>
 
-  <!-- As mesmas lições que o app VR usa, embutidas no assembly. -->
+  <!-- O mesmo conteúdo que o app em Unity vai usar, embutido no assembly. -->
   <ItemGroup>
     <EmbeddedResource Include="..\content\*.json" LogicalName="content/%(Filename)%(Extension)" />
     <EmbeddedResource Include="..\content\songs\*.json" LogicalName="content/songs/%(Filename)%(Extension)" />

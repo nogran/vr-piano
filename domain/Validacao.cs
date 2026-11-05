@@ -3,10 +3,10 @@ using System.Linq;
 
 namespace VrPiano.Dominio
 {
-    // Validações do formato (06 §5, T-DOM-30): a camada geral vale para qualquer música; a v1 só aceita o currículo de cinco dedos.
+    // Validações do formato (06 §5, T-DOM-30): a camada geral vale para qualquer música; a v1 só aceita o corte de uma mão.
     public static class ValidadorDeMusica
     {
-        static readonly Dictionary<int, int> DedoDaNota = new Dictionary<int, int> { [60] = 1, [62] = 2, [64] = 3, [65] = 4, [67] = 5 };
+        static readonly HashSet<int> NotasDaV1 = new HashSet<int> { 60, 62, 64, 65, 67, 69 };
 
         public static List<string> Geral(Musica m)
         {
@@ -35,15 +35,29 @@ namespace VrPiano.Dominio
                         erros.Add($"{onde}: fora do intervalo do trecho");
                     anterior = n.StartTimeMs;
                 }
+                if (trecho.RepeatOf != null) ValidarRepeticao(m, trecho, erros);
             }
             return erros;
+        }
+
+        // Trecho repetido traz as notas completas; elas têm de ser as mesmas do trecho novo que ele repete (RF-52).
+        static void ValidarRepeticao(Musica m, Trecho trecho, List<string> erros)
+        {
+            var original = m.Chunks.FirstOrDefault(c => c.ChunkIndex == trecho.RepeatOf);
+            if (original == null || original.ChunkIndex >= trecho.ChunkIndex || original.RepeatOf != null)
+            {
+                erros.Add($"trecho {trecho.ChunkIndex}: repeat_of {trecho.RepeatOf} não é um trecho novo anterior");
+                return;
+            }
+            var iguais = trecho.Notes.Select(n => (n.Pitch, n.Finger)).SequenceEqual(original.Notes.Select(n => (n.Pitch, n.Finger)));
+            if (!iguais) erros.Add($"trecho {trecho.ChunkIndex}: notas ou dedos diferentes do trecho {trecho.RepeatOf}");
         }
 
         public static List<string> V1(Musica m)
         {
             var erros = Geral(m);
             if (m.BpmMap.Count > 0) erros.Add("v1: bpm_map deve ser vazio");
-            if (m.Practice != "whole") erros.Add("v1: practice deve ser whole");
+            if (m.Practice != "by_chunk") erros.Add("v1: practice deve ser by_chunk");
             foreach (var trecho in m.Chunks)
             {
                 if (trecho.ActiveHands != "RH") erros.Add($"v1: trecho {trecho.ChunkIndex} com active_hands {trecho.ActiveHands}");
@@ -52,8 +66,7 @@ namespace VrPiano.Dominio
                     var onde = $"v1: trecho {trecho.ChunkIndex}, nota {n.Order}";
                     if (n.Hand != "RIGHT") erros.Add($"{onde}: hand {n.Hand}");
                     if (n.ChordGroupId != null) erros.Add($"{onde}: chord_group_id preenchido");
-                    if (!DedoDaNota.TryGetValue(n.Pitch, out var dedo)) erros.Add($"{onde}: nota {n.Pitch} fora de 60, 62, 64, 65, 67");
-                    else if (n.Finger != dedo) erros.Add($"{onde}: dedo {n.Finger} não combina com a nota {n.Pitch}");
+                    if (!NotasDaV1.Contains(n.Pitch)) erros.Add($"{onde}: nota {n.Pitch} fora de 60, 62, 64, 65, 67, 69");
                 }
             }
             return erros;
@@ -62,21 +75,13 @@ namespace VrPiano.Dominio
         public static List<string> Catalogo(Catalogo catalogo, IDictionary<string, Musica> musicas)
         {
             var erros = new List<string>();
-            if (catalogo.Lessons.Count != 12) erros.Add($"o catálogo tem {catalogo.Lessons.Count} lições, não 12");
-            if (catalogo.Lessons.Distinct().Count() != catalogo.Lessons.Count) erros.Add("lição repetida no catálogo");
-            foreach (var id in catalogo.Lessons.Append(catalogo.Song))
+            if (catalogo.CatalogVersion != 2) erros.Add($"catalog_version {catalogo.CatalogVersion}, não 2");
+            if (catalogo.Songs.Count == 0) erros.Add("catálogo sem músicas");
+            if (catalogo.Songs.Distinct().Count() != catalogo.Songs.Count) erros.Add("música repetida no catálogo");
+            foreach (var id in catalogo.Songs)
             {
                 if (!musicas.TryGetValue(id, out var m)) { erros.Add($"{id}: arquivo ausente"); continue; }
                 erros.AddRange(V1(m).Select(e => $"{id}: {e}"));
-            }
-            if (erros.Count > 0 || !musicas.TryGetValue(catalogo.Song, out var musica)) return erros;
-
-            if (musica.Chunks.Count != catalogo.Lessons.Count) erros.Add($"{catalogo.Song}: {musica.Chunks.Count} trechos, não {catalogo.Lessons.Count}");
-            for (int i = 0; i < musica.Chunks.Count && i < catalogo.Lessons.Count; i++)
-            {
-                var notas = musica.Chunks[i].Notes.Select(n => n.Pitch);
-                var daLicao = musicas[catalogo.Lessons[i]].Chunks.SelectMany(c => c.Notes).Select(n => n.Pitch);
-                if (!notas.SequenceEqual(daLicao)) erros.Add($"{catalogo.Song}: trecho {i + 1} diferente de {catalogo.Lessons[i]}");
             }
             return erros;
         }

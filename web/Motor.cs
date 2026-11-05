@@ -24,13 +24,22 @@ namespace VrPiano.Web
 
         static readonly Catalogo catalogo = Ler<Catalogo>("content/catalog.json");
         static readonly Dictionary<string, Musica> musicas =
-            RegrasDeProgresso.Itens(catalogo).ToDictionary(id => id, id => Ler<Musica>($"content/songs/{id}.json"));
+            catalogo.Songs.ToDictionary(id => id, id => Ler<Musica>($"content/songs/{id}.json"));
+        static readonly Repertorio repertorio = new Repertorio(catalogo, musicas);
 
         static Progresso progresso = new();
         static Dia hoje;
         static SessaoDeLicao? sessao;
 
         public static void Main() { }
+
+        // Tabela de textos gerada do docs/07. O idioma é escolhido na tela.
+        [JSExport]
+        public static string Textos()
+        {
+            using var leitor = new StreamReader(Recurso("content/textos.json"));
+            return leitor.ReadToEnd();
+        }
 
         [JSExport]
         public static string ValidarConteudo() => JsonSerializer.Serialize(ValidadorDeMusica.Catalogo(catalogo, musicas), Js);
@@ -39,16 +48,28 @@ namespace VrPiano.Web
         [JSExport]
         public static string Abrir(string progressoJson, string dia)
         {
-            progresso = string.IsNullOrWhiteSpace(progressoJson) ? new Progresso() : JsonSerializer.Deserialize<Progresso>(progressoJson, Js) ?? new Progresso();
+            progresso = LerProgresso(progressoJson);
             hoje = RegrasDeProgresso.AoAbrir(progresso, Dia.Parse(dia));
             sessao = null;
             return JsonSerializer.Serialize(new
             {
                 hoje = hoje.ToString(),
-                revisao = RegrasDeProgresso.ItemDaRevisao(progresso, catalogo, hoje),
+                revisao = RegrasDeProgresso.MusicaDaRevisao(progresso, repertorio, hoje),
+                itemInicial = RegrasDeProgresso.ItemInicial(progresso, repertorio),
                 painel = MontarPainel(),
                 progresso,
             }, Js);
+        }
+
+        // Arquivo sem schemaVersion 2 é v1: passa pela migração (06 §6).
+        static Progresso LerProgresso(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return new Progresso();
+            using var documento = JsonDocument.Parse(json);
+            var versao = documento.RootElement.TryGetProperty("schemaVersion", out var v) ? v.GetInt32() : 1;
+            return versao >= Progresso.VersaoAtual
+                ? JsonSerializer.Deserialize<Progresso>(json, Js) ?? new Progresso()
+                : RegrasDeProgresso.MigrarDaV1(JsonSerializer.Deserialize<ProgressoV1>(json, Js) ?? new ProgressoV1());
         }
 
         [JSExport]
@@ -57,9 +78,18 @@ namespace VrPiano.Web
         [JSExport]
         public static string Iniciar(string item, bool revisao, double t)
         {
-            sessao = new SessaoDeLicao(item, musicas[item], progresso, catalogo, hoje, revisao: revisao, musicaCompleta: musicas[catalogo.Song]);
+            sessao = new SessaoDeLicao(item, repertorio, progresso, hoje, revisao: revisao);
             sessao.Iniciar(Ms(t));
-            return Estado(incluirPassos: true);
+            return Estado();
+        }
+
+        // O botão "Ouvir a música" do painel: toca a música e volta, sem mudar o progresso.
+        [JSExport]
+        public static string OuvirMusica(string musica, double t)
+        {
+            sessao = new SessaoDeLicao(musica, repertorio, progresso, hoje, soOuvir: true);
+            sessao.Iniciar(Ms(t));
+            return Estado();
         }
 
         // tipo: tick, noteOn, pose, ouvir, comGuia, desconectado, conectado, foco, continuar, sair.
@@ -82,10 +112,10 @@ namespace VrPiano.Web
                 case "sair": sessao.Sair(ms); break;
                 default: throw new ArgumentException($"entrada desconhecida: {tipo}");
             }
-            return Estado(incluirPassos: false);
+            return Estado();
         }
 
-        static string Estado(bool incluirPassos)
+        static string Estado()
         {
             var s = sessao!;
             var eventos = s.Coletar();
@@ -97,44 +127,34 @@ namespace VrPiano.Web
                 revisao = s.Revisao,
                 fase = s.Fase,
                 passo = s.PassoAtual,
-                alvo = s.Fase == Fase.Guiada || s.Fase == Fase.Memoria ? new { nota = s.Alvo.Nota, dedo = s.Alvo.Dedo, licao = s.Alvo.LicaoDoTrecho } : null,
+                alvo = s.Fase == Fase.Guiada || s.Fase == Fase.Memoria ? new { nota = s.Alvo.Nota, dedo = s.Alvo.Dedo } : null,
                 tAcerto = s.TAcerto,
                 tAtaque = s.TAtaque,
                 emAtaque = s.EmAtaque,
                 ofertas = s.Ofertas,
                 juntando = s.Juntando,
-                frase = s.Juntando ? s.Alvo.LicaoDoTrecho : (int?)null,
+                frase = s.Juntando ? s.Alvo.Trecho : (int?)null,
                 frases = s.FrasesDaCadeia,
+                etiqueta = s.Etiqueta,
+                ancora = s.AncoraDaMao,
+                decorou = s.Decorou,
                 motivo = s.MotivoDaPausa,
                 estrelas = s.EstrelasDaExecucao,
                 ritmo = s.RitmoDaExecucao,
-                passos = incluirPassos ? s.Passos.Select(p => new { nota = p.Nota, dedo = p.Dedo, licao = p.LicaoDoTrecho }) : null,
             }, Js);
         }
 
-        static object MontarPainel() => new
-        {
-            itens = RegrasDeProgresso.Itens(catalogo).Select(id => new
-            {
-                id,
-                titulo = musicas[id].TitleKey,
-                aberto = RegrasDeProgresso.Aberto(progresso, catalogo, id, preparoOk: true),
-                estrelas = RegrasDeProgresso.Estrelas(progresso, id),
-                ritmo = progresso.Rhythm.TryGetValue(id, out var r) ? r : null,
-                notas = Passo.DaMusica(musicas[id]).Select(p => p.Nota),
-            }),
-            proximo = RegrasDeProgresso.ProximoItem(progresso, catalogo, preparoOk: true),
-            sequencia = progresso.Streak,
-            cadeia = progresso.Chain,
-        };
+        static PainelDoJogo MontarPainel() => RegrasDeProgresso.Painel(progresso, repertorio, preparoOk: true);
 
         static long Ms(double t) => (long)Math.Round(t);
 
         static T Ler<T>(string nome)
         {
-            using var stream = typeof(Motor).Assembly.GetManifestResourceStream(nome)
-                ?? throw new FileNotFoundException(nome);
+            using var stream = Recurso(nome);
             return JsonSerializer.Deserialize<T>(stream, Arquivo)!;
         }
+
+        static Stream Recurso(string nome) =>
+            typeof(Motor).Assembly.GetManifestResourceStream(nome) ?? throw new FileNotFoundException(nome);
     }
 }

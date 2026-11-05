@@ -4,7 +4,7 @@
 
 Aprenda piano com o Meta Quest 3/3S e um teclado Casio CT-S300 de verdade. Sem notas caindo: é chamada e resposta, direto nas teclas. Uma mão 3D toca o trecho, você repete com as teclas guiando o dedo e o tempo, e depois as luzes apagam para você tocar de cabeça.
 
-Planejamento e o começo do código: o motor das lições já roda num app sem VR (veja Código, no fim). As imagens abaixo são a prova de conceito visual: mostram o que a pessoa vê no headset, passo a passo.
+Planejamento e o começo do código: o motor do jogo já roda na tela provisória web/ (veja Código, no fim). As imagens abaixo são a prova de conceito visual: mostram o que a pessoa vê no headset, passo a passo.
 
 > Os balões roxos são explicação desta página. Eles não aparecem no app.
 
@@ -54,13 +54,13 @@ Cada trecho tem três fases: **assistir**, **tocar guiado** e **tocar de memóri
 
 ## Estrelas e progresso
 
-**Junte tudo.** Da Lição 2 em diante, depois da frase nova você toca de memória todas as frases até ali, em sequência. Errou? Volta só ao começo daquela frase. Na Lição 12, isso já é a música inteira.
+**Junte tudo.** Da frase 2 em diante, depois da frase nova você toca de memória tudo o que veio antes, em sequência. Errou? Volta só ao começo daquela parte. Com todas as frases, abre a música inteira, sem guia.
 
-**10. Ganhe estrelas.** Lembrou de primeira, sem dica: 3 estrelas. Com 2, a próxima lição abre. O card também mostra quantas notas saíram no tempo, mas o ritmo não tira estrela.
+**10. Ganhe estrelas.** Lembrou de primeira, sem dica: 3 estrelas. Com 2, a próxima frase abre. O card também mostra quantas notas saíram no tempo, mas o ritmo não tira estrela.
 
 ![Passo 10: três estrelas](docs/visao/poc/10-estrelas.svg)
 
-**11. Seu progresso.** Estrelas, dias seguidos, as 12 lições e o melhor ritmo de cada uma. Com as 12, abre a música do nível 1.
+**11. Seu progresso.** Estrelas, dias seguidos, as músicas com suas frases e o melhor ritmo de cada uma. A música inteira abre a próxima música, e ela vira “Decorada” quando sai inteira numa revisão em outro dia.
 
 ![Passo 11: quadro de progresso](docs/visao/poc/11-progresso.svg)
 
@@ -85,7 +85,7 @@ Quando dois documentos divergirem, vale o 06 para regra e números, e o 01 para 
 
 ## Código
 
-- [`domain/`](domain): o motor das lições em C#, sem Unity. O mesmo código vai para o app VR e para o app sem VR.
+- [`domain/`](domain): o motor do jogo em C#, sem Unity. O mesmo código vai para o app em Unity, com builds para Quest e Windows, e para a tela provisória web/.
 - [`domain.tests/`](domain.tests): os testes T-DOM. Rode com `dotnet test domain.tests`.
-- [`content/`](content): as 12 lições e a música no formato do 06 §5.
-- [`web/`](web): o app sem VR, no navegador com o CT-S300 ligado no PC. Serve para testar o método de aula antes do headset.
+- [`content/`](content): Brilha, Brilha e Ode à Alegria no formato do 06 §5, e os textos gerados do docs/07. As lições antigas estão em `content/legado/`.
+- [`web/`](web): a tela provisória web/, no navegador com o CT-S300 ligado no PC. Serve para testar o método de aula até a migração para Unity.

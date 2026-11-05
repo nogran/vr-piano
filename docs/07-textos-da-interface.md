@@ -1,6 +1,6 @@
 # Textos da interface
 
-Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado desta tabela; nenhum texto fica escrito direto na cena. Frases do card até 32 caracteres (RNF-05). `{n}`, `{key}` e similares são trocados em tempo de execução.
+Fonte única dos textos do app (RF-03). O arquivo `content/textos.json` é gerado destas tabelas com `dotnet run tools/gerar-textos.cs`, e o app e a tela provisória web/ leem só ele; nenhum texto fica escrito direto na cena ou no `main.js`. Depois de mudar uma tabela, rode o gerador (T-TXT-03 acusa se esquecer). Frases do card até 32 caracteres (RNF-05). “Frase” com número conta só trechos novos (RF-51); “Parte” conta os trechos do Juntar, repetições incluídas (RF-56). `{n}`, `{key}` e similares são trocados em tempo de execução.
 
 ## Idioma
 
@@ -45,8 +45,10 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 
 | Chave | pt-BR | en |
 |---|---|---|
-| `lesson.label` | Lição {n} | Lesson {n} |
-| `song.label` | Música | Song |
+| `card.phrase` | {title} · Frase {n} | {title} · Phrase {n} |
+| `card.whole` | {title} · Música inteira | {title} · Whole song |
+| `phrase.label` | Frase {n} | Phrase {n} |
+| `whole.label` | Música inteira | Whole song |
 | `lesson.pose` | Ponha a mão assim. | Place your hand like this. |
 | `lesson.hear` | Ouvir | Hear |
 | `lesson.hand` | Mão | Hand |
@@ -58,11 +60,11 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `finger.5` | Mínimo | Pinky |
 | `lesson.memory` | Agora de memória. | Now from memory. |
 | `lesson.join.intro` | Agora junte tudo. | Now put it all together. |
-| `lesson.join.count` | As {n} frases, de memória. | All {n} phrases, from memory. |
+| `lesson.join.count` | As {n} partes, de memória. | All {n} parts, from memory. |
 | `lesson.join` | Junte tudo de memória. | Put it together from memory. |
-| `lesson.join.phrase` | Frase {i} de {n} | Phrase {i} of {n} |
-| `lesson.join.retry` | Do começo da frase. | From the start of the phrase. |
-| `result.join` | De cor: {n} frases seguidas. | By heart: {n} phrases in a row. |
+| `lesson.join.phrase` | Parte {i} de {n} | Part {i} of {n} |
+| `lesson.join.retry` | Do começo da parte. | From the start of the part. |
+| `result.join` | De cor: {n} partes seguidas. | By heart: {n} parts in a row. |
 | `lesson.backToGuide` | Mais uma vez com guia. | Once more with the guide. |
 | `rhythm.early` | Adiantado | Early |
 | `rhythm.late` | Atrasado | Late |
@@ -72,30 +74,32 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `note.64` | Mi | E |
 | `note.65` | Fá | F |
 | `note.67` | Sol | G |
+| `note.69` | Lá | A |
 | `vel.soft` | leve | soft |
 | `vel.medium` | médio | medium |
 | `vel.loud` | forte | loud |
 
 `{key}` usa o nome da nota da tecla de atalho seguido da oitava, em notação científica nos dois idiomas (ex.: “Dó2” / “C2”), porque as teclas de atalho ficam fora da posição.
 
-## Resultado e entre lições
+## Resultado e painel
 
 | Chave | pt-BR | en |
 |---|---|---|
 | `result.3` | Você lembrou. | You remembered. |
-| `result.2` | Lição seguinte aberta. | Next lesson unlocked. |
+| `result.2` | Próxima etapa aberta. | Next step unlocked. |
 | `result.1` | Falta tocar de memória. | Still needs a memory pass. |
 | `result.rhythm` | No tempo: {n} de {m} | On time: {n} of {m} |
 | `between.next` | Próxima | Next |
 | `between.again` | De novo | Again |
 | `between.progress` | Progresso | Progress |
-| `between.songOpen` | A música do nível 1 abriu. | The level 1 song is open. |
+| `between.songOpen` | {title} abriu. | {title} is open. |
 
 ## Revisão
 
 | Chave | pt-BR | en |
 |---|---|---|
-| `review.title` | Frase da última vez. | Phrase from last time. |
+| `review.label` | Revisão | Review |
+| `review.title` | Música da última vez. | Song from last time. |
 | `review.play` | Toque de memória. | Play it from memory. |
 | `review.hear` | Ouvir | Hear |
 | `review.guide` | Com guia | With guide |
@@ -119,12 +123,13 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 
 | Chave | pt-BR | en |
 |---|---|---|
-| `progress.stars` | Estrelas: {n}/36 | Stars: {n}/36 |
-| `progress.songStars` | Música: {n}/3 | Song: {n}/3 |
+| `progress.stars` | Estrelas: {n} | Stars: {n} |
 | `progress.streak` | Dias seguidos: {n} | Day streak: {n} |
 | `progress.best` | Maior sequência: {n} | Best streak: {n} |
-| `progress.mastered` | De memória, sem erro: {n} lições | From memory, no mistakes: {n} lessons |
-| `progress.chain` | De cor, seguidas: {n} frases | By heart, in a row: {n} phrases |
+| `progress.mastered` | De memória, sem erro: {n} frases | From memory, no mistakes: {n} phrases |
+| `progress.chain` | De cor, seguidas: {n} partes | By heart, in a row: {n} parts |
+| `progress.memorized` | Decoradas: {n} | Memorized: {n} |
+| `progress.memorized.badge` | Decorada | Memorized |
 | `progress.locked` | Fechada | Locked |
 | `progress.rhythm` | {n} de {m} no tempo | {n} of {m} on time |
 | `settings.language` | Idioma | Language |
@@ -132,19 +137,27 @@ Fonte única dos textos do app (RF-03). O catálogo de textos do app é gerado d
 | `settings.recalibrate` | Calibrar de novo | Calibrate again |
 | `settings.checklist` | Checklist do teclado | Keyboard checklist |
 
-## Matéria de cada lição (etiqueta curta no painel entre lições)
+## Músicas
 
 | Chave | pt-BR | en |
 |---|---|---|
-| `lesson.01.novelty` | Dó, polegar | C, thumb |
-| `lesson.02.novelty` | Ré, indicador | D, index |
-| `lesson.03.novelty` | Mi, médio | E, middle |
-| `lesson.04.novelty` | Descer | Going down |
-| `lesson.05.novelty` | Ida e volta | Up and back |
-| `lesson.06.novelty` | Fá, anelar | F, ring |
-| `lesson.07.novelty` | Subir até o fá | Up to F |
-| `lesson.08.novelty` | Sol, mínimo | G, pinky |
-| `lesson.09.novelty` | Cinco dedos subindo | Five fingers up |
-| `lesson.10.novelty` | Cinco dedos descendo | Five fingers down |
-| `lesson.11.novelty` | Salto | Skips |
-| `lesson.12.novelty` | Revisão | Review |
+| `song.BRILHA.title` | Brilha, Brilha | Twinkle, Twinkle |
+| `song.ODE.title` | Ode à Alegria | Ode to Joy |
+| `song.hear` | Ouvir a música | Hear the song |
+
+## Tela provisória web/
+
+Textos que só existem nessa tela e saem com ela na migração para Unity.
+
+| Chave | pt-BR | en |
+|---|---|---|
+| `web.pose.hint` | Polegar no dó central, um dedo em cada tecla. | Thumb on middle C, one finger on each key. |
+| `web.start` | Começar | Start |
+| `web.day` | Dia: {n} | Day: {n} |
+| `web.velocity` | Força: {band} | Force: {band} |
+| `web.midi.connected` | Teclado conectado: {name} | Keyboard connected: {name} |
+| `web.midi.none` | Sem teclado MIDI: use o computador. | No MIDI keyboard: use the computer. |
+| `web.midi.unsupported` | Sem Web MIDI. Use Chrome ou Edge. | No Web MIDI. Use Chrome or Edge. |
+| `web.fac.day` | Dia do app: {day} | App day: {day} |
+| `web.fac.dayShifted` | Dia do app: {day} ({n} a mais que o real) | App day: {day} ({n} ahead of the real one) |
+| `web.fac.confirmErase` | Apagar o progresso de {name}? Execuções e eventos continuam guardados. | Erase {name}'s progress? Runs and events stay saved. |

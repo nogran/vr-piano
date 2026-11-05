@@ -1,7 +1,7 @@
 // Mão branca em 3D (docs/03 §4). A forma é a malha de mão genérica do WebXR (@webxr-input-profiles/assets, MIT):
 // anatomia de mão real, pele lisa e um esqueleto com uma junta por falange. O app só dobra as juntas para a pose de
-// tocar. Fica por cima do teclado da tela, com o polegar no dó central e um dedo por tecla
-// até o sol. Unidade do mundo: a largura de uma tecla branca (23,5 mm). x para a direita (agudos), y para cima,
+// tocar. Fica por cima do teclado da tela, um dedo por tecla, com o polegar na tecla da âncora que o domínio calcula
+// (0 = dó central). Unidade do mundo: a largura de uma tecla branca (23,5 mm). x para a direita (agudos), y para cima,
 // z para quem toca; os dedos apontam para -z.
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -10,6 +10,7 @@ const MALHA = 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0.19/
 const TECLA_M = 0.0235;
 const FADE_MS = 400;               // P-35
 const DESCIDA_MS = 120;            // tempo do dedo descer ou subir (docs/05 §7)
+const DESLIZE_MS = 200;            // tempo da mão andar uma tecla branca (RF-64)
 const INCLINACAO = 50 * Math.PI / 180; // olhar de quem toca, de cima e de trás
 const COR_ATIVA = new THREE.Color('#f59e0b');
 const ALTURA_DOS_NOS = 1.75;       // nós dos dedos acima da tecla, em teclas
@@ -134,7 +135,8 @@ export function criarMao(container) {
 
   const ativos = new Array(32).fill(0);
   const aperto = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  let pronta = null; // { posar(), ancora }
+  let pronta = null; // { posar(), deslizar(), ancora }
+  let deslize = 0;   // onde a mão está agora, em teclas brancas a partir do dó central
 
   new GLTFLoader().load(MALHA, (gltf) => {
     const raiz = gltf.scene;
@@ -220,8 +222,13 @@ export function criarMao(container) {
       .map((o, i) => (o.name.startsWith(d.nome) && (d.dedo === 1 || !o.name.endsWith('metacarpal')) ? i : -1))
       .filter((i) => i >= 0)]));
     const meio = ponta(DEDOS[2]);
+    const xDaRaiz = raiz.position.x, xDaSombra = sombra.position.x;
     pronta = {
       ancora: new THREE.Vector3(meio.x, 0, meio.z),
+      deslizar(x) {
+        raiz.position.x = xDaRaiz + x;
+        sombra.position.x = xDaSombra + x;
+      },
       posar() {
         for (const d of DEDOS) {
           const p = pose.get(d.dedo);
@@ -234,8 +241,9 @@ export function criarMao(container) {
 
   let opacidade = 0, ultimo = performance.now(), larguraVista = 0, alturaVista = 0;
   return {
-    // visivel: a mão deve estar na tela; dedos: os dedos (1 a 5) apertando agora; teclas: { do: retângulo da tecla do dó central na tela }.
-    atualizar(visivel, dedos, teclas, agora) {
+    // visivel: a mão deve estar na tela; dedos: os dedos (1 a 5) apertando agora; ancora: tecla branca do polegar,
+    // calculada no domínio; teclas: { do: retângulo da tecla do dó central na tela }.
+    atualizar(visivel, dedos, ancora, teclas, agora) {
       const dt = Math.min(100, agora - ultimo); ultimo = agora;
       const alvoOpacidade = visivel && pronta ? 1 : 0;
       opacidade += Math.sign(alvoOpacidade - opacidade) * Math.min(Math.abs(alvoOpacidade - opacidade), dt / FADE_MS);
@@ -243,6 +251,8 @@ export function criarMao(container) {
         const alvo = dedos.has(f) ? 1 : 0;
         aperto[f] += Math.sign(alvo - aperto[f]) * Math.min(Math.abs(alvo - aperto[f]), dt / DESCIDA_MS);
       }
+      // Escondida, ela já espera na âncora; visível, desliza até lá.
+      deslize = opacidade === 0 ? ancora : deslize + Math.sign(ancora - deslize) * Math.min(Math.abs(ancora - deslize), dt / DESLIZE_MS);
       if (opacidade === 0) { canvas.style.display = 'none'; return; }
       canvas.style.display = '';
 
@@ -267,6 +277,7 @@ export function criarMao(container) {
       camera.top = a.y + py / k; camera.bottom = camera.top - H / k;
       camera.updateProjectionMatrix();
 
+      pronta.deslizar(deslize);
       pronta.posar();
       renderer.render(cena, camera);
 

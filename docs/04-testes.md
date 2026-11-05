@@ -25,53 +25,73 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 
 | ID | Dado | Quando | Então | Req. |
 |---|---|---|---|---|
-| T-DOM-01 | L01 inédita em Pose, Mão ligada | `PoseMudou(true)` | `FaseMudou(Demonstração)`. Nenhum `AlvoMudou` antes do fim da demonstração | RF-31, RF-31a |
-| T-DOM-01b | L01 em `demoSeen`, em Pose | `PoseMudou(true)` | `FaseMudou(Guiada)`, `AlvoMudou(60, 1, 0)`. Nenhum comando de envio | RF-31, RF-31a |
-| T-DOM-02 | L01 em Pose; (a) inédita, (b) já vista | `MãoAlternada(false)` | (a) Demonstração, com `DemoNota` e envio, sem esperar pose; (b) Guiada no passo 0 | RF-32c |
-| T-DOM-03 | L01 em Pose | `NoteOn(60)` | Nenhum evento de acerto ou erro. Fase continua Pose | RF-31 |
-| T-DOM-04 | L03 em Pose, conectado: `start_time_ms` 0, 1000, 2000 e `duration_ms` 1000, 1000, 2000, velocity 80 | `OuvirAcionado` em t=0 | Comandos: On 60 em 0, Off 60 em 700, On 62 em 1000, Off 62 em 1700, On 64 em 2000, Off 64 em 3400 (velocity `P-11`, canal `P-12`); `DemoNota` para cada um; depois do último Off: `DemoVista(L03)`, `MãoSome`, Guiada no passo 0 | RF-14, RF-31a, P-09, P-10 |
-| T-DOM-05 | Demonstração da L01 terminou em t=T | `NoteOn(60)` em T+299 e em T+301 | O primeiro é ignorado; o segundo é `NotaCerta`. Note On durante a demonstração também é ignorado | RF-31a, P-08 |
-| T-DOM-06 | L01 na Guiada | Quatro `NoteOn(60)` | Quatro `NotaCerta`, `VoltaConcluída(limpa)`, `FaseMudou(Transição)`, estrelas 0→1 | RF-32, RF-35 |
+| T-DOM-01 | BRILHA#1 inédita em Pose, Mão ligada | `PoseMudou(true)` | `FaseMudou(Demonstração)`. Nenhum `AlvoMudou` antes do fim da demonstração | RF-31, RF-31a |
+| T-DOM-01b | BRILHA#1 em `demoSeen`, em Pose | `PoseMudou(true)` | `FaseMudou(Guiada)`, `AlvoMudou(60, 1, 0)`. Nenhum comando de envio | RF-31, RF-31a |
+| T-DOM-02 | BRILHA#1 em Pose; (a) inédita, (b) já vista | `MãoAlternada(false)` | (a) Demonstração, com `DemoNota` e envio, sem esperar pose; (b) Guiada no passo 0 | RF-32c |
+| T-DOM-03 | BRILHA#1 em Pose | `NoteOn(60)` | Nenhum evento de acerto ou erro. Fase continua Pose | RF-31 |
+| T-DOM-04 | BRILHA#1 em Pose, conectado: `start_time_ms` de 0 a 6000 e última nota com 2000, velocity 80 | `OuvirAcionado` em t=0 | Comandos: On 60 em 0, Off 60 em 700, On 60 em 1000 … On 67 em 6000, Off 67 em 7400, velocity 80, canal 1. Um `DemoNota` por comando. No fim: `DemoVista`, `MãoSome`, Guiada no passo 0 | RF-14, RF-31a, P-09 |
+| T-DOM-05 | Demonstração da BRILHA#1 terminou em t=T | `NoteOn(60)` em T+299 e em T+301 | O primeiro é ignorado; o segundo é `NotaCerta`. Note On durante a demonstração também é ignorado | RF-31a, P-08 |
+| T-DOM-06 | BRILHA#1 na Guiada | Sete `NoteOn` certos | Sete `NotaCerta`, `VoltaConcluída(limpa)`, `FaseMudou(Transição)`, estrelas 0→1 | RF-32, RF-35 |
 | T-DOM-07 | Guiada | 8 `NoteOn` com velocity 100; depois um com 70 | `VelocityFixa(true)` no 8º, `VelocityFixa(false)` no 9º. Nenhum efeito em acerto ou fase | RF-13, P-03 |
-| T-DOM-08 | L01 na Guiada, passo 2 | 3 `NoteOn` (60, 64, 67) em 40 ms | `LiçãoPausada(Rajada)`. Passo volta a 2. Nenhuma falha contada | RF-16, P-04, P-05 |
+| T-DOM-08 | BRILHA#1 na Guiada, passo 2 | 3 `NoteOn` (60, 64, 67) em 40 ms | `LiçãoPausada(Rajada)`. Passo volta a 2. Nenhuma falha contada | RF-16, P-04, P-05 |
 | T-DOM-08b | Guiada | 13 `NoteOn` em 1000 ms; noutro cenário, alternância 60/62 a cada 100 ms por 5 s | O primeiro pausa por rajada. O segundo (10 por segundo) não pausa | RF-16, P-06 |
 | T-DOM-08c | Pausado(Rajada) | Silêncio de 2999 ms com um Note On no meio; depois 3000 ms sem nada | Só retoma depois de 3000 ms contínuos de silêncio | RF-16, P-07 |
-| T-DOM-09 | L02 na Guiada, alvo 60 | `NoteOn(64)`; depois 60, 62 | `NotaErrada(64, 60)`, passo continua 0; a volta termina não limpa e a Guiada recomeça sem ir para a memória | RF-32, RF-35 |
+| T-DOM-09 | BRILHA#1 na Guiada, alvo 60 | `NoteOn(64)`; depois a frase toda | `NotaErrada(64, 60)`, passo continua 0; a volta termina não limpa e a Guiada recomeça sem ir para a Memória | RF-32, RF-35 |
 | T-DOM-10 | Guiada, alvo 60 | `NoteOn(60)` com velocity 1, 49, 50, 89, 90, 127 | Todos são acerto. Faixas: Leve, Leve, Médio, Médio, Forte, Forte | RF-33, P-01, P-02 |
-| T-DOM-11 | L02 na Guiada | `NoteOn(60)`, `NoteOn(62)` sem `NoteOff(60)` entre eles | Os dois são acerto | RF-34 |
+| T-DOM-11 | BRILHA#1 na Guiada | `NoteOn(60)`, `NoteOn(60)` sem `NoteOff` entre eles | Os dois são acerto | RF-34 |
 | T-DOM-12 | Transição | `NoteOn(60)` 500 ms depois de entrar; `Tick` em 1000 ms | O Note On é ignorado. Memória começa em 1000 ms | RF-35, P-22 |
-| T-DOM-13 | L03 na Memória, passo 1 | `NoteOn(65)`; `NoteOn(60)` 300 ms depois; `Tick` em 1000 ms | `TentativaFalhou(65, 62)`; o Note On durante o retorno de erro é ignorado; Memória volta ao passo 0 | RF-36, P-25 |
+| T-DOM-13 | BRILHA#1 na Memória, passo 1 | `NoteOn(65)`; `NoteOn(60)` 300 ms depois; `Tick` em 1000 ms | `TentativaFalhou(65, 60)`; o Note On durante o retorno de erro é ignorado; a Memória volta ao passo 0 | RF-36, P-25 |
 | T-DOM-14 | Memória | Três tentativas falhas seguidas | `VoltouAoGuiado` depois da 3ª, sem `DemoNota` nem envio. Uma volta limpa leva de novo à memória; concluir dá 2 estrelas | RF-36, P-21 |
-| T-DOM-15 | Execuções da L01 | (a) memória limpa na 1ª tentativa; (b) uma falha e depois conclusão; (c) sair na memória depois da volta limpa; (d) sair na Guiada sem volta limpa; (e) memória na 1ª tentativa, mas com uma dica | (a) 3, (b) 2, (c) 1, (d) 0, (e) 2 | RF-40, RF-36a |
-| T-DOM-16 | L01 com 3 estrelas; L02 com 2 | Execução da L01 que vale 2; execução da L02 que vale 3 | L01 continua 3. L02 sobe para 3 | RF-42 |
-| T-DOM-17 | Progresso variado | Calcular abertos | L01 fechada sem checklist ou sem calibração. L02 fechada com L01 em 1, aberta com L01 em 2. SONG1 fechada com 11 lições ≥ 2 e uma em 1; aberta com as 12 ≥ 2 | RF-41, RF-32d |
+| T-DOM-15 | Execuções da BRILHA#1 | (a) memória limpa na 1ª tentativa; (b) uma falha e depois conclusão; (c) sair na memória depois da volta limpa; (d) sair na Guiada sem volta limpa; (e) memória na 1ª tentativa, mas com uma dica | (a) 3, (b) 2, (c) 1, (d) 0, (e) 2 | RF-40, RF-36a |
+| T-DOM-16 | BRILHA#1 com 3 estrelas; ODE#1 com 2 | Execução da BRILHA#1 que vale 2; execução da ODE#1 que vale 3 | BRILHA#1 continua 3. ODE#1 sobe para 3 | RF-42 |
+| T-DOM-17 | Progresso variado | Calcular abertos | BRILHA#1 fechada sem checklist ou sem calibração. BRILHA#2 fechada com BRILHA#1 em 1, aberta em 2. ODE#4 depende de ODE#2. BRILHA fechada com uma frase em 1. ODE#1 fechada sem a BRILHA em 2. ODE#3 não é item | RF-41, RF-58, RF-59, RF-60 |
 | T-DOM-18 | (a) Guiada no passo 2; (b) Memória no passo 3 com uma falha anterior; (c) Demonstração | `MidiDesconectado`, depois `MidiConectado` | (a) volta no passo 2; (b) volta no passo 0, `falhasSeguidas` igual, a execução ainda vale no máximo 2; (c) volta para Pose, o item continua fora de `demoSeen` e nenhum comando de envio sai depois da desconexão. Estrelas salvas iguais | RF-15, RNF-08 |
 | T-DOM-18b | Memória limpa até o passo 3, sem falha | `MidiDesconectado`, `MidiConectado`, conclui sem erro | 3 estrelas: a queda não conta como falha | RF-15, RF-40 |
 | T-DOM-19 | Guiada | `FocoPerdido`, `Continuar`; noutro cenário, `SairDaAula` | Retoma no passo; sair encerra sem mudar estrelas | RF-39a |
 | T-DOM-20 | Guiada | `PoseMudou(false)` e nenhum dado de mão por 60 s, depois Note On certos | Nenhuma pausa, a lição termina | RF-38, RNF-07 |
-| T-DOM-21 | SONG1 na Guiada | Percorrer os 50 passos | `AlvoMudou` traz a lição do trecho certo em cada passo (passos 0–3 → L01, 4–5 → L02 … 40–49 → L12). O tempo de ataque depois da última nota de cada trecho é de 2 tempos. Conclusão grava estrelas da SONG1 | RF-32d |
+| T-DOM-21 | ODE#4 na Guiada; BRILHA inteira | Percorrer os passos | `AlvoMudou` traz trecho 4 e frase 3. O tempo de ataque segue `delta_to_hit_ms` (1000, 1500, 500). Na música, a última nota de um trecho dá 2000 ms até o seguinte | RF-51, RF-32 |
 
 ### Cinza dinâmico, ritmo, dica e demonstração automática
 
 | ID | Dado | Quando | Então | Req. |
 |---|---|---|---|---|
-| T-DOM-31 | L05 na Guiada, 60 BPM, passo 0 | `NoteOn(60)` em 0; `Tick` em 999 e 1000; `Tick` em 5000; `NoteOn(62)` em 5200 | O passo 0 entra direto como Ataque. `PróximaMudou(62, 0, 1000, false)`; `AtaqueChegou(62)` em 1000, não antes; nada muda até 5200 (tempo elástico); `NotaCerta(62)`, `RitmoAvaliado(Atrasado)`, `PróximaMudou(64, 5200, 6200, false)` | RF-32, RF-32a, P-10 |
+| T-DOM-31 | ODE#6 na Guiada, 60 BPM, passo 0 | `NoteOn(62)` em 0; `Tick` em 999 e 1000; `Tick` em 5000; `NoteOn(64)` em 5200 | O passo 0 entra direto como Ataque. `PróximaMudou(64, 0, 1000)`. `AtaqueChegou(64)` em 1000. Nada em 5000 (tempo elástico). Em 5200, `Atrasado` e `PróximaMudou(65, 5200, 5700)` | RF-32, RF-32a |
 | T-DOM-32 | Função de intensidade do cinza | progresso 0; 0,5; 1 | 0,15; 0,575; 1,0. Progresso fora de 0–1 é limitado | RF-32, P-29 |
 | T-DOM-33 | Guiada, `tAtaque` = 1000 | `NoteOn` certo em 849, 850, 1250 e 1251 (quatro cenários) | Adiantado, NoTempo, NoTempo, Atrasado. Os quatro avançam o passo. A volta limpa continua limpa com Adiantado e Atrasado. `VoltaConcluída` traz `{noTempo, avaliadas}`, sem contar o passo 0 | RF-32a, RF-35, P-30, P-31 |
-| T-DOM-34 | Memória da L03 começou em 0 | `Tick` em 2999, 3000, 6000; `NoteOn(60)` em 6500; `Tick` em 9499 e 9500; conclui sem erro | Nada em 2999. `DicaDeMemória(60)` em 3000 e em 6000. Depois do acerto, a próxima dica é `DicaDeMemória(62)` em 9500. Resultado: 2 estrelas | RF-36a, RF-40, P-33, P-34 |
-| T-DOM-35 | L02 inédita | Pose ok; demonstração até o fim; sair; nova execução com pose ok; depois `OuvirAcionado` na Guiada | 1ª execução: Demonstração, `DemoVista(L02)`. 2ª: Guiada direto. Ouvir na Guiada: Demonstração e volta à Guiada no passo 0, sem `VoltaConcluída` | RF-31a |
-| T-DOM-36 | L01 na Guiada | `NoteOn(60)` | `PróximaMudou(60, t, t+1000, mesmaTecla = true)` | RF-32e |
+| T-DOM-34 | Memória da BRILHA#1 começou em 0 | `Tick` em 2999, 3000, 6000; `NoteOn(60)` em 6500; `Tick` em 9499 e 9500; conclui sem erro | Nada em 2999. `DicaDeMemória(60)` em 3000 e 6000. Depois do acerto, nada em 9499 e `DicaDeMemória(60)` em 9500. Conclusão com 2 estrelas | RF-36a, P-33 |
+| T-DOM-35 | BRILHA#2 inédita | Pose ok; demonstração até o fim; sair; nova execução com pose ok; depois `OuvirAcionado` na Guiada | 1ª execução: Demonstração, `DemoVista(BRILHA#2)`. 2ª: Guiada direto. Ouvir na Guiada: Demonstração e volta à Guiada no passo 0, sem `VoltaConcluída` | RF-31a |
+| T-DOM-36 | BRILHA#1 na Guiada | `NoteOn(60)` | `PróximaMudou(60, t, t+1000, mesmaTecla = true)` | RF-32e |
 | T-DOM-37 | Guiada no passo 2, em Antecipação | `MidiDesconectado`, `MidiConectado`, `NoteOn` certo 3 s depois | Retoma com o passo 2 em Ataque. O acerto não gera `RitmoAvaliado` | RF-15, RF-32a |
-| T-DOM-38 | L01 com ritmo salvo 2 de 3 | Execução com volta limpa 3 de 3; outra com 1 de 3 | Ritmo salvo vira 3 de 3 e não cai. Estrelas iguais nos dois casos | RF-32a, RF-45 |
-| T-DOM-39 | L03 com a música carregada | Concluir a memória | Estrelas gravadas, Transição, Juntar com L01, L02 e L03 em sequência | RF-36b |
-| T-DOM-39b | L01 | Concluir a memória | Resultado, sem Juntar | RF-36b |
-| T-DOM-39c | L12 | Montar a sessão | A sequência de Juntar é a música inteira | RF-36b |
+| T-DOM-38 | BRILHA#1 com ritmo salvo 2 de 3 | Execução com volta limpa 6 de 6; outra com notas atrasadas | Ritmo salvo vira 6 de 6 e não cai. Estrelas iguais nos dois casos | RF-32a, RF-45 |
+| T-DOM-39 | BRILHA#3 | Concluir a memória | Estrelas gravadas, Transição, Juntar com os trechos 1, 2 e 3 | RF-56 |
+| T-DOM-39b | BRILHA#1 | Concluir a memória | Resultado, sem Juntar | RF-55 |
+| T-DOM-39c | ODE#4; ODE#6 | Montar a sessão; concluir frases | O Juntar de ODE#4 tem os trechos 1, 2, 3 e 4, 30 passos. O de ODE#6 vai até o trecho 6. As fronteiras são os trechos, também na repetição | RF-56 |
 | T-DOM-40 | Juntar na frase 2 | `NoteOn` errado | `JuntarFalhou`; depois de `P-25`, volta ao começo da frase 2; estrelas iguais | RF-36b |
 | T-DOM-41 | Juntar na frase 1 | 3 falhas seguidas | `DicaDeMemória` em cada passo da frase; na frase seguinte, não | RF-36b |
-| T-DOM-42 | `chain` = 5, depois `chain` = 0 | Concluir Juntar de L03; concluir Juntar de L02 | `CadeiaConcluída`; `chain` fica 5 no primeiro e vira 2 no segundo | RF-36b |
+| T-DOM-42 | `chain` da BRILHA = 5, depois vazio | Concluir Juntar de BRILHA#3; concluir Juntar de BRILHA#2; concluir BRILHA#1 | `CadeiaConcluída`; `chain` fica 5 no primeiro, vira 2 no segundo e 1 na frase 1. Só a música tocada muda | RF-56, RF-63 |
 | T-DOM-43 | Juntar na frase 2 | `FocoPerdido`, `Continuar` | Volta ao começo da frase 2, sem falha | RF-36b |
 | T-DOM-44 | Juntar | Sair da aula | Encerrada; estrelas ficam; `chain` não muda | RF-36b |
-| T-DOM-45 | Revisão de L03 | Concluir a memória | Resultado, sem Juntar | RF-36b |
+| T-DOM-45 | Revisão da BRILHA até o trecho 3 | Concluir | Resultado, sem outro Juntar | RF-62 |
+
+### Músicas
+
+| ID | Dado | Quando | Então | Req. |
+|---|---|---|---|---|
+| T-DOM-50 | Música inteira em Pose | `PoseMudou(true)`; `Tick` em `P-22` | Transição e Juntar com os 42 passos. Nenhum `AlvoMudou` nem envio | RF-57 |
+| T-DOM-51 | Música inteira no Juntar | Tocar tudo certo | 3 estrelas, `chain` = 6, `lastMemory` = BRILHA, dia seguido | RF-59 |
+| T-DOM-52 | Música inteira no trecho 3 | Erro | `JuntarFalhou`; volta ao começo do trecho 3; conclusão vale 2 | RF-57, RF-59 |
+| T-DOM-53 | Música inteira | Silêncio de `P-33`, depois conclui | `DicaDeMemória`; conclusão vale 2 | RF-57, RF-59 |
+| T-DOM-54 | Música inteira | `P-21` falhas no trecho | Cada tecla do trecho pisca; não volta à Guiada | RF-57 |
+| T-DOM-55 | Música inteira | Sair no meio | Estrelas e `chain` não mudam | RF-57 |
+| T-DOM-56 | Música inteira em Pose | `OuvirAcionado` | Toca as 42 notas e segue para a Transição | RF-57 |
+| RF54_* | BRILHA#1 com a música fora de `demoSeen` | `Iniciar`; pausar; botão do painel | Audição inteira antes da Pose, etiqueta “Música inteira”; a frase ainda tem a demonstração dela; só a frase 1 ouve; pausa recomeça a audição; o botão do painel toca e encerra sem mudar o progresso | RF-54 |
+| RF51_* | Catálogo | Listar itens; numerar frases | 10 itens na ordem; ODE#4 é a Frase 3, e o trecho 8 tem o número da frase original | RF-51 |
+| RF61_* | Música concluída | Revisão noutro dia; no mesmo dia; conclusão fora da revisão; revisão de parte | Só o primeiro decora, uma vez | RF-61 |
+| RF63_* | Arquivo v1 de exemplo; progresso v2 | Migrar; gravar e ler | Mantém dias e configurações, descarta as lições. `chain` e `memorized` fazem ida e volta | RF-63 |
+| RF64_* | Notas e dedos; BRILHA; demonstração | Calcular a âncora; demonstrar | Sol com dedo 4 e Lá com dedo 5 dão 1; a Ode fica em 0; a âncora muda quando a nota solta, antes da próxima; a pose continua em 0 | RF-64 |
+| RF65_* | Itens das duas músicas | Pedir a etiqueta | Tipo, título e número da frase certos; até 32 caracteres nos dois idiomas | RF-65 |
+| RF66_* | Progresso variado | Montar o painel | Músicas, frases, estado, estrelas, ritmo, “Decorada”, sem “/36” nem lições | RF-66 |
+| RF68_* | Tabelas do 06 §5 escritas no teste | Comparar com os arquivos | Nota, dedo, início, duração e `repeat_of` iguais, nas duas músicas | RF-68 |
 
 ### Dia seguido e revisão
 
@@ -80,12 +100,13 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 | T-DOM-22 | `lastCountedDay` = D−1, current 3, best 3 | Memória concluída em D; outra em D | current 4, best 4; a segunda não muda nada | RF-43 |
 | T-DOM-23 | `lastCountedDay` = D−3, current 5 | Abrir em D | current 0, best mantido, estrelas intactas. Memória concluída em D → current 1 | RF-43 |
 | T-DOM-24 | `lastSeenDay` = D | Abrir com o relógio em D−1 | Nenhuma revisão, nenhuma mudança de sequência; `lastSeenDay` continua D | RF-43 |
-| T-DOM-25 | `lastMemory` = (L03, D−1); noutro, (L03, D); noutro, nulo | Abrir em D | Só o primeiro pede revisão, com o item L03 | RF-44 |
-| T-DOM-26 | `lastMemory` = (SONG1, D−1) | Abrir em D | A revisão usa a sequência da L12 | RF-44 |
-| T-DOM-27 | Revisão da L02 | Erra; `OuvirAcionado`; erra; `ComGuiaAcionado`; erra | Depois do 1º erro, ofertas Ouvir e Com guia; depois do Ouvir, só Com guia; depois do Com guia, nenhuma. Em Ofertas, `NoteOn(60)` inicia a tentativa como acerto; `NoteOn(64)` inicia e falha | RF-44 |
-| T-DOM-28 | Revisão da L02, estrelas da L02 = 2 | Conclui com erro antes | `RevisãoConcluída`; dia seguido conta; L02 continua 2; `lastMemory.day` = D; abrir de novo em D não pede revisão | RF-43, RF-44 |
-| T-DOM-30 | Catálogo embutido | Validar | As duas camadas de validação do 06 §5 passam; L01–L12 batem com a tabela, com 1000 ms entre notas e última nota de 2000 ms; SONG1 tem 12 trechos e 50 passos, iguais às lições com tempos deslocados | RF-30 |
-| T-DOM-30b | Arquivos de música inválidos: `hand` LEFT; `chord_group_id` preenchido; `delta_to_hit_ms` diferente da diferença de `start_time_ms`; `start_time_ms` voltando; nota 61 | Carregar | Cada um é recusado com o motivo; nenhum vira lição. O exemplo da 5ª Sinfonia do 08 §3 passa na camada geral e é recusado só pelas restrições da v1 | RF-30 |
+| T-DOM-25 | `lastMemory` = (ODE#4, D−1); noutro, (ODE#4, D); noutro, nulo | Abrir em D | Só o primeiro pede revisão, com a música ODE | RF-62 |
+| T-DOM-26 | `chain` da BRILHA = 2; depois item inteiro com 2 estrelas; depois sem `chain` | Montar a revisão | 2 trechos, 14 passos; 6 trechos, 42 passos; 1 trecho | RF-62 |
+| T-DOM-27 | Revisão da BRILHA até o trecho 2 | Erra no trecho 2; `OuvirAcionado`; erra; `ComGuiaAcionado`; volta; toca a primeira nota | Ofertas Ouvir e Com guia; “Ouvir” toca só o trecho 2; a guia percorre só o trecho 2; depois não sobra oferta; a nota recomeça o trecho e conta como acerto. Quatro erros seguidos não voltam à Guiada | RF-62 |
+| T-DOM-28 | Revisão da BRILHA até o trecho 2, estrelas de BRILHA#2 = 2 | Conclui com erro antes | `RevisãoConcluída`; dia seguido conta; estrelas iguais; `lastMemory.day` = D; abrir de novo no mesmo dia não pede revisão | RF-43, RF-44 |
+| T-DOM-30 | Catálogo embutido | Validar | As duas camadas de validação do 06 §5 passam; `catalog_version` 2, com BRILHA e ODE | RF-30, RF-50 |
+| T-DOM-30c | Catálogo com versão 1, música repetida e arquivo ausente | Validar | Três motivos | RF-50 |
+| T-DOM-30b | Arquivos de música inválidos: `hand` LEFT; `chord_group_id` preenchido; `delta_to_hit_ms` diferente da diferença de `start_time_ms`; `start_time_ms` voltando; nota 61; `practice` whole; `bpm_map` preenchido; repetição diferente do original; `repeat_of` para trecho posterior ou repetido | Validar | Cada um é recusado com o motivo | RF-30, RF-52, RF-53 |
 
 ## 2. Adapters sem headset (T-ADP)
 
@@ -106,7 +127,7 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 | T-PER-03 | Principal truncado, `.bak` bom | Lê o `.bak` | RNF-08 |
 | T-PER-04 | Principal e `.bak` ilegíveis | Arquivo vira `progress.corrupt-<data>.json`, app começa do zero, aviso uma vez | RNF-08 |
 | T-PER-05 | `schemaVersion` 99 | Não sobrescreve; o arquivo continua no disco | RNF-08 |
-| T-PER-06 | `stars` sem a L05 | L05 lida como 0; nenhum desbloqueio gravado no arquivo | RF-41 |
+| T-PER-06 | `stars` sem a ODE#1 | ODE#1 lida como 0; nenhum desbloqueio gravado no arquivo | RF-41 |
 
 ## 4. Textos e build (T-TXT, T-BUILD)
 
@@ -114,6 +135,8 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 |---|---|---|---|
 | T-TXT-01 | Tabela de textos | Toda chave tem pt-BR e en, não vazios; toda chave usada no app existe | RF-03 |
 | T-TXT-02 | Frases do card | Nenhuma passa de 32 caracteres | RNF-05 |
+| T-TXT-03 | `content/textos.json` contra as tabelas do 07 | Mesmas chaves e mesmos textos nos dois idiomas | RF-03 |
+| T-TXT-04 | Chaves montadas do conteúdo (`note.N`, `finger.N`, `title_key`) | Todas existem | RF-67 |
 | T-BUILD-01 | Assembly do domínio | Não referencia `UnityEngine`, Android nem OpenXR; `dotnet test` passa numa máquina sem Unity | RNF-11 |
 | T-BUILD-02 | Manifest final do APK (`aapt dump`) | Sem `INTERNET`; com MIDI, USB host, hand tracking, passthrough e âncora | RNF-04 |
 | T-BUILD-03 | `adb install` no Quest 3 e no 3S | Instala e abre na tela de idioma | RN-01 |
@@ -130,14 +153,14 @@ Fazer T-MIDI-00 e 01 antes de qualquer trabalho visual fino.
 | T-MIDI-03 | Velocity viva | `MIDI Out Velocity = Off`, Touch Response Normal; a mesma tecla, 8 toques fracos e 8 fortes | Os valores mudam. Registrar a distribuição para conferir `P-01`/`P-02`. Se não mudarem, a faixa de velocity sai do protótipo | RF-33 |
 | T-MIDI-04 | Velocity travada | `MIDI Out Velocity = 100`, 8 toques de forças diferentes | Aviso de velocity fixa; as notas continuam contando | RF-13 |
 | T-MIDI-05 | Note Off | Soltar devagar e rápido | O domínio não lê a velocity 64 do Note Off como dinâmica | RF-11 |
-| T-MIDI-06 | Octave shift | Shift +1, calibrar de novo, tocar a tecla física que agora envia 60 | O realce do dó central fica nessa tecla. A lição 1 segue tocável | RF-23 |
-| T-MIDI-07 | Eco | “Ouvir” na L09, ninguém encosta no teclado, gravar o MIDI de entrada | Ou não volta Note On, ou o que volta cai na demonstração ou na cauda `P-08`. Nenhum acerto ou erro é marcado. Se pontuar, falha | RF-31a |
-| T-MIDI-08 | Demonstração audível | Demonstração da L01 e da L03 | O CT-S300 soa as notas no andamento: 1 s entre ataques a 60 BPM, e a última nota da L03 mais longa (± 50 ms no log). A mão branca desce o dedo junto de cada som e some em fade no fim | RF-14, RF-31a |
+| T-MIDI-06 | Octave shift | Shift +1, calibrar de novo, tocar a tecla física que agora envia 60 | O realce do dó central fica nessa tecla. A frase 1 segue tocável | RF-23 |
+| T-MIDI-07 | Eco | “Ouvir” na ODE#1, ninguém encosta no teclado, gravar o MIDI de entrada | Ou não volta Note On, ou o que volta cai na demonstração ou na cauda `P-08`. Nenhum acerto ou erro é marcado. Se pontuar, falha | RF-31a |
+| T-MIDI-08 | Demonstração audível | Demonstração da BRILHA#1 e da BRILHA#3 | O CT-S300 soa as notas no andamento: 1 s entre ataques a 60 BPM, e a última nota da BRILHA#3 mais longa (± 50 ms no log). A mão branca desce o dedo junto de cada som e some em fade no fim | RF-14, RF-31a |
 | T-MIDI-09 | Latência | Note On de uma tecla fora da lição, com log do instante de recepção e do quadro em que o realce muda, 20 amostras | Mediana abaixo de `P-28` no Quest 3 e no Quest 3S | RNF-01 |
 | T-MIDI-10 | Queda de cabo | Tirar o Micro-B (a) na vez guiada, (b) na memória | Pausa visível. Religar: (a) mesmo passo, (b) tentativa do início. Estrelas anteriores iguais | RF-15 |
 | T-MIDI-11 | Ritmo e song | Ligar um ritmo no CT-S300 durante a vez guiada; depois o song player | Registrar no 05 §12 se essas notas chegam pelo USB. Se chegam: pausa com o aviso, sem somar erro | RF-16 |
 | T-MIDI-12 | Trilo | Alternar duas teclas o mais rápido possível por 5 s na vez guiada | Nenhuma nota perdida no log. Nenhuma pausa por rajada. A regra de acerto continua valendo para a nota da vez | RF-16, P-06 |
-| T-MIDI-14 | Instante do ritmo | Vez guiada da L09 com metrônomo externo a 60 BPM, tocando junto do clique; log do `timestampNanos` e do quadro do dreno | Pelo menos 3 de 4 notas avaliadas como no tempo. O `d` do log usa o `timestampNanos`, e a diferença para o instante do quadro nunca passa de um quadro | RF-32a |
+| T-MIDI-14 | Instante do ritmo | Vez guiada da ODE#1 com metrônomo externo a 60 BPM, tocando junto do clique; log do `timestampNanos` e do quadro do dreno | Pelo menos 3 de 4 notas avaliadas como no tempo. O `d` do log usa o `timestampNanos`, e a diferença para o instante do quadro nunca passa de um quadro | RF-32a |
 | T-MIDI-13 | Permissão USB | Se o sistema pedir permissão: negar, depois “Pedir de novo” e permitir | Mensagem do RF-10; depois de permitir, conectado | RF-10 |
 
 ## 6. Calibração (T-CAL)
@@ -171,48 +194,48 @@ Três pessoas com mãos de tamanhos diferentes, luz normal de sala.
 | T-ACC-02 | Idioma ainda não escolhido | Matar o app na primeira tela e abrir de novo | A escolha é pedida outra vez | RF-02 |
 | T-ACC-03 | Sem cabo | Esperar na tela de conexão | A dica do cabo de dados aparece depois de `P-26` | RF-10 |
 | T-ACC-04 | Checklist com 4 itens | Tentar “Pronto” | Não acende; a lição não começa | RF-12 |
-| T-ACC-05 | Sem calibração válida | Tentar chegar à lição 1 por qualquer caminho | A calibração é o próximo passo | RF-20, RF-24 |
-| T-ACC-06 | L01 inédita na pose | Pôr a mão na pose | “Olhe e ouça.”; a mão toca os quatro dós com o piano soando e a tecla na cor ativa; no fim, a mão some em fade de cerca de `P-35`; o card troca para “Polegar” e o dó fica na cor ativa | RF-31, RF-31a, RF-32, RF-37, P-35 |
-| T-ACC-07 | L01 já vista, na pose, mão fora | (a) Pôr a mão na pose; (b) noutra execução, “Ouvir” sem pose | (a) Vai direto à vez guiada, sem demonstração; (b) demonstração e, no fim, a vez guiada começa sem pose | RF-31a |
-| T-ACC-08 | L02 na vez guiada, alvo dó | Tocar ré (62) | Vermelho no ré, dó continua na cor ativa, passo não avança | RF-32 |
-| T-ACC-09 | L01 | Volta limpa e memória sem erro | 3 estrelas, “Você lembrou.”, L02 abre | RF-40, RF-41 |
-| T-ACC-10 | L01 | Volta limpa, erro na memória, depois memória certa | 2 estrelas, L02 abre | RF-36, RF-40 |
-| T-ACC-11 | L01 com 1 estrela | Tentar abrir a L02 | Fechada | RF-41 |
-| T-ACC-12 | L01 com 3 estrelas | Repetir e errar a memória antes de concluir | Continua 3 | RF-42 |
-| T-ACC-13 | Memória da L03 | Errar três vezes seguidas | “Mais uma vez com guia.” com “Ouvir”; a vez guiada volta, sem demonstração automática | RF-36 |
-| T-ACC-14 | Memória concluída ontem | Abrir hoje | Depois do dó central, “Frase da última vez.”, sem demonstração automática | RF-44 |
+| T-ACC-05 | Sem calibração válida | Tentar chegar à frase 1 por qualquer caminho | A calibração é o próximo passo | RF-20, RF-24 |
+| T-ACC-06 | BRILHA#1 inédita na pose | Pôr a mão na pose | “Olhe e ouça.”; a mão toca a frase com o piano soando e a tecla na cor ativa, e desliza para o sol com o anelar; no fim, a mão some em fade de cerca de `P-35`; o card troca para “Polegar” e o dó fica na cor ativa | RF-31, RF-31a, RF-64 |
+| T-ACC-07 | BRILHA#1 já vista, na pose, mão fora | (a) Pôr a mão na pose; (b) noutra execução, “Ouvir” sem pose | (a) Vai direto à vez guiada, sem demonstração; (b) demonstração e, no fim, a vez guiada começa sem pose | RF-31a |
+| T-ACC-08 | BRILHA#1 na vez guiada, alvo dó | Tocar ré (62) | Vermelho no ré, dó continua na cor ativa, passo não avança | RF-32 |
+| T-ACC-09 | BRILHA#1 | Volta limpa e memória sem erro | 3 estrelas, “Você lembrou.”, BRILHA#2 abre | RF-40, RF-41 |
+| T-ACC-10 | BRILHA#1 | Volta limpa, erro na memória, depois memória certa | 2 estrelas, BRILHA#2 abre | RF-36, RF-40 |
+| T-ACC-11 | BRILHA#1 com 1 estrela | Tentar abrir a BRILHA#2 | Fechada | RF-41 |
+| T-ACC-12 | BRILHA#1 com 3 estrelas | Repetir e errar a memória antes de concluir | Continua 3 | RF-42 |
+| T-ACC-13 | Memória da BRILHA#3 | Errar três vezes seguidas | “Mais uma vez com guia.” com “Ouvir”; a vez guiada volta, sem demonstração automática | RF-36 |
+| T-ACC-14 | Memória concluída ontem | Abrir hoje | Depois do dó central, “Música da última vez.”, sem demonstração automática | RF-44 |
 | T-ACC-15 | Revisão | Errar, usar “Ouvir”, concluir | Dia seguido soma; estrelas da lição revisada iguais | RF-43, RF-44 |
 | T-ACC-16 | Memória concluída hoje | Abrir de novo hoje | Sem revisão | RF-44 |
 | T-ACC-17 | Um dia inteiro sem memória concluída | Abrir no dia seguinte ao vazio | Dias seguidos em 0, estrelas intactas | RF-43 |
 | T-ACC-18 | Pose, demonstração, vez guiada, memória, resultado, progresso | Inspecionar a cena | Só a mão branca é desenhada, e só na pose e na demonstração; card conforme RF-37a; nenhuma nota caindo, barra de tempo, cronômetro, combo ou pauta | RF-32b, RF-37a, §8 do 01 |
-| T-ACC-19 | Progresso com várias lições e a música | Abrir o quadro | n/36, música n/3, dias atual e maior, lições em 3 estrelas, lista com abertas e fechadas e melhor ritmo de cada uma. Sem outro jogador | RF-45 |
+| T-ACC-19 | Progresso com várias frases e uma música inteira | Abrir o quadro | Estrelas, dias atual e maior, frases em 3 estrelas, decoradas, lista por música com abertas e fechadas e melhor ritmo de cada uma. Sem outro jogador | RF-45, RF-66 |
 | T-ACC-20 | Tracking de mão desligado nas configurações do Quest, já calibrado | Completar checklist, “Ouvir”, “Próxima” e “Continuar” só com as teclas de atalho | Todas as ações funcionam; os rótulos mostram as teclas certas | RF-39 |
 | T-ACC-21 | “Mão” desligada | Fechar e abrir o app, entrar numa lição | Continua desligada; a pose é pulada | RF-32c |
-| T-ACC-22 | Progresso de desenvolvimento com as 12 lições em 2 | Abrir a música e concluí-la | Abre, a etiqueta acompanha a lição do trecho, estrelas aparecem como música n/3 | RF-32d |
-| T-ACC-23 | pt-BR com estrelas | Trocar para inglês nas configurações e abrir a L02 | Nome sobre a tecla é C ou D; dedo “Thumb” ou “Index”; estrelas iguais | RF-03 |
+| T-ACC-22 | Progresso de desenvolvimento com as frases da Brilha em 2 | Abrir a música inteira e concluí-la | Abre, a etiqueta diz “Música inteira”, e a Ode abre com 2 ou mais estrelas | RF-57, RF-59, RF-60 |
+| T-ACC-23 | pt-BR com estrelas | Trocar para inglês nas configurações e abrir a BRILHA#2 | Nome da nota em inglês; dedo “Thumb” ou “Index”; estrelas iguais | RF-03 |
 | T-ACC-24 | Vez guiada | Botão Meta e voltar; depois “Sair da aula” | Pausa com “Continuar” e “Sair da aula”; sair não muda estrelas | RF-39a |
 | T-ACC-25 | Resultado com 3 estrelas aparecendo | Matar o app pelo sistema logo depois | Ao abrir, as 3 estrelas estão lá | RF-46 |
-| T-ACC-26 | L05 na vez guiada | Tocar o dó; observar o ré; numa volta, tocar o ré logo de cara; noutra, esperar 3 s e tocar | O ré aparece cinza claro, escurece em cerca de 1 s sem degrau e vira cor ativa. Tocar cedo mostra “Adiantado”. Esperar deixa o ré colorido, parado, e tocar mostra “Atrasado”. O resultado mostra “No tempo: n de m” | RF-32, RF-32a, RF-37 |
-| T-ACC-27 | Memória da L03 | Ficar parado 3 s, depois concluir sem erro | O dó pisca em cinza claro uma vez; conclusão com 2 estrelas | RF-36a, RF-40 |
-| T-ACC-28 | L01 na vez guiada, numa tecla preta (build de desenvolvimento com uma sequência em 61–63) | Tocar a primeira nota | L01: contorno na cor ativa e centro em cinza no mesmo dó. Tecla preta: o cinza vai de grafite a prata e se lê tão bem quanto na branca | RF-32e, 03 §2 |
+| T-ACC-26 | ODE#6 na vez guiada | Tocar o ré; observar o mi; numa volta, tocar o mi logo de cara; noutra, esperar 3 s e tocar | O mi aparece cinza claro, escurece em cerca de 1 s sem degrau e vira cor ativa. Tocar cedo mostra “Adiantado”. Esperar demais mostra “Atrasado”. O resultado mostra a pontuação de ritmo | RF-32, RF-32a, RF-37 |
+| T-ACC-27 | Memória da BRILHA#3 | Ficar parado 3 s, depois concluir sem erro | O sol pisca em cinza claro uma vez; conclusão com 2 estrelas | RF-36a, RF-40 |
+| T-ACC-28 | BRILHA#1 na vez guiada, numa tecla preta (build de desenvolvimento com uma sequência em 61–63) | Tocar a primeira nota | BRILHA#1: contorno na cor ativa e centro em cinza no mesmo dó. Tecla preta: o cinza vai de grafite a prata e se lê tão bem quanto na branca | RF-32e, 03 §2 |
 
 ## 9. Experiência com participante (T-UX)
 
 | ID | Tarefa | Aceite | Req. |
 |---|---|---|---|
 | T-UX-01 | “Escolha a língua, ligue o teclado e deixe o app pronto para a primeira lição.” Sentado, teclado na mesa | Conclui sem o condutor mostrar onde tocar | Jornada §14, RNF-03 |
-| T-UX-02 | “Faça a lição 1 até o fim.” | Descreve que primeiro assistiu a mão tocar, depois tocou com as teclas guiando e por fim tocou sem luz. Não tenta tocar durante a demonstração. Termina com 2 ou 3 estrelas | RF-31–RF-37a |
+| T-UX-02 | “Faça a frase 1 até o fim.” | Descreve que primeiro assistiu a mão tocar, depois tocou com as teclas guiando e por fim tocou sem luz. Não tenta tocar durante a demonstração. Termina com 2 ou 3 estrelas | RF-31–RF-37a |
 | T-UX-03 | Headset no colo, logo após T-UX-02: “Toca o que a lição pediu.” | Quatro dós com o polegar, sem o app | §2 do 01, RN-03 |
 | T-UX-04 | No dia seguinte: “Abre e faz o que o app pedir primeiro.” | Entra na revisão e a reconhece como revisão, não como lição nova | RF-44, RN-03 |
-| T-UX-05 | Lição 1 com luva fina ou mão parcialmente fechada, tracking instável, depois de calibrado | A lição termina. Nenhum erro é atribuído à mão | RF-38, RNF-07 |
-| T-UX-07 | Trocar o idioma para inglês no progresso e abrir a lição 2 | Encontra a configuração sozinho; nome e dedo em inglês | RF-03 |
+| T-UX-05 | Frase 1 com luva fina ou mão parcialmente fechada, tracking instável, depois de calibrado | A lição termina. Nenhum erro é atribuído à mão | RF-38, RNF-07 |
+| T-UX-07 | Trocar o idioma para inglês no progresso e abrir a frase 2 | Encontra a configuração sozinho; nome e dedo em inglês | RF-03 |
 | T-UX-08 | Errar de propósito na vez guiada e na memória | Em menos de um segundo aponta a tecla que o app quer, sem ler frase de erro | RF-32, RF-36 |
 | T-UX-10 | Desconectar o cabo e perguntar o que houve | Diz que pausou e que o teclado saiu. Não acha que perdeu as estrelas | RF-15 |
 | T-UX-11 | Desligar “Mão” na pose e perguntar o que mudou | A mão some e a pose é pulada; na demonstração, continua sabendo a tecla pela cor e pelo som | RF-32c |
 | T-UX-12 | Ler o card e o nome da nota a 50 cm, com a sala iluminada normalmente | Lê sem se aproximar | RNF-05 |
-| T-UX-13 | Lição 5 sem explicar o cinza. Depois: “O que a tecla cinza queria dizer?” | Responde que é a próxima tecla e que, quando escurece, é a hora de tocar. Prepara o dedo antes de a tecla ficar colorida em pelo menos metade das notas da segunda volta | RF-32, P-29 |
-| T-UX-14 | Lição 9 na vez guiada. Depois: “Você estava no tempo?” | Cita o aviso “Adiantado” ou “Atrasado” ou diz que não viu nenhum. Não acha que errou a nota por causa dele | RF-32a, P-32 |
-| T-UX-15 | Memória da lição 5, pedir para esperar sem tocar | Percebe a piscada como dica, não como erro, e continua | RF-36a, P-34 |
+| T-UX-13 | ODE#1 sem explicar o cinza. Depois: “O que a tecla cinza queria dizer?” | Responde que é a próxima tecla e que, quando escurece, é a hora de tocar. Prepara o dedo antes de a tecla ficar colorida em pelo menos metade das notas da segunda volta | RF-32, P-29 |
+| T-UX-14 | ODE#1 na vez guiada. Depois: “Você estava no tempo?” | Cita o aviso “Adiantado” ou “Atrasado” ou diz que não viu nenhum. Não acha que errou a nota por causa dele | RF-32a, P-32 |
+| T-UX-15 | Memória da ODE#1, pedir para esperar sem tocar | Percebe a piscada como dica, não como erro, e continua | RF-36a, P-34 |
 
 T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca os quatro dós com o headset no colo, a lição não está pronta, mesmo com estrela no card.
 
@@ -220,9 +243,9 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 
 | ID | Caso | Aceite | Req. |
 |---|---|---|---|
-| T-PERF-01 | Lição 1 no Quest 3, passthrough ligado, duas mãos sobre as teclas | 72 fps estáveis no contador do sistema, sem queda prolongada quando o realce troca de tecla | RNF-02 |
+| T-PERF-01 | Frase 1 no Quest 3, passthrough ligado, duas mãos sobre as teclas | 72 fps estáveis no contador do sistema, sem queda prolongada quando o realce troca de tecla | RNF-02 |
 | T-PERF-02 | O mesmo no Quest 3S | Igual | RNF-02 |
-| T-PERF-03 | Modo avião, cabo MIDI local | Lição 1 completa | RNF-04 |
+| T-PERF-03 | Modo avião, cabo MIDI local | Frase 1 completa | RNF-04 |
 | T-PERF-04 | Sessão de 30 min, bateria cheia | Registrar o consumo no 05 §10 | 05 §10 |
 | T-PERF-05 | Abertura a frio no Quest 3 | Primeira tela útil em menos de 10 s | RNF-10 |
 
@@ -239,7 +262,7 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 |---|---|
 | RF-01 | T-ACC-01 |
 | RF-02 | T-ACC-02, T-PER-01 |
-| RF-03 | T-TXT-01, T-ACC-23, T-UX-07 |
+| RF-03 | T-TXT-01, T-TXT-03, T-ACC-23, T-UX-07 |
 | RF-10 | T-MIDI-01, T-MIDI-13, T-ACC-03 |
 | RF-11 | T-ADP-01, T-MIDI-02, T-MIDI-05 |
 | RF-12 | T-ACC-04 |
@@ -259,7 +282,6 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 | RF-32a | T-DOM-31, T-DOM-33, T-DOM-37, T-DOM-38, T-MIDI-14, T-ACC-26, T-UX-14 |
 | RF-32b | T-ACC-18 |
 | RF-32c | T-DOM-02, T-ACC-21, T-UX-11 |
-| RF-32d | T-DOM-17, T-DOM-21, T-ACC-22 |
 | RF-32e | T-DOM-36, T-ACC-28 |
 | RF-33 | T-DOM-10, T-MIDI-03 |
 | RF-34 | T-DOM-11 |
@@ -277,8 +299,29 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 | RF-42 | T-DOM-16, T-ACC-12 |
 | RF-43 | T-DOM-22, T-DOM-23, T-DOM-24, T-DOM-28, T-ACC-15, T-ACC-17 |
 | RF-44 | T-DOM-25, T-DOM-26, T-DOM-27, T-DOM-28, T-ACC-14, T-ACC-15, T-ACC-16, T-UX-04 |
-| RF-45 | T-DOM-38, T-ACC-19 |
+| RF-45 | T-DOM-38, T-ACC-19, RF66_* |
 | RF-46 | T-PER-01, T-PER-02, T-ACC-25 |
+| RF-50 | T-DOM-30, T-DOM-30c |
+| RF-51 | RF51_*, T-DOM-21 |
+| RF-52 | RF52_* |
+| RF-53 | T-DOM-30b, RF53_* |
+| RF-54 | RF54_* |
+| RF-55 | T-DOM-39b |
+| RF-56 | T-DOM-39, T-DOM-39c a T-DOM-39e, T-DOM-40 a T-DOM-44 |
+| RF-57 | T-DOM-50 a T-DOM-56, T-ACC-22 |
+| RF-58 | T-DOM-17 |
+| RF-59 | T-DOM-17, T-DOM-51 a T-DOM-53, T-ACC-22 |
+| RF-60 | T-DOM-17, T-ACC-22 |
+| RF-61 | RF61_* |
+| RF-62 | T-DOM-25 a T-DOM-27, T-DOM-45 |
+| RF-63 | RF63_*, T-DOM-42 |
+| RF-64 | RF64_*, T-ACC-06 |
+| RF-65 | RF65_* |
+| RF-66 | RF66_*, T-ACC-19 |
+| RF-67 | T-TXT-01, T-TXT-03, T-TXT-04 |
+| RF-68 | RF68_* |
+| RF-69 | Os testes das linhas RF-52 a RF-64 |
+| RF-70 | T-DOM-01 a T-DOM-45 |
 | RNF-01 | T-MIDI-09 |
 | RNF-02 | T-PERF-01, T-PERF-02 |
 | RNF-03 | T-UX-01 |
@@ -303,7 +346,7 @@ T-UX-03 é o teste que os apps de esteira costumam falhar. Se a pessoa não toca
 4. Protótipo mínimo do 03 §9.
 5. T-CAL-02 a 05, T-POSE-01 a 04, T-MIDI-09 a 12 e T-ACC.
 6. T-UX-02, 03, 05, 08 e 13 com participante. Se T-UX-13 falhar, ajustar `P-29` e as cores do cinza antes de seguir.
-7. O resto, e só então gravar as 12 lições como conteúdo fechado.
+7. O resto, e só então fechar as duas músicas como conteúdo.
 
 ## 14. Pronto para a v1
 
