@@ -8,15 +8,15 @@ Planejamento. Sem implementação neste documento. Números ajustáveis (tempos,
 |---|---|
 | Headset | Meta Quest 3 e Quest 3S. Quest 2 fora. |
 | Usuário | Adulto iniciante, sozinho. Sem conta, sem login, sem nuvem. |
-| Corte da v1 | Mão direita, posição de cinco dedos a partir do dó central (MIDI 60), melodias curtas. |
-| Como se aprende | Chamada e resposta, em três fases por trecho: assistir a mão 3D tocar → tocar guiado (tecla da vez colorida, próxima em cinza dinâmico) → tocar de memória, com as luzes apagadas. A lição conta quando a sequência sai sem guia. |
+| Corte da v1 | Mão direita, posição de cinco dedos a partir do dó central (MIDI 60), com deslize de uma tecla quando a música pede (RF-64), melodias curtas. |
+| Como se aprende | Chamada e resposta, em três fases por trecho: assistir a mão 3D tocar → tocar guiado (tecla da vez colorida, próxima em cinza dinâmico) → tocar de memória, com as luzes apagadas. A frase conta quando a sequência sai sem guia. |
 | Demonstração | Híbrida. Num trecho inédito, a mão 3D toca sozinha uma vez. Depois disso, só quando a pessoa aperta “Ouvir”. |
 | Tempo | Tempo elástico. O cinza da próxima tecla escurece no andamento real da música. Se a pessoa atrasa, a tecla fica colorida e espera por ela. Adiantar ou atrasar não trava nada, mas entra na pontuação de ritmo. |
 | Som do app | O app só envia notas ao piano na demonstração. Na vez guiada e na memória, o piano soa só o que a pessoa toca (`Local Control` ligado). |
 | Tracking | A pose libera o início da lição. Depois disso, perder o tracking não pausa nem erra; a lição segue pelo MIDI. |
 | O que não entra | Esteira de notas caindo, combo, vidas, partitura, mão esquerda, acordes. |
-| Conteúdo | 12 lições autorais, cerca de 5 minutos cada, e a música do nível 1, escritas no formato de música que o importador futuro também vai gerar. Importar MIDI ou MusicXML fica para depois da v1 ([08](08-roadmap-importacao.md)). |
-| Gamificação | 0–3 estrelas por lição, dias seguidos, quadro de progresso no aparelho. |
+| Conteúdo | Duas músicas, Brilha, Brilha e Ode à Alegria, aprendidas frase por frase até a música inteira de cor. A música é a unidade do jogo. Os arquivos estão no formato de música que o importador futuro também vai gerar. Importar MIDI ou MusicXML fica para depois da v1 ([08](08-roadmap-importacao.md)). |
+| Gamificação | 0–3 estrelas por frase e por música inteira, marca “Decorada”, dias seguidos, quadro de progresso no aparelho. |
 | Idioma | Português (Brasil) e inglês, escolha explícita na primeira tela e nas configurações. |
 | Distribuição da v1 | Sideload de desenvolvimento. Sem Meta Store, sem compra, sem anúncio. |
 | Hardware de teste | Quest 3 ou 3S e Casio CT-S300 disponíveis para os testes de aceite. |
@@ -35,19 +35,19 @@ Este sistema ensina por assimilação e repetição ativa (chamada e resposta), 
 
 Sucesso da v1, medido no próprio aparelho, sem analytics de rede:
 
-- Na primeira sessão, a pessoa termina a lição 1 de memória sem ajuda de outra pessoa.
-- Na abertura seguinte, em outro dia, a revisão pede a frase anterior antes de matéria nova, e a pessoa consegue concluí-la.
+- Na primeira sessão, a pessoa termina a frase 1 da Brilha, Brilha de memória sem ajuda de outra pessoa.
+- Na abertura seguinte, em outro dia, a revisão pede a música da última vez antes de matéria nova, e a pessoa consegue concluí-la.
 
 ## 3. Abordagem pedagógica
 
 Base usada, reduzida ao mínimo que cabe num teclado de 61 teclas e numa sessão curta:
 
 - **Observar antes de tocar** (método Suzuki, a parte que serve aqui): a mão 3D toca a sequência no andamento, o próprio piano soa e a tecla acende na cor ativa no instante de cada nota. A pessoa só assiste a postura, o dedilhado e a passagem entre as notas. Num trecho inédito isso é automático, para a pessoa ansiosa não pular e tentar adivinhar. Depois, “Ouvir” repete quando ela quiser. No fim, a mão some em fade e o teclado fica limpo para a vez dela.
-- **Uma novidade por lição** (carga cognitiva): uma nota nova ou um gesto novo (subir, descer, saltar).
-- **Posição de cinco dedos** (Alfred / Faber): polegar no dó central até o mínimo no sol. A mão branca mostra essa pose. O Quest reconhece quando a mão direita da pessoa está nessa postura sobre as teclas de casa e libera a lição. A tecla tocada sempre vem do MIDI.
+- **Uma frase nova por vez** (carga cognitiva): cada frase tem dois compassos, e trecho repetido não é matéria nova.
+- **Posição de cinco dedos** (Alfred / Faber): polegar no dó central até o mínimo no sol. A mão branca mostra essa pose. O Quest reconhece quando a mão direita da pessoa está nessa postura sobre as teclas de casa e libera a lição. Quando a música pede, a mão desliza uma tecla (RF-64). A tecla tocada sempre vem do MIDI.
 - **Vez guiada com antecipação**: a tecla da vez fica na cor ativa e a próxima já aparece em cinza claro, que escurece até a hora de tocar. A própria tecla mostra onde vai o próximo dedo e quanto falta para tocar, sem barra caindo. Ao fim da sequência, recomeça. A pessoa repete até uma volta sair sem nota errada.
-- **Recordação, não reestudo** (retrieval practice): depois da volta limpa, as luzes apagam. Tocar a sequência sem guia é o que prova que a pessoa decorou e abre a próxima lição. Se ela trava por `P-33`, a tecla certa pisca em cinza uma vez, para ela não se frustrar.
-- **Revisão noutro dia**: ao abrir o app noutro dia local, a primeira tarefa é a última frase concluída de memória.
+- **Recordação, não reestudo** (retrieval practice): depois da volta limpa, as luzes apagam. Tocar a sequência sem guia é o que prova que a pessoa decorou e abre a próxima frase. Se ela trava por `P-33`, a tecla certa pisca em cinza uma vez, para ela não se frustrar.
+- **Revisão noutro dia**: ao abrir o app noutro dia local, a primeira tarefa é a música da última memória, até onde a pessoa já toca de cor.
 - **Mão opcional**: dá para esconder a mão branca e ficar só com a cor na tecla.
 
 Dinâmica fica de fora da aprovação. O CT-S300 não tem aftertouch. O chart MIDI transmite Note On com velocity 1–127 e Note Off sempre em 64. O manual não diz o que `MIDI Out Velocity = Off` faz com esse número; a leitura usada no checklist vem de quem mediu o aparelho, não de uma frase da Casio, e é confirmada em T-MIDI-03. Mostrar leve / médio / forte habitua o ouvido sem transformar a lição num teste de força. Se a velocity vier fixa, a faixa some e a lição continua.
@@ -56,23 +56,16 @@ Tempo é ensinado, mas não reprova. O cinza dinâmico mostra a cadência real (
 
 ### Currículo
 
-Posição: dedo 1 no dó central (nota MIDI 60), 2 no ré (62), 3 no mi (64), 4 no fá (65), 5 no sol (67). Só teclas brancas. Nome exibido em pt-BR: Dó Ré Mi Fá Sol. Em inglês: C D E F G. O domínio guarda nota MIDI e dedo; o texto é localização. Cada lição é **uma** sequência; o formato e o catálogo estão no [06 §5](06-modelo-de-dominio.md#5-formato-de-música-e-catálogo).
+Posição: dedo 1 no dó central (nota MIDI 60). Só teclas brancas: Dó 60, Ré 62, Mi 64, Fá 65, Sol 67, Lá 69. Em inglês: C D E F G A. O domínio guarda nota MIDI e dedo; o texto é localização. O dedo vem do arquivo da música, sem regra que amarre dedo a nota. Formato e catálogo estão no [06 §5](06-modelo-de-dominio.md#5-formato-de-música-e-catálogo).
 
-| Lição | Matéria nova | Sequência | Notas |
-|---|---|---|---|
-| 1 | Dó, dedo 1 | Dó, quatro vezes | 4 |
-| 2 | Ré, dedo 2 | Dó–Ré | 2 |
-| 3 | Mi, dedo 3 | Dó–Ré–Mi | 3 |
-| 4 | Descer | Mi–Ré–Dó | 3 |
-| 5 | Ida e volta | Dó–Ré–Mi–Ré–Dó | 5 |
-| 6 | Fá, dedo 4 | Mi–Fá | 2 |
-| 7 | Subir até o fá | Dó–Ré–Mi–Fá | 4 |
-| 8 | Sol, dedo 5 | Fá–Sol | 2 |
-| 9 | Cinco dedos subindo | Dó–Ré–Mi–Fá–Sol | 5 |
-| 10 | Cinco dedos descendo | Sol–Fá–Mi–Ré–Dó | 5 |
-| 11 | Salto dentro da posição | Dó–Mi–Sol–Mi–Dó | 5 |
-| 12 | Revisão | A frase da 11 seguida da subida da 9 | 10 |
-| Música | Nível 1 | As doze sequências em ordem, como uma peça | 50 |
+Neste documento, “lição” é a execução de um item: uma frase ou a música inteira.
+
+| Música | Compassos | Notas | Trechos em ordem | Frases novas |
+|---|---|---|---|---|
+| Brilha, Brilha | 12 | 42 | A B C C A B | 3 |
+| Ode à Alegria | 16 | 62 | A B A C D E A C | 5 |
+
+Cada frase ocupa 2 compassos (8 tempos, a 60 BPM). As notas e os dedos de cada frase estão no [06 §5](06-modelo-de-dominio.md#5-formato-de-música-e-catálogo). Na Ode, a frase 5 termina no Sol agudo (67), para caber nos cinco dedos.
 
 ## 4. Requisitos funcionais
 
@@ -112,7 +105,7 @@ Máquina de estados completa em [06 §3](06-modelo-de-dominio.md#3-máquina-de-e
 
 | ID | Requisito |
 |---|---|
-| RF-30 | Cada lição e a música são arquivos no formato de música (06 §5): metadados, trechos e eventos de nota com nota MIDI, mão, dedo (1–5), instante, duração e velocity. O app só lê esse formato. A v1 recusa arquivos fora das restrições da v1 (mão direita, sem acorde, notas 60–67). |
+| RF-30 | Cada música é um arquivo no formato de música (06 §5): metadados, trechos e eventos de nota com nota MIDI, mão, dedo (1–5), instante, duração e velocity. O app só lê esse formato. A v1 recusa arquivos fora das restrições da v1 (RF-53). |
 | RF-31 | **Pose.** No começo de cada lição a mão branca fica parada na posição de cinco dedos e o card diz “Ponha a mão assim.”, com o botão “Ouvir” e o controle “Mão”. A mão direita rastreada que cumpre `P-13`–`P-17` sobre as teclas dó–sol calibradas conta como pose correta e leva à demonstração (se o item for inédito) ou à vez guiada. Antes disso, se a mão sai da pose, o reconhecimento recomeça. A pose não dá estrela. Note On nesta fase não conta. |
 | RF-31a | **Demonstração.** Na primeira vez que a pessoa entra num item (item inédito), a demonstração começa sozinha depois da pose. Quando ela termina uma vez, o item deixa de ser inédito, e a demonstração passa a acontecer só com “Ouvir”, no card da pose e no da vez guiada. A demonstração envia a sequência ao piano (RF-14). A mão branca desce o dedo de cada nota junto com o som, e a tecla acende na cor ativa no instante da nota. No fim, a mão some em fade (`P-35`) e a vez guiada começa, com ou sem pose reconhecida. Note On recebido durante a demonstração e até `P-08` depois dela não conta. |
 | RF-32 | **Vez guiada.** Não há mão branca. A tecla da vez fica na cor ativa e o card mostra o nome do dedo. Assim que a pessoa acerta, a próxima tecla aparece em cinza dinâmico. O cinza escurece de `P-29` até o tom cheio no tempo de ataque (acerto anterior + duração do passo no andamento), quando a tecla vira cor ativa. Se a pessoa não toca, a tecla espera colorida, sem limite (tempo elástico). Note On na nota da vez: verde por `P-23` e avança, e a tecla tocada segue na cor ativa enquanto estiver pressionada. Outra nota: vermelho por `P-24` na tecla tocada, e o passo e o tempo de ataque não mudam. O primeiro passo de cada volta já começa colorido. Ao fim da sequência, a vez guiada recomeça do primeiro passo. Regras completas no [06 §3.1](06-modelo-de-dominio.md#31-cinza-dinâmico-e-ritmo). |
@@ -120,29 +113,76 @@ Máquina de estados completa em [06 §3](06-modelo-de-dominio.md#3-máquina-de-e
 | RF-32e | **Mesma tecla em seguida.** Quando a próxima nota é a tecla que acabou de ser tocada, a tecla fica com contorno na cor ativa e só o centro faz o ciclo de cinza. Assim a pessoa entende que é para tocar de novo, e não para segurar. |
 | RF-32b | A única mão desenhada é a de simulação: mão 3D direita com anatomia real, branca fosca, asset original no estilo das mãos do sistema do Quest. Ela aparece na pose e na demonstração. O app não desenha a mão da pessoa. |
 | RF-32c | Existe um controle “Mão” / “Hand”, ligado por padrão. Desligado, a mão branca some na hora e a pose é pulada. A demonstração continua, só com som e tecla acesa. A escolha persiste. |
-| RF-32d | A música do nível 1 é a junção das doze sequências, na ordem, com o mesmo ciclo pose → demonstração → vez guiada → memória. A etiqueta do card mostra de que lição é o trecho atual. Ela abre quando as doze lições têm 2 ou mais estrelas. |
 | RF-33 | Qualquer velocity 1–127 satisfaz a nota. A faixa leve / médio / forte (`P-01`, `P-02`) atualiza um indicador pequeno e não altera acerto. |
 | RF-34 | Notas sobrepostas são aceitas. A sequência comparada é a dos Note On, não a limpeza da soltura. |
 | RF-35 | **Passagem limpa.** Uma volta da vez guiada é limpa quando vai do primeiro ao último passo sem nenhum Note On errado. O ritmo não conta para isso. A primeira volta limpa leva à memória: o card diz “Agora de memória.”, espera `P-22`, e cor, cinza e nome somem juntos. Note On nessa espera não conta. |
 | RF-36 | **Memória.** Nenhuma tecla acesa, sem mão branca, card só com a frase e sem botão. Note On certo avança sem cor. Note On errado encerra a tentativa: âmbar por `P-25` na nota esperada, vermelho por `P-24` na tocada, e a tentativa recomeça do primeiro passo. Depois de `P-21` tentativas falhas seguidas, a lição volta à vez guiada com “Mais uma vez com guia.”, sem demonstração automática e com “Ouvir” disponível. Completar a sequência conclui a memória: verde por `P-23` na última tecla e o resultado. |
 | RF-36a | **Dica de memória.** Se a pessoa fica `P-33` sem tocar na memória (desde o começo da tentativa ou desde o último acerto), a tecla esperada pisca em cinza claro por `P-34`. A piscada se repete a cada `P-33` sem nota. Usar a dica não é erro, mas a execução não ganha 3 estrelas (RF-40). |
-| RF-36b | **Juntar.** Depois da memória da lição N (N ≥ 2), a pessoa toca de memória as frases das lições 1 a N em sequência, até a música inteira na lição 12. Erro volta ao começo da frase, não ao começo de tudo. Depois de `P-21` falhas na mesma frase, cada tecla dela pisca como dica. Juntar não muda estrelas nem desbloqueio; grava até qual lição a pessoa toca de cor. |
+| RF-36b | **Juntar.** Depois da memória de uma frase, a pessoa toca de memória os trechos até ali (RF-56). Erro volta ao começo do trecho, não ao começo de tudo. Depois de `P-21` falhas no mesmo trecho, cada tecla dele pisca como dica. Juntar não muda estrelas nem desbloqueio; grava até qual trecho a pessoa toca de cor. |
 | RF-37 | O card mostra uma frase por vez: “Ponha a mão assim.”, “Olhe e ouça.”, o nome do dedo da vez (“Polegar”, “Indicador”, “Médio”, “Anelar”, “Mínimo” / “Thumb”, “Index”, “Middle”, “Ring”, “Pinky”), “Agora de memória.” ou o resultado. O resultado mostra as estrelas e a pontuação de ritmo da volta limpa (“No tempo: 3 de 4”). |
-| RF-37a | O menu é o card aprovado (`docs/visao/capa-licao1.jpg`): retângulo escuro de cantos arredondados, etiqueta “Lição N”, uma frase branca e, quando há escolha, botões brancos de texto escuro. Na vez guiada o card tem só “Ouvir”. Na memória o card não tem botão. |
+| RF-37a | O menu é o card aprovado (`docs/visao/capa-licao1.jpg`): retângulo escuro de cantos arredondados, etiqueta da música e da frase (RF-65), uma frase branca e, quando há escolha, botões brancos de texto escuro. Na vez guiada o card tem só “Ouvir”. Na memória o card não tem botão. |
 | RF-38 | Depois da pose, perder o tracking ou sair da pose não pausa, não erra e não esconde a cor da tecla. |
 | RF-39 | Os botões aceitam pinça. Cada botão tem uma tecla equivalente, mostrada numa linha menor: o 1º botão é a tecla branca mais grave do teclado, o 2º a tecla branca seguinte, o 3º a próxima (`P-27`). Essas teclas ficam fora de 60–67 e nunca colidem com uma nota cobrada. |
-| RF-39a | Se o app perde o foco (botão Meta, headset tirado), a lição pausa. Ao voltar, o card oferece “Continuar” e “Sair da aula”. Continuar segue a regra de retomada do RF-15. Sair leva ao painel entre lições, sem mudar estrelas. |
+| RF-39a | Se o app perde o foco (botão Meta, headset tirado), a lição pausa. Ao voltar, o card oferece “Continuar” e “Sair da aula”. Continuar segue a regra de retomada do RF-15. Sair leva ao painel, sem mudar estrelas. |
+
+### Músicas
+
+Estrutura:
+
+| ID | Requisito |
+|---|---|
+| RF-50 | O catálogo é uma lista ordenada `songs`, em `catalog_version` 2, sem regra de quantidade. A ordem é BRILHA, ODE. |
+| RF-51 | `practice: by_chunk`. Cada trecho novo é um item com id `SONG#chunk_index` (BRILHA#1, #2, #3; ODE#1, #2, #4, #5, #6). A música inteira é o item `BRILHA` ou `ODE`. O número da frase mostrado à pessoa conta só trechos novos, então ODE#4 é a Frase 3. |
+| RF-52 | O campo `repeat_of` do trecho aponta para o trecho novo que ele repete. Trecho repetido não vira item. A validação confere que as notas e os dedos são iguais aos do original. |
+| RF-53 | A validação da v1 aceita as notas 60, 62, 64, 65, 67 e 69, `by_chunk` e dedo livre de 1 a 5, sem amarrar dedo a nota. Continua exigindo mão direita, sem acorde e `bpm_map` vazio. |
+
+Aprendizado:
+
+| ID | Requisito |
+|---|---|
+| RF-54 | Na primeira vez numa música, antes da frase 1, a pessoa ouve a música inteira. Depois, o botão “Ouvir a música” fica no painel. |
+| RF-55 | Cada frase nova segue o ciclo pose, demonstração, guiada, memória. A frase 1 não tem Juntar. |
+| RF-56 | Depois da memória do item `SONG#k`, o Juntar vai do trecho 1 ao trecho k, incluindo repetições no caminho. As fronteiras do Juntar são os trechos. |
+| RF-57 | A música inteira é tocada de memória, sem vez guiada. Errar volta ao começo do trecho, com as regras e dicas do Juntar (`P-21`, `P-33`). |
+
+Progresso da música:
+
+| ID | Requisito |
+|---|---|
+| RF-58 | Estrelas por frase, com as regras do RF-40. A frase seguinte abre com 2 ou mais. |
+| RF-59 | A música inteira abre com todas as frases em 2 ou mais. Vale 3 estrelas sem erro e sem dica, e 2 nos outros casos. |
+| RF-60 | A próxima música abre quando a anterior tem 2 ou mais estrelas no item inteiro. |
+| RF-61 | O campo `memorized` lista as músicas decoradas. A música entra nele quando sai inteira de memória numa revisão em dia posterior ao da primeira conclusão. |
+| RF-62 | A revisão pede a música da última memória, até o `chain` dela, ou inteira se a pessoa já concluiu a música. Errar volta ao começo do trecho e oferece “Ouvir” e “Com guia” para esse trecho, uma vez cada por revisão. Tocar a primeira nota recomeça o trecho. Sem botão de pular. |
+| RF-63 | `chain` é um dicionário por música. `schemaVersion` é 2, com migração v1→v2 que mantém `streak`, `lastSeenDay` e configurações e descarta estrelas, `demoSeen`, `rhythm`, `chain` e `lastMemory`. |
+
+Tela e mão 3D:
+
+| ID | Requisito |
+|---|---|
+| RF-64 | A mão 3D acha a posição pela nota e pelo dedo: âncora = índice da tecla branca da nota − (dedo − 1). O domínio calcula a âncora, e a tela só desliza a mão até ela, com o dedo certo descendo sobre a tecla certa. Na Brilha, Sol com dedo 4 move a mão de dó para ré, e o polegar no Dó traz de volta. A pose inicial continua em dó–sol. |
+| RF-65 | A etiqueta do card mostra “Brilha, Brilha · Frase 2” ou “Brilha, Brilha · Música inteira”, em até 32 caracteres (RNF-05). |
+| RF-66 | O painel lista as músicas e suas frases, com estrelas, estado, melhor ritmo e “Decorada”. |
+| RF-67 | Títulos, nomes de nota, frase, música inteira, decorada e “Ouvir a música” estão no 07, em pt-BR e inglês. |
+
+Testes:
+
+| ID | Requisito |
+|---|---|
+| RF-68 | Os dois arquivos batem nota a nota, dedo a dedo e tempo a tempo com a tabela do 06 §5. |
+| RF-69 | Há teste de repetição de frase, Juntar com repetição, música inteira, desbloqueios, decorada, revisão, migração e cálculo da âncora. |
+| RF-70 | Os testes cobrem o conteúdo novo, mantendo cada comportamento que cobriam nas lições antigas. |
 
 ### Progresso
 
 | ID | Requisito |
 |---|---|
-| RF-40 | Estrelas por lição, de 0 a 3, só sobem. 1 = fez uma volta limpa na vez guiada, sem concluir a memória. 2 = concluiu a memória depois de pelo menos uma tentativa falha, de voltar à vez guiada ou de usar a dica. 3 = concluiu a memória na primeira tentativa daquela execução, sem dica. O ritmo não entra nas estrelas. |
-| RF-41 | A lição N+1 abre quando a N tem 2 ou mais estrelas. A lição 1 abre após checklist e calibração. A música abre quando as doze têm 2 ou mais. |
-| RF-42 | Repetir uma lição pode subir a estrela. Não desce. |
-| RF-43 | Dias seguidos: um dia local do aparelho conta se houve pelo menos uma memória concluída (lição, música ou revisão). Concluir no dia D com último dia contado D−1 soma 1; com último dia contado D não muda; em qualquer outro caso a sequência vira 1. Ao abrir, se o último dia contado é anterior a D−1, a sequência atual mostra 0. Relógio que volta para trás não altera a contagem nem dispara revisão. |
-| RF-44 | Se a última memória concluída foi noutro dia local, a abertura (depois da verificação do dó central) pede essa sequência de memória antes de qualquer outra coisa. Se foi a música, a revisão usa a sequência da lição 12. Errar mostra o retorno de erro do RF-36 e oferece “Ouvir” e “Com guia” (uma volta da vez guiada), cada um uma vez por revisão; tocar a primeira nota inicia a próxima tentativa. Concluir conta para o dia seguido e não altera estrelas. A revisão não tem botão de pular. |
-| RF-45 | O quadro de progresso mostra estrelas das lições sobre 36, estrelas da música sobre 3, maior sequência de dias, sequência atual e quantas lições estão em 3 estrelas. Lista as 12 lições e a música com estrelas, melhor ritmo (“3 de 4 no tempo”) e estado (aberta ou fechada). Sem nomes de outras pessoas, sem servidor. |
+| RF-40 | Estrelas por frase, de 0 a 3, só sobem. 1 = fez uma volta limpa na vez guiada, sem concluir a memória. 2 = concluiu a memória depois de pelo menos uma tentativa falha, de voltar à vez guiada ou de usar a dica. 3 = concluiu a memória na primeira tentativa daquela execução, sem dica. O ritmo não entra nas estrelas. |
+| RF-41 | O desbloqueio é calculado das estrelas, nunca gravado (RF-58, RF-59, RF-60). A primeira frase da primeira música abre após checklist e calibração. |
+| RF-42 | Repetir um item pode subir a estrela. Não desce. |
+| RF-43 | Dias seguidos: um dia local do aparelho conta se houve pelo menos uma memória concluída (frase, música inteira ou revisão). Concluir no dia D com último dia contado D−1 soma 1; com último dia contado D não muda; em qualquer outro caso a sequência vira 1. Ao abrir, se o último dia contado é anterior a D−1, a sequência atual mostra 0. Relógio que volta para trás não altera a contagem nem dispara revisão. |
+| RF-44 | Se a última memória concluída foi noutro dia local, a abertura (depois da verificação do dó central) pede a revisão antes de qualquer outra coisa (RF-62). Concluir conta para o dia seguido e não altera estrelas. A revisão não tem botão de pular. |
+| RF-45 | O quadro de progresso mostra estrelas somadas, sequência atual e maior de dias, frases em 3 estrelas, músicas decoradas e a lista do RF-66. Sem nomes de outras pessoas, sem servidor. |
 | RF-46 | Progresso (estrelas, ritmo, itens já demonstrados), idioma, controle “Mão”, checklist confirmado e calibração persistem no aparelho e sobrevivem a fechar o app, inclusive à força no meio de uma gravação. |
 
 ## 5. Requisitos não funcionais
@@ -179,7 +219,7 @@ Essa escolha de host é decisão de planejamento para não reabrir na implementa
 | `MidiOutPort` | Tocar e soltar uma nota no instrumento | Mesmo cabo, saída para o CT-S300 | Sintetizador do headset |
 | `KeyboardPosePort` | Modelo de teclas ancorado no mundo, salvar e recuperar pose | Calibração de dois pontos + âncora do Quest | Detecção automática do teclado por câmera |
 | `HandInputPort` | Pinça, arraste, ponta do indicador para calibrar, sinal “pose de cinco dedos” | Hand tracking do Quest | Controle físico, detecção de dedo na tecla |
-| `LessonCatalogPort` | As 12 lições e a música, no formato de música | Catálogo embutido | Importador de MIDI e MusicXML ([08](08-roadmap-importacao.md)), loja de músicas |
+| `LessonCatalogPort` | As músicas do catálogo, no formato de música | Catálogo embutido | Importador de MIDI e MusicXML ([08](08-roadmap-importacao.md)), loja de músicas |
 | `ProgressStorePort` | Estrelas, dias, idioma, “Mão”, checklist, calibração, última memória | Arquivo local no aparelho | Conta, nuvem, leaderboard |
 | `ClockPort` | Instante monotônico e o dia local | Relógio do aparelho | — |
 
@@ -193,13 +233,14 @@ O domínio emite fatos (lista em [06 §4](06-modelo-de-dominio.md#4-eventos)). O
 - Decidir quando a demonstração é automática e quando aparece a dica de memória.
 - Ignorar Note On durante a demonstração e até `P-08` depois dela (proteção contra eco USB, confirmada ou descartada em T-MIDI-07).
 - Detectar rajada e velocity fixa.
-- Calcular estrelas, desbloqueio, dia seguido e quando pedir revisão.
+- Calcular estrelas, desbloqueio, decorada, dia seguido e quando pedir revisão.
+- Calcular frases, número da frase, etiqueta do card e âncora da mão.
 - Mapear velocity para três faixas sem participar do acerto.
 - Não interpretar pose de mão como nota. A pose chega como sinal booleano do `HandInputPort`; as tolerâncias são aplicadas no adapter.
 
 ### Mapa do teclado
 
-O modelo tem 61 teclas porque o instrumento alvo tem 61 (com shift 0, MIDI 36–96). A nota MIDI de cada tecla física vem da calibração (nota da tecla da esquerda), não de uma tabela chumbada. As lições pedem as notas 60–67.
+O modelo tem 61 teclas porque o instrumento alvo tem 61 (com shift 0, MIDI 36–96). A nota MIDI de cada tecla física vem da calibração (nota da tecla da esquerda), não de uma tabela chumbada. As músicas pedem as notas 60–69.
 
 ### Dados locais
 
@@ -211,14 +252,17 @@ Um único arquivo de progresso, esquema em [06 §6](06-modelo-de-dominio.md#6-ar
 |---|---|
 | RN-01 | O produto da v1 é um protótipo sideload para o próprio uso e teste. Não há preço, anúncio, conta nem ranking entre pessoas. |
 | RN-02 | O valor é retenção da frase, não duração de sessão nem número de notas por minuto. |
-| RN-03 | Critério para seguir além da v1: um adulto iniciante completa a lição 1 de memória na primeira sessão e, noutro dia, completa a revisão sem outra pessoa guiando. |
-| RN-04 | Conteúdo, marca e áudio de interface são originais. Assets de terceiros só entram com licença aberta permissiva e crédito, como a malha da mão branca; nenhum asset proprietário da Meta ou da Casio é copiado. Demonstração musical é MIDI enviado ao CT-S300, sem gravar obra de terceiros. |
+| RN-03 | Critério para seguir além da v1: um adulto iniciante completa a frase 1 da Brilha, Brilha de memória na primeira sessão e, noutro dia, completa a revisão sem outra pessoa guiando. |
+| RN-04 | Marca e áudio de interface são originais. As músicas são melodias em domínio público com arranjo próprio. Assets de terceiros só entram com licença aberta permissiva e crédito, como a malha da mão branca; nenhum asset proprietário da Meta ou da Casio é copiado. Demonstração musical é MIDI enviado ao CT-S300, sem gravar obra de terceiros. |
 
 ## 8. Fora de escopo
 
 - Notas caindo, pista rítmica, metrônomo audível, ritmo como critério de estrela ou de desbloqueio.
 - Pauta, clave, leitura musical.
 - Mão esquerda, as duas mãos, acordes, pedal, dinâmica como critério de passe.
+- Sol grave e mudança de posição além do deslize do RF-64.
+- Ritmo medido na memória.
+- Outras músicas além das duas do catálogo.
 - Reconhecer qual dedo tocou.
 - Outros teclados e outros protocolos, além da porta já desenhada.
 - Importar música (planejado depois da v1, no [08](08-roadmap-importacao.md)), gravar performance, compartilhar, modo multijogador.

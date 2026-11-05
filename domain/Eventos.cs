@@ -7,6 +7,16 @@ namespace VrPiano.Dominio
     public enum ClasseDeRitmo { NoTempo, Adiantado, Atrasado }
     public enum FaixaDeVelocity { Leve, Medio, Forte }
     public enum Oferta { Ouvir, ComGuia }
+    public enum TipoDeEtiqueta { Frase, MusicaInteira, Revisao }
+
+    // O que o card mostra em cima (RF-65). O domínio diz o quê; o texto vem da tabela do 07.
+    public sealed class EtiquetaDoCard
+    {
+        public EtiquetaDoCard(TipoDeEtiqueta tipo, string tituloKey, int? frase) { Tipo = tipo; TituloKey = tituloKey; Frase = frase; }
+        public TipoDeEtiqueta Tipo { get; }
+        public string TituloKey { get; }
+        public int? Frase { get; }
+    }
 
     public sealed class Ritmo
     {
@@ -35,11 +45,12 @@ namespace VrPiano.Dominio
 
     public sealed class AlvoMudou : Evento
     {
-        public AlvoMudou(Passo p) { Nota = p.Nota; Dedo = p.Dedo; Indice = p.Indice; LicaoDoTrecho = p.LicaoDoTrecho; }
+        public AlvoMudou(Passo p) { Nota = p.Nota; Dedo = p.Dedo; Indice = p.Indice; Trecho = p.Trecho; Frase = p.Frase; }
         public int Nota { get; }
         public int Dedo { get; }
         public int Indice { get; }
-        public int LicaoDoTrecho { get; }
+        public int Trecho { get; }
+        public int Frase { get; }
     }
 
     public sealed class ProximaMudou : Evento
@@ -117,8 +128,8 @@ namespace VrPiano.Dominio
 
     public sealed class CadeiaConcluida : Evento
     {
-        public CadeiaConcluida(int ateALicao) { AteALicao = ateALicao; }
-        public int AteALicao { get; }
+        public CadeiaConcluida(int ateOTrecho) { AteOTrecho = ateOTrecho; }
+        public int AteOTrecho { get; }
     }
 
     public sealed class MemoriaConcluida : Evento
@@ -175,6 +186,20 @@ namespace VrPiano.Dominio
     {
         public ItemDesbloqueado(string item) { Item = item; }
         public string Item { get; }
+    }
+
+    // A primeira frase de uma música abriu (RF-60).
+    public sealed class MusicaDesbloqueada : Evento
+    {
+        public MusicaDesbloqueada(string musica, string tituloKey) { Musica = musica; TituloKey = tituloKey; }
+        public string Musica { get; }
+        public string TituloKey { get; }
+    }
+
+    public sealed class MusicaDecorada : Evento
+    {
+        public MusicaDecorada(string musica) { Musica = musica; }
+        public string Musica { get; }
     }
 
     public sealed class DiaSeguidoMudou : Evento

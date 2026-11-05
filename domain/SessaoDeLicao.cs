@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace VrPiano.Dominio
 {
-    // Máquina de estados de uma execução de lição, música ou revisão (06 §3).
+    // Máquina de estados de uma execução de frase, música inteira ou revisão (06 §3).
     // Entradas são métodos com o instante t em ms de um relógio monotônico; saídas se acumulam e saem em Coletar().
     // Ainda não implementado: detecção de rajada (P-04 a P-07) e a confirmação da falha de memória depois de P-05.
     public sealed class SessaoDeLicao
     {
         readonly Parametros p;
         readonly Progresso progresso;
-        readonly Catalogo catalogo;
+        readonly Repertorio repertorio;
         readonly Dia hoje;
         readonly bool preparoOk;
         readonly List<Evento> saida = new List<Evento>();
@@ -26,10 +26,11 @@ namespace VrPiano.Dominio
         long ultimoAtivo;
         long fimDaEspera;
 
-        // Juntar: as frases das lições 1 a N, de memória, depois da memória da lição N
+        // Juntar: os trechos 1 a k, de memória. Serve ao Juntar da frase, à música inteira e à revisão.
         readonly IReadOnlyList<Passo>? cadeia;
         int inicioDaFrase;
         int falhasDaFrase;
+        IReadOnlyList<Passo>? guiaDoTrecho;   // revisão: a volta com guia percorre só o trecho do erro
 
         // Execução
         Ritmo? ritmoDaExecucao;
@@ -39,6 +40,8 @@ namespace VrPiano.Dominio
         int proximoDaAgenda;
         int? notaSoando;
         Fase destinoDaDemo;
+        bool ouvindoMusica;
+        readonly bool soOuvir;
 
         // Pausa
         Fase faseAntesDaPausa;
@@ -52,33 +55,57 @@ namespace VrPiano.Dominio
         readonly List<Oferta> ofertas = new List<Oferta>();
         bool ouvirUsado, guiaUsado;
 
-        public SessaoDeLicao(string item, Musica musica, Progresso progresso, Catalogo catalogo, Dia hoje,
-            Parametros? parametros = null, bool revisao = false, bool preparoOk = true, Musica? musicaCompleta = null)
+        // item: "BRILHA#2" (frase), "BRILHA" (música inteira) ou, com revisao ou soOuvir, a música.
+        public SessaoDeLicao(string item, Repertorio repertorio, Progresso progresso, Dia hoje,
+            Parametros? parametros = null, bool revisao = false, bool preparoOk = true, bool soOuvir = false)
         {
             Item = item;
-            Passos = Passo.DaMusica(musica);
             this.progresso = progresso;
-            this.catalogo = catalogo;
+            this.repertorio = repertorio;
             this.hoje = hoje;
             this.preparoOk = preparoOk;
+            this.soOuvir = soOuvir;
             p = parametros ?? new Parametros();
             Revisao = revisao;
             Fase = Fase.Pose;
-            // Cada lição é um trecho da música, então juntar é tocar a música até o trecho da lição.
-            var licao = catalogo.Lessons.IndexOf(item) + 1;
-            if (musicaCompleta != null && !revisao && licao >= 2)
-                cadeia = Passo.DaMusica(musicaCompleta).Where(x => x.LicaoDoTrecho <= licao).ToList();
+
+            var (musica, trecho) = repertorio.Analisar(item);
+            Musica = musica;
+            passosDaMusica = Passo.DaMusica(musica);
+            if (revisao)
+            {
+                var ate = RegrasDeProgresso.TrechosDaRevisao(progresso, musica);
+                cadeia = passosDaMusica.Where(x => x.Trecho <= ate).ToList();
+                Passos = cadeia;
+            }
+            else if (trecho == null)
+            {
+                MusicaInteira = true;
+                cadeia = passosDaMusica;
+                Passos = passosDaMusica;
+            }
+            else
+            {
+                numeroDaFrase = musica.NumeroDaFrase(trecho.Value);
+                Passos = passosDaMusica.Where(x => x.Trecho == trecho.Value).ToList();
+                if (numeroDaFrase > 1) cadeia = passosDaMusica.Where(x => x.Trecho <= trecho.Value).ToList();
+            }
         }
 
+        readonly IReadOnlyList<Passo> passosDaMusica;
+        readonly int numeroDaFrase;
+
         public string Item { get; }
+        public Musica Musica { get; }
         public bool Revisao { get; }
+        public bool MusicaInteira { get; }
         public IReadOnlyList<Passo> Passos { get; }
         public Fase Fase { get; private set; }
         public int PassoAtual { get; private set; }
         public bool Juntando { get; private set; }
         public IReadOnlyList<Passo>? Cadeia => cadeia;
-        public int? FrasesDaCadeia => cadeia?[cadeia.Count - 1].LicaoDoTrecho;
-        IReadOnlyList<Passo> Sequencia => Juntando ? cadeia! : Passos;
+        public int? FrasesDaCadeia => cadeia?[cadeia.Count - 1].Trecho;
+        IReadOnlyList<Passo> Sequencia => guiaDoTrecho ?? (Juntando ? cadeia! : Passos);
         public Passo Alvo => Sequencia[Math.Min(PassoAtual, Sequencia.Count - 1)];
         public long? TAcerto { get; private set; }
         public long? TAtaque { get; private set; }
@@ -91,6 +118,15 @@ namespace VrPiano.Dominio
         public int? EstrelasDaExecucao { get; private set; }
         public MotivoDaPausa? MotivoDaPausa => motivo;
         public IReadOnlyList<Oferta> Ofertas => ofertas;
+        public bool Decorou { get; private set; }
+
+        // Tecla branca do polegar da mão 3D (RF-64). Na demonstração, ela anda quando a nota solta, antes da próxima.
+        public int AncoraDaMao { get; private set; } = Mao.AncoraDaPose;
+
+        public EtiquetaDoCard Etiqueta =>
+            Revisao ? new EtiquetaDoCard(TipoDeEtiqueta.Revisao, Musica.TitleKey, null)
+            : MusicaInteira || ouvindoMusica ? new EtiquetaDoCard(TipoDeEtiqueta.MusicaInteira, Musica.TitleKey, null)
+            : new EtiquetaDoCard(TipoDeEtiqueta.Frase, Musica.TitleKey, numeroDaFrase);
 
         public List<Evento> Coletar()
         {
@@ -99,11 +135,30 @@ namespace VrPiano.Dominio
             return eventos;
         }
 
-        // Começo da execução: lição e música esperam a pose; revisão vai direto à memória.
+        // Começo da execução: frase e música inteira esperam a pose; revisão vai direto à memória.
+        // Na primeira vez numa música, ela toca inteira antes da frase 1 (RF-54).
         public void Iniciar(long t)
         {
-            if (Revisao) EntrarMemoria(t);
-            else Mudar(Fase.Pose);
+            if (soOuvir) OuvirMusica(t, Fase.Encerrada);
+            else if (Revisao)
+            {
+                Juntando = true;
+                EntrarJuntar(t);
+            }
+            else if (numeroDaFrase == 1 && !progresso.DemoSeen.Contains(Musica.SongId)) OuvirMusica(t, Fase.Pose);
+            else EntrarPose();
+        }
+
+        void EntrarPose()
+        {
+            AncoraDaMao = Mao.AncoraDaPose;
+            Mudar(Fase.Pose);
+        }
+
+        void OuvirMusica(long t, Fase destino)
+        {
+            ouvindoMusica = true;
+            EntrarDemonstracao(t, destino, passosDaMusica);
         }
 
         public void PoseMudou(bool ok, long t)
@@ -118,11 +173,11 @@ namespace VrPiano.Dominio
 
         public void Ouvir(long t)
         {
-            if (Fase == Fase.Pose || (Fase == Fase.Guiada && !Revisao)) EntrarDemonstracao(t, Fase.Guiada);
+            if (Fase == Fase.Pose || (Fase == Fase.Guiada && !Revisao)) EntrarDemonstracao(t, Fase.Guiada, Passos);
             else if (Fase == Fase.Ofertas && ofertas.Contains(Oferta.Ouvir))
             {
                 ouvirUsado = true;
-                EntrarDemonstracao(t, Fase.Ofertas);
+                EntrarDemonstracao(t, Fase.Ofertas, PassosDoTrechoAtual());
             }
         }
 
@@ -131,7 +186,14 @@ namespace VrPiano.Dominio
             if (Fase != Fase.Ofertas || !ofertas.Contains(Oferta.ComGuia)) return;
             guiaUsado = true;
             apenasUmaVolta = true;
+            guiaDoTrecho = PassosDoTrechoAtual();
             EntrarGuiada(t);
+        }
+
+        IReadOnlyList<Passo> PassosDoTrechoAtual()
+        {
+            var trecho = cadeia![inicioDaFrase].Trecho;
+            return cadeia.Where(x => x.Trecho == trecho).ToList();
         }
 
         public void NoteOn(int nota, int velocity, long t)
@@ -143,9 +205,9 @@ namespace VrPiano.Dominio
                 case Fase.Memoria: NoteOnMemoria(nota, t); break;
                 case Fase.Juntar: NoteOnJuntar(nota, t); break;
                 case Fase.Ofertas:
-                    // Em Ofertas, qualquer nota começa a tentativa e já conta como a primeira dela.
-                    EntrarMemoria(t);
-                    NoteOnMemoria(nota, t);
+                    // Em Ofertas, qualquer nota recomeça o trecho e já conta como a primeira dele.
+                    EntrarJuntar(t);
+                    NoteOnJuntar(nota, t);
                     break;
             }
         }
@@ -178,6 +240,7 @@ namespace VrPiano.Dominio
                 case Fase.Juntar:
                     if (t - ultimoAtivo >= p.SilencioAteDica)
                     {
+                        UsouDica = true;
                         ultimoAtivo = t;
                         saida.Add(new DicaDeMemoria(Alvo.Nota));
                     }
@@ -212,18 +275,19 @@ namespace VrPiano.Dominio
 
         void SairDaPose(long t)
         {
-            if (progresso.DemoSeen.Contains(Item)) EntrarGuiada(t);
-            else EntrarDemonstracao(t, Fase.Guiada);
+            if (MusicaInteira) EntrarCadeia(t);
+            else if (progresso.DemoSeen.Contains(Item)) EntrarGuiada(t);
+            else EntrarDemonstracao(t, Fase.Guiada, Passos);
         }
 
-        void EntrarDemonstracao(long t, Fase destino)
+        void EntrarDemonstracao(long t, Fase destino, IReadOnlyList<Passo> passos)
         {
             destinoDaDemo = destino;
             agenda.Clear();
             proximoDaAgenda = 0;
             notaSoando = null;
-            var inicio = Passos[0].InicioMs;
-            foreach (var passo in Passos)
+            var inicio = passos[0].InicioMs;
+            foreach (var passo in passos)
             {
                 var em = t + passo.InicioMs - inicio;
                 agenda.Add((em, true, passo));
@@ -242,25 +306,36 @@ namespace VrPiano.Dominio
                 {
                     saida.Add(new EnviarNoteOn(passo.Nota, passo.Velocity ?? p.VelocityDaDemo, p.CanalDeSaida, em));
                     notaSoando = passo.Nota;
+                    AncoraDaMao = passo.Ancora;
                 }
                 else
                 {
                     saida.Add(new EnviarNoteOff(passo.Nota, p.CanalDeSaida, em));
                     if (notaSoando == passo.Nota) notaSoando = null;
+                    if (proximoDaAgenda < agenda.Count) AncoraDaMao = agenda[proximoDaAgenda].passo.Ancora;
                 }
                 saida.Add(new DemoNota(passo.Nota, passo.Dedo, ligar));
             }
             if (proximoDaAgenda < agenda.Count) return;
 
-            if (!Revisao && !progresso.DemoSeen.Contains(Item))
+            var ouvido = ouvindoMusica ? Musica.SongId : Item;
+            if (!Revisao && !progresso.DemoSeen.Contains(ouvido))
             {
-                progresso.DemoSeen.Add(Item);
-                saida.Add(new DemoVista(Item));
+                progresso.DemoSeen.Add(ouvido);
+                saida.Add(new DemoVista(ouvido));
                 saida.Add(new GravarProgresso(progresso));
             }
-            saida.Add(new MaoSome());
+            ouvindoMusica = false;
             ignorarAte = t + p.CaudaDoEco;
-            if (destinoDaDemo == Fase.Ofertas) EntrarOfertas();
+            if (destinoDaDemo == Fase.Pose)
+            {
+                EntrarPose();
+                return;
+            }
+            saida.Add(new MaoSome());
+            if (destinoDaDemo == Fase.Encerrada) Mudar(Fase.Encerrada);
+            else if (destinoDaDemo == Fase.Ofertas) EntrarOfertas();
+            else if (MusicaInteira) EntrarCadeia(t);
             else EntrarGuiada(t);
         }
 
@@ -314,7 +389,7 @@ namespace VrPiano.Dominio
             }
 
             PassoAtual++;
-            if (PassoAtual < Passos.Count)
+            if (PassoAtual < Sequencia.Count)
             {
                 var proximo = Alvo;
                 TAcerto = t;
@@ -331,6 +406,7 @@ namespace VrPiano.Dominio
             if (apenasUmaVolta)
             {
                 apenasUmaVolta = false;
+                guiaDoTrecho = null;
                 EntrarOfertas();
             }
             else if (limpa) EntrarTransicao(t, ritmo);
@@ -372,6 +448,15 @@ namespace VrPiano.Dominio
             if (PassoAtual == Passos.Count) ConcluirMemoria(nota, t);
         }
 
+        // Da memória da frase ou da pose da música inteira: espera P-22 e começa a tocar a cadeia de memória.
+        void EntrarCadeia(long t)
+        {
+            Juntando = true;
+            PassoAtual = 0;
+            fimDaEspera = t + p.PausaAntesDaMemoria;
+            Mudar(Fase.Transicao);
+        }
+
         void EntrarJuntar(long t)
         {
             PassoAtual = inicioDaFrase;
@@ -380,13 +465,14 @@ namespace VrPiano.Dominio
             AjudarNaFrase();
         }
 
-        // Errar volta ao começo da frase, não ao começo de tudo: a sequência chega a 50 notas.
+        // Errar volta ao começo do trecho, não ao começo de tudo: a sequência chega a 62 notas.
         void NoteOnJuntar(int nota, long t)
         {
             var alvo = Alvo;
             if (nota != alvo.Nota)
             {
                 falhasDaFrase++;
+                TeveFalha = true;
                 saida.Add(new JuntarFalhou(nota, alvo.Nota, falhasDaFrase));
                 fimDaEspera = t + p.AmbarDepoisDoErro;
                 Mudar(Fase.RetornoDeErro);
@@ -396,14 +482,14 @@ namespace VrPiano.Dominio
             PassoAtual++;
             if (PassoAtual == cadeia!.Count)
             {
-                ConcluirCadeia();
+                ConcluirCadeia(nota);
                 return;
             }
-            if (Alvo.LicaoDoTrecho != alvo.LicaoDoTrecho)
+            if (Alvo.Trecho != alvo.Trecho)
             {
                 inicioDaFrase = PassoAtual;
                 falhasDaFrase = 0;
-                saida.Add(new FraseJuntada(alvo.LicaoDoTrecho));
+                saida.Add(new FraseJuntada(alvo.Trecho));
             }
             AjudarNaFrase();
         }
@@ -411,22 +497,60 @@ namespace VrPiano.Dominio
         // Depois de P-21 falhas na mesma frase, cada tecla dela pisca como dica, para ninguém ficar preso.
         void AjudarNaFrase()
         {
-            if (falhasDaFrase >= p.FalhasAteGuiada) saida.Add(new DicaDeMemoria(Alvo.Nota));
+            if (falhasDaFrase < p.FalhasAteGuiada) return;
+            UsouDica = true;
+            saida.Add(new DicaDeMemoria(Alvo.Nota));
         }
 
-        void ConcluirCadeia()
+        void ConcluirCadeia(int ultimaNota)
         {
-            var ate = FrasesDaCadeia!.Value;
-            progresso.Chain = Math.Max(progresso.Chain, ate);
-            saida.Add(new CadeiaConcluida(ate));
+            if (Revisao) ConcluirRevisao(ultimaNota);
+            else if (MusicaInteira) ConcluirMusicaInteira(ultimaNota);
+            else
+            {
+                var ate = FrasesDaCadeia!.Value;
+                GuardarCadeia(ate);
+                saida.Add(new CadeiaConcluida(ate));
+            }
             saida.Add(new GravarProgresso(progresso));
             Mudar(Fase.Resultado);
         }
 
+        void ConcluirRevisao(int ultimaNota)
+        {
+            saida.Add(new MemoriaConcluida(ultimaNota, !TeveFalha, UsouDica));
+            saida.Add(new RevisaoConcluida(Item));
+            // Só a música já concluída noutro dia decora (RF-61).
+            var inteira = cadeia!.Count == passosDaMusica.Count && RegrasDeProgresso.Estrelas(progresso, Musica.SongId) >= 2;
+            var outroDia = progresso.LastMemory != null && Dia.Parse(progresso.LastMemory.Day) < hoje;
+            if (inteira && outroDia && !progresso.Memorized.Contains(Musica.SongId))
+            {
+                progresso.Memorized.Add(Musica.SongId);
+                Decorou = true;
+                saida.Add(new MusicaDecorada(Musica.SongId));
+            }
+            ContarDia();
+            if (progresso.LastMemory != null) progresso.LastMemory.Day = hoje.ToString();
+        }
+
+        // Vale 3 sem erro e sem dica, e 2 nos outros casos (RF-59). O que abre sai de MudarEstrelas.
+        void ConcluirMusicaInteira(int ultimaNota)
+        {
+            saida.Add(new MemoriaConcluida(ultimaNota, !TeveFalha, UsouDica));
+            EstrelasDaExecucao = TeveFalha || UsouDica ? 2 : 3;
+            if (EstrelasDaExecucao.Value > RegrasDeProgresso.Estrelas(progresso, Item)) MudarEstrelas(EstrelasDaExecucao.Value);
+            GuardarCadeia(Musica.Chunks.Count);
+            ContarDia();
+            progresso.LastMemory = new UltimaMemoria { Item = Item, Day = hoje.ToString() };
+        }
+
+        void GuardarCadeia(int ate) =>
+            progresso.Chain[Musica.SongId] = Math.Max(RegrasDeProgresso.Cadeia(progresso, Musica.SongId), ate);
+
         void DepoisDoErro(long t)
         {
-            if (Juntando) EntrarJuntar(t);
-            else if (Revisao) EntrarOfertas();
+            if (Revisao) EntrarOfertas();
+            else if (Juntando) EntrarJuntar(t);
             else if (FalhasSeguidas >= p.FalhasAteGuiada)
             {
                 FalhasSeguidas = 0;
@@ -448,41 +572,31 @@ namespace VrPiano.Dominio
         void ConcluirMemoria(int ultimaNota, long t)
         {
             saida.Add(new MemoriaConcluida(ultimaNota, !TeveFalha, UsouDica));
-            if (Revisao)
-            {
-                saida.Add(new RevisaoConcluida(Item));
-                ContarDia();
-                if (progresso.LastMemory != null) progresso.LastMemory.Day = hoje.ToString();
-            }
-            else
-            {
-                EstrelasDaExecucao = TeveFalha || UsouDica ? 2 : 3;
-                if (EstrelasDaExecucao.Value > RegrasDeProgresso.Estrelas(progresso, Item)) MudarEstrelas(EstrelasDaExecucao.Value);
-                if (ritmoDaExecucao != null) RegrasDeProgresso.GuardarRitmo(progresso, Item, ritmoDaExecucao);
-                ContarDia();
-                progresso.LastMemory = new UltimaMemoria { Item = Item, Day = hoje.ToString() };
-            }
+            EstrelasDaExecucao = TeveFalha || UsouDica ? 2 : 3;
+            if (EstrelasDaExecucao.Value > RegrasDeProgresso.Estrelas(progresso, Item)) MudarEstrelas(EstrelasDaExecucao.Value);
+            if (ritmoDaExecucao != null) RegrasDeProgresso.GuardarRitmo(progresso, Item, ritmoDaExecucao);
+            ContarDia();
+            progresso.LastMemory = new UltimaMemoria { Item = Item, Day = hoje.ToString() };
+            // A frase 1 não tem Juntar: tocá-la de memória já é a cadeia até o trecho 1.
+            if (cadeia == null) GuardarCadeia(Passos[0].Trecho);
             saida.Add(new GravarProgresso(progresso));
-            if (cadeia == null)
-            {
-                Mudar(Fase.Resultado);
-                return;
-            }
-            Juntando = true;
-            PassoAtual = 0;
-            fimDaEspera = t + p.PausaAntesDaMemoria;
-            Mudar(Fase.Transicao);
+            if (cadeia == null) Mudar(Fase.Resultado);
+            else EntrarCadeia(t);
         }
 
         void MudarEstrelas(int para)
         {
-            var abertosAntes = RegrasDeProgresso.Itens(catalogo).Where(i => RegrasDeProgresso.Aberto(progresso, catalogo, i, preparoOk)).ToList();
+            var abertosAntes = repertorio.Itens().Where(i => RegrasDeProgresso.Aberto(progresso, repertorio, i, preparoOk)).ToList();
             var de = RegrasDeProgresso.Estrelas(progresso, Item);
             progresso.Stars[Item] = para;
             saida.Add(new EstrelasMudaram(Item, de, para));
-            foreach (var i in RegrasDeProgresso.Itens(catalogo))
-                if (!abertosAntes.Contains(i) && RegrasDeProgresso.Aberto(progresso, catalogo, i, preparoOk))
-                    saida.Add(new ItemDesbloqueado(i));
+            foreach (var i in repertorio.Itens())
+            {
+                if (abertosAntes.Contains(i) || !RegrasDeProgresso.Aberto(progresso, repertorio, i, preparoOk)) continue;
+                saida.Add(new ItemDesbloqueado(i));
+                var aberta = repertorio.Analisar(i).Musica;
+                if (i == repertorio.ItensDaMusica(aberta).First()) saida.Add(new MusicaDesbloqueada(aberta.SongId, aberta.TitleKey));
+            }
             saida.Add(new GravarProgresso(progresso));
         }
 
@@ -511,7 +625,8 @@ namespace VrPiano.Dominio
             {
                 case Fase.Demonstracao:
                     if (Revisao) EntrarOfertas();
-                    else Mudar(Fase.Pose);
+                    else if (ouvindoMusica) OuvirMusica(t, destinoDaDemo);
+                    else EntrarPose();
                     break;
                 case Fase.Guiada:
                     // Mesmo passo, já em Ataque; a nota da retomada não tem avaliação de ritmo.

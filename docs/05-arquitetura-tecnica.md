@@ -2,15 +2,18 @@
 
 Como o app será construído, no nível de decisão. Sem código. A regra de negócio está em [06 · Modelo do domínio](06-modelo-de-dominio.md); aqui fica o que liga essa regra ao Quest, ao Android e ao CT-S300.
 
+O app é um só, em Unity, com builds para Quest e Windows (§13).
+
 ## 1. Stack
 
 | Camada | Escolha | Observação |
 |---|---|---|
 | Engine | Unity 6 LTS, URP | Versão exata fixada no primeiro commit de código (§11). |
+| Plataformas | Um app só, com builds para Quest e Windows | Desktop e VR mostram o mesmo jogo (§13). |
 | XR | Meta XR Core SDK + Meta XR Interaction SDK, backend OpenXR | Passthrough, hand tracking, pinça, âncora espacial. |
 | Linguagem | C# no app e no domínio; Kotlin na ponte MIDI Android | — |
-| Domínio | Assembly separado, sem referência a `UnityEngine` (`noEngineReferences`), `netstandard2.1` e C# 9 | Os mesmos fontes compilam no projeto .NET de testes (RNF-11) e no app sem VR. |
-| App sem VR | .NET em WebAssembly (`JSExport`) + HTML/JS com Web MIDI | O mesmo domínio, com o teclado na tela. Serve para testar o método de aula com pessoas antes do headset. |
+| Domínio | Assembly separado, sem referência a `UnityEngine` (`noEngineReferences`), `netstandard2.1` e C# 9 | Os mesmos fontes compilam no projeto .NET de testes (RNF-11) e na tela provisória web/. |
+| Tela provisória web/ | .NET em WebAssembly (`JSExport`) + HTML/JS com Web MIDI | O mesmo domínio, com o teclado na tela. Serve para testar o método de aula com pessoas até a migração para Unity. |
 | Testes do domínio | NUnit via `dotnet test` | Roda sem licença Unity, em qualquer máquina e em CI. |
 | Testes de adapter | Unity Test Framework (EditMode e PlayMode) | Persistência, mapa do teclado, pose com dados gravados. |
 | Android | arm64-v8a, IL2CPP, Vulkan, `minSdk 32`, `targetSdk` exigido pelo Horizon OS na data do build | — |
@@ -18,21 +21,22 @@ Como o app será construído, no nível de decisão. Sem código. A regra de neg
 
 ## 2. Estrutura do repositório
 
-Um repositório só: o domínio, o conteúdo e os testes mudam juntos, e os dois apps usam a mesma cópia.
+Um repositório só: o domínio, o conteúdo e os testes mudam juntos, e o app em Unity e a tela provisória web/ usam a mesma cópia.
 
 ```text
 docs/                         planejamento (este conjunto)
-content/                      catálogo e uma música por arquivo (formato do 06 §5), lidos pelos dois apps
+content/                      catálogo, uma música por arquivo (formato do 06 §5) e textos gerados do 07 (textos.json)
+  legado/                     as 12 lições e a SONG1, fora do catálogo
 domain/                       domínio puro (C#), sem Unity
 domain.tests/                 NUnit, roda com dotnet test
-web/                          app sem VR: domínio em WebAssembly, casca em HTML/JS com Web MIDI
-unity/                        projeto Unity (previsto)
+web/                          tela provisória web/: domínio em WebAssembly, casca em HTML/JS com Web MIDI
+unity/                        projeto Unity (previsto), com builds para Quest e Windows
   Assets/App/Adapters/        MIDI, mão, teclado, persistência, relógio, catálogo
   Assets/App/Presentation/    card, realce, mão branca, painéis
-  Assets/App/Content/         tabela de textos; o catálogo vem de content/
+  Assets/App/Content/         leitura de content/: catálogo, músicas e textos
   Assets/Plugins/Android/     AAR da ponte MIDI
 android-midi-bridge/          projeto Kotlin que gera o AAR
-tools/                        reprodutor de sessões MIDI gravadas
+tools/                        gerador de content/textos.json; reprodutor de sessões MIDI gravadas (previsto)
 ```
 
 ## 3. Ponte MIDI no Android
@@ -121,6 +125,7 @@ Origem na borda esquerda da frente da tecla branca mais grave, na superfície da
 - Estilo das mãos do sistema do Quest: cinza-claro fosco, contorno cinza-azulado mais escuro (fresnel), some em degradê no pulso. Contorno suave onde um dedo passa na frente de outro, para separar do passthrough claro.
 - Sombra de contato falsa (decal) sob a mão, não sombra em tempo real (§8). Referência: `docs/visao/capa-licao1.jpg`.
 - Pose base: posição de cinco dedos, dedos levemente curvos, polegar sobre a tecla 60.
+- Posição: a âncora vem do domínio (RF-64) e diz em que tecla branca fica o polegar. A mão desliza até ela em ~200 ms por tecla. Na demonstração, a âncora muda quando a nota solta, para a mão chegar antes da próxima nota.
 - Animação por dedo: descer ~120 ms, segurar enquanto a nota soa, subir ~120 ms.
 - Destaque do dedo na demonstração: o dedo que desce fica na cor ativa, igual à da tecla.
 - Fim da demonstração: fade de `P-35` até sumir. A mão não aparece na vez guiada nem na memória.
@@ -162,7 +167,7 @@ Preencher no primeiro commit de código. Daí em diante, mudar uma versão é de
 | Meta XR Interaction SDK | — |
 | Android Gradle Plugin / Kotlin | — |
 | `targetSdk` | — |
-| .NET SDK dos testes de domínio e do app sem VR | 10.0.403 |
+| .NET SDK dos testes de domínio e da tela provisória web/ | 10.0.403 |
 | Firmware do Quest nos testes de aceite | — |
 
 ## 12. O que só o hardware responde
@@ -179,3 +184,18 @@ Cada item tem um teste que decide. Até o teste, vale a hipótese.
 | Medidas reais das teclas | Tecla de tamanho normal | T-CAL-01 |
 | A pose é reconhecível com o teclado na frente? | Sim, com as tolerâncias do 06 §7 | T-POSE-01 a 03 |
 | Consumo de bateria numa sessão | Menos de 40 % em 30 min | T-PERF-04 |
+
+## 13. Plataformas e migração
+
+O vr-piano é um app só, em Unity, com builds para Quest e Windows. Desktop e VR são plataformas que mostram o mesmo jogo. `web/` é a tela provisória até a migração.
+
+- Toda regra do jogo fica em `domain/`, que segue `netstandard2.1`, C# 9 e sem referência a `UnityEngine`.
+- A tela só desenha o que o domínio informa e liga MIDI, mão e armazenamento.
+- Os textos ficam em `content/textos.json`, gerado do [07](07-textos-da-interface.md).
+- A âncora da mão vem calculada do domínio; a tela só anima até ela.
+
+A resolver na migração:
+
+| Item | Situação |
+|---|---|
+| Entrada MIDI no Windows | A ponte do §3 só existe no Android, e a Web MIDI só na tela provisória. O build Windows precisa de um adapter próprio para ouvir e tocar o CT-S300. Escolha em aberto. |

@@ -1,22 +1,21 @@
-// Casca sem VR: Web MIDI, teclado na tela, card e registro do teste. As regras da lição vêm do motor em C# (domain/).
+// Tela provisória web/: Web MIDI, teclado na tela, card e registro do teste. As regras da lição vêm do motor em C# (domain/).
 import { dotnet } from './_framework/dotnet.js';
 import { criarMao } from './mao3d.js';
 
 const { getAssemblyExports, getConfig } = await dotnet.create();
 const Motor = (await getAssemblyExports(getConfig().mainAssemblyName)).VrPiano.Web.Motor;
 
-// ---------- Textos (docs/07) e números de apresentação (docs/06 §7) ----------
+// ---------- Textos (content/textos.json, gerado do docs/07) e números de apresentação (docs/06 §7) ----------
 
-const NOTA = { 60: 'Dó', 62: 'Ré', 64: 'Mi', 65: 'Fá', 67: 'Sol' };
-const DEDO = ['', 'Polegar', 'Indicador', 'Médio', 'Anelar', 'Mínimo'];
-const NOVIDADE = {
-  L01: 'Dó, polegar', L02: 'Ré, indicador', L03: 'Mi, médio', L04: 'Descer', L05: 'Ida e volta', L06: 'Fá, anelar',
-  L07: 'Subir até o fá', L08: 'Sol, mínimo', L09: 'Cinco dedos subindo', L10: 'Cinco dedos descendo', L11: 'Salto',
-  L12: 'Revisão', SONG1: 'Música do nível 1',
-};
+const TEXTOS = JSON.parse(Motor.Textos())['pt-BR'];
+function t(chave, valores = {}) {
+  return TEXTOS[chave].replace(/\{(\w+)\}/g, (_, nome) => valores[nome]);
+}
+
+const FORCA = { Leve: 'vel.soft', Medio: 'vel.medium', Forte: 'vel.loud' };
 const POSICAO = { 60: 1, 62: 2, 64: 3, 65: 4, 67: 5 };
 const ATALHOS = [36, 38, 40];               // P-27
-const NOME_ATALHO = ['Dó2', 'Ré2', 'Mi2'];
+const NOME_ATALHO = [60, 62, 64].map((n) => `${t(`note.${n}`)}2`);
 const VERDE_MS = 150, VERMELHO_MS = 200, AMBAR_MS = 1000, AVISO_MS = 600, DICA_MS = 400; // P-23, P-24, P-25, P-32, P-34
 const CINZA_INICIAL = 0.15;                  // P-29
 const COR = {
@@ -42,18 +41,17 @@ let meta = {};            // { diaOffset, abrirTodas, ultimoItem }
 let painel = null;
 let hoje = null;
 let estado = null;        // último retorno do motor durante a lição
-let passos = [];
 let tela = 'entrada';
 let execucao = null;      // registro da execução em andamento
 let botoes = [];
 let msgGuia = false;
-let desbloqueados = [];
+let musicaAberta = null;  // título da música que esta execução abriu
 let faixa = null;
 let velocityFixa = false;
 let teclaAtual = null;
 let aviso = null;
 const flashes = [];
-const soando = new Set();
+const soando = new Map();    // nota → dedo
 const premidas = new Set();
 
 const $ = (id) => document.getElementById(id);
@@ -67,15 +65,14 @@ function entrada(tipo, nota = 0, velocity = 0, t = performance.now()) {
 
 function aplicar(r, t) {
   const faseAntes = estado?.fase;
-  estado = { ...r, passos: r.passos ?? passos };
-  if (r.passos) passos = r.passos;
+  estado = r;
   for (const ev of r.eventos) tratar(ev, t);
   if (r.progresso) gravar(`progresso:${participante}`, r.progresso);
   if (r.fase === 'Encerrada') mostrarEntre();
   else if (r.eventos.length || r.fase !== faseAntes) desenharTela();
 }
 
-function tratar(ev, t) {
+function tratar(ev, agora) {
   if (ev.tipo !== 'FaixaMudou' && ev.tipo !== 'DemoNota') registrar(ev.tipo, ev);
   const x = execucao;
   switch (ev.tipo) {
@@ -86,30 +83,30 @@ function tratar(ev, t) {
       if (ev.fase === 'Transicao') msgGuia = false;
       if (ev.fase === 'Resultado' || ev.fase === 'Encerrada') fecharExecucao(ev.fase === 'Resultado');
       break;
-    case 'NotaCerta': flash(ev.nota, COR.acerto, t, VERDE_MS); teclaAtual = ev.nota; break;
-    case 'NotaErrada': flash(ev.tocada, COR.erro, t, VERMELHO_MS); x.errosGuiada++; break;
+    case 'NotaCerta': flash(ev.nota, COR.acerto, agora, VERDE_MS); teclaAtual = ev.nota; break;
+    case 'NotaErrada': flash(ev.tocada, COR.erro, agora, VERMELHO_MS); x.errosGuiada++; break;
     case 'RitmoAvaliado':
-      if (ev.classe !== 'NoTempo') aviso = { texto: ev.classe === 'Adiantado' ? 'Adiantado' : 'Atrasado', nota: ev.nota, ate: t + AVISO_MS };
+      if (ev.classe !== 'NoTempo') aviso = { texto: t(ev.classe === 'Adiantado' ? 'rhythm.early' : 'rhythm.late'), nota: ev.nota, ate: agora + AVISO_MS };
       break;
     case 'VoltaConcluida': x.voltas++; if (!ev.limpa) x.voltasComErro++; break;
-    case 'DicaDeMemoria': flash(ev.nota, COR.dica, t, DICA_MS); x.dicas++; break;
+    case 'DicaDeMemoria': flash(ev.nota, COR.dica, agora, DICA_MS); x.dicas++; break;
     case 'TentativaFalhou':
-      flash(ev.esperada, COR.ativa, t, AMBAR_MS);
-      flash(ev.tocada, COR.erro, t, VERMELHO_MS);
+      flash(ev.esperada, COR.ativa, agora, AMBAR_MS);
+      flash(ev.tocada, COR.erro, agora, VERMELHO_MS);
       x.falhas++;
       break;
     case 'JuntarFalhou':
-      flash(ev.esperada, COR.ativa, t, AMBAR_MS);
-      flash(ev.tocada, COR.erro, t, VERMELHO_MS);
+      flash(ev.esperada, COR.ativa, agora, AMBAR_MS);
+      flash(ev.tocada, COR.erro, agora, VERMELHO_MS);
       x.falhasJuntar++;
       break;
-    case 'CadeiaConcluida': x.juntouAte = ev.ateALicao; break;
+    case 'CadeiaConcluida': x.juntouAte = ev.ateOTrecho; break;
     case 'VoltouAoGuiado': msgGuia = true; x.voltouAoGuiado++; break;
-    case 'MemoriaConcluida': flash(ev.nota, COR.acerto, t, VERDE_MS); break;
-    case 'DemoNota': if (ev.ligada) soando.add(ev.nota); else soando.delete(ev.nota); break;
+    case 'MemoriaConcluida': flash(ev.nota, COR.acerto, agora, VERDE_MS); break;
+    case 'DemoNota': if (ev.ligada) soando.set(ev.nota, ev.dedo); else soando.delete(ev.nota); break;
     case 'EnviarNoteOn': tocarSaida(ev.nota, ev.velocity, ev.canal, ev.em, true); break;
     case 'EnviarNoteOff': tocarSaida(ev.nota, 0, ev.canal, ev.em, false); break;
-    case 'ItemDesbloqueado': desbloqueados.push(ev.item); break;
+    case 'MusicaDesbloqueada': musicaAberta = ev.tituloKey; break;
     case 'FaixaMudou': faixa = ev.faixa; break;
     case 'VelocityFixa': velocityFixa = ev.ligada; break;
   }
@@ -119,9 +116,9 @@ function flash(nota, cor, t, ms) { flashes.push({ nota, cor, ate: t + ms }); }
 
 // ---------- Execuções e eventos (o registro do teste) ----------
 
-function abrirExecucao(item, revisao) {
+function abrirExecucao(item, tipo) {
   execucao = {
-    participante, dia: hoje, item, tipo: revisao ? 'revisao' : 'licao', inicio: new Date().toISOString(), t0: performance.now(),
+    participante, dia: hoje, item, tipo, inicio: new Date().toISOString(), t0: performance.now(),
     demos: 0, voltas: 0, voltasComErro: 0, errosGuiada: 0, tentativas: 0, falhas: 0, dicas: 0, voltouAoGuiado: 0,
     falhasJuntar: 0, juntouAte: '',
   };
@@ -191,26 +188,34 @@ function abrirDia() {
   painel = r.painel;
   gravar(`progresso:${participante}`, r.progresso);
   registrar('Abrir', { hoje, revisao: r.revisao });
-  const primeiraVez = r.progresso.demoSeen.length === 0 && painel.itens.every((i) => i.estrelas === 0);
+  if (!painel.musicas.some((m) => m.itens.some((i) => i.id === meta.ultimoItem))) meta.ultimoItem = null;
   if (r.revisao) iniciar(r.revisao, true);
-  else if (primeiraVez) iniciar('L01', false);
+  else if (r.itemInicial) iniciar(r.itemInicial, false);
   else mostrarEntre();
 }
 
 function iniciar(item, revisao) {
   meta.ultimoItem = revisao ? meta.ultimoItem : item;
   gravar(`meta:${participante}`, meta);
+  comecar(item, revisao ? 'revisao' : 'licao', (t) => Motor.Iniciar(item, revisao, t));
+}
+
+function ouvirMusica(musica) {
+  comecar(musica, 'ouvir', (t) => Motor.OuvirMusica(musica, t));
+}
+
+function comecar(item, tipo, chamarMotor) {
   tela = 'licao';
   msgGuia = false;
-  desbloqueados = [];
+  musicaAberta = null;
   teclaAtual = null;
   aviso = null;
   flashes.length = 0;
   soando.clear();
   estado = null;
-  abrirExecucao(item, revisao);
+  abrirExecucao(item, tipo);
   const t = performance.now();
-  aplicar(JSON.parse(Motor.Iniciar(item, revisao, t)), t);
+  aplicar(JSON.parse(chamarMotor(t)), t);
   desenharTela();
 }
 
@@ -223,7 +228,13 @@ function mostrarEntre() {
 
 function aberto(item) { return meta.abrirTodas || item.aberto; }
 
-function nomeDoItem(id) { return id === 'SONG1' ? 'Música' : `Lição ${Number(id.slice(1))}`; }
+function nomeDoItem(item) { return item.frase ? t('phrase.label', { n: item.frase }) : t('whole.label'); }
+
+function textoDaEtiqueta(e) {
+  const title = t(e.tituloKey);
+  if (e.tipo === 'Frase') return t('card.phrase', { title, n: e.frase });
+  return e.tipo === 'MusicaInteira' ? t('card.whole', { title }) : t('review.label');
+}
 
 function estrelasHtml(n) {
   return [1, 2, 3].map((i) => `<span class="${i <= n ? '' : 'apagada'}">★</span>`).join('');
@@ -243,109 +254,126 @@ function desenharEntrada() {
 }
 
 function desenharEntre() {
-  const licoes = painel.itens.filter((i) => i.id !== 'SONG1');
-  const total = licoes.reduce((s, i) => s + i.estrelas, 0);
-  const musica = painel.itens.find((i) => i.id === 'SONG1');
-  const semErro = licoes.filter((i) => i.estrelas === 3).length;
+  const negrito = (n) => `<b>${n}</b>`;
   const seq = painel.sequencia;
   $('resumo').innerHTML = [
-    `Estrelas: <b>${total}/36</b>`, `Música: <b>${musica.estrelas}/3</b>`, `Dias seguidos: <b>${seq.current}</b>`,
-    `Maior sequência: <b>${seq.best}</b>`, `De memória, sem erro: <b>${semErro}</b> lições`,
-    `De cor, seguidas: <b>${painel.cadeia}</b> frases`, `Dia: <b>${hoje}</b>`,
+    t('progress.stars', { n: negrito(painel.estrelas) }), t('progress.streak', { n: negrito(seq.current) }),
+    t('progress.best', { n: negrito(seq.best) }), t('progress.mastered', { n: negrito(painel.frasesSemErro) }),
+    t('progress.memorized', { n: negrito(painel.decoradas) }), t('web.day', { n: negrito(hoje) }),
   ].map((s) => `<span>${s}</span>`).join('');
 
   $('grade').innerHTML = '';
-  for (const item of painel.itens) {
+  for (const musica of painel.musicas) $('grade').append(blocoDaMusica(musica));
+  botoes.push({ texto: t('between.next'), principal: true, acao: () => iniciar(painel.proximo, false) });
+  if (meta.ultimoItem) botoes.push({ texto: t('between.again'), acao: () => iniciar(meta.ultimoItem, false) });
+}
+
+function blocoDaMusica(musica) {
+  const bloco = document.createElement('section');
+  bloco.className = 'musica';
+  const topo = document.createElement('div');
+  topo.className = 'musica-topo';
+  topo.innerHTML = `<h2>${t(musica.tituloKey)}</h2>
+    ${musica.decorada ? `<span class="decorada">${t('progress.memorized.badge')}</span>` : ''}
+    <span class="cadeia">${musica.cadeia ? t('progress.chain', { n: musica.cadeia }) : ''}</span>`;
+  if (musica.podeOuvir) {
+    const ouvir = document.createElement('button');
+    ouvir.className = 'discreto';
+    ouvir.textContent = t('song.hear');
+    ouvir.onclick = () => ouvirMusica(musica.id);
+    topo.append(ouvir);
+  }
+  const itens = document.createElement('div');
+  itens.className = 'itens';
+  for (const item of musica.itens) {
     const b = document.createElement('button');
     b.className = 'item' + (item.id === painel.proximo ? ' proximo' : '');
     b.disabled = !aberto(item);
-    const ritmo = item.ritmo ? `${item.ritmo.onTime} de ${item.ritmo.judged} no tempo` : '';
-    b.innerHTML = `<div class="nome">${nomeDoItem(item.id)}</div>
-      <div class="novidade">${aberto(item) ? NOVIDADE[item.id] : 'Fechada'}</div>
+    const ritmo = item.ritmo ? t('progress.rhythm', { n: item.ritmo.onTime, m: item.ritmo.judged }) : '';
+    b.innerHTML = `<div class="nome">${nomeDoItem(item)}</div>
+      <div class="novidade">${aberto(item) ? '' : t('progress.locked')}</div>
       <div class="est">${'★'.repeat(item.estrelas)}${'☆'.repeat(3 - item.estrelas)}</div>
       <div class="ritmo">${ritmo}</div>`;
     b.onclick = () => iniciar(item.id, false);
-    $('grade').append(b);
+    itens.append(b);
   }
-  botoes.push({ texto: 'Próxima', principal: true, acao: () => iniciar(painel.proximo, false) });
-  if (meta.ultimoItem) botoes.push({ texto: 'De novo', acao: () => iniciar(meta.ultimoItem, false) });
+  bloco.append(topo, itens);
+  return bloco;
 }
 
 function desenharCard() {
   const e = estado;
   if (!e) return;
-  const passo = e.alvo ?? (passos[e.passo] ? { ...passos[e.passo] } : null);
-  let etiqueta = e.revisao ? 'Revisão' : nomeDoItem(e.item);
-  if (e.item === 'SONG1' && passo) etiqueta = `Música · Lição ${passo.licao}`;
+  const etiqueta = textoDaEtiqueta(e.etiqueta);
   let principal = '', sub = '';
-  const nomeDaNota = (p) => (p ? `${NOTA[p.nota] ?? p.nota} · ${DEDO[p.dedo]}` : '');
+  const nomeDaNota = (p) => (p ? `${t(`note.${p.nota}`)} · ${t(`finger.${p.dedo}`)}` : '');
 
   switch (e.fase) {
     case 'Pose':
-      principal = 'Ponha a mão assim.';
-      sub = 'Polegar no dó central, um dedo em cada tecla.';
-      botoes.push({ texto: 'Começar', principal: true, acao: () => entrada('pose') });
-      botoes.push({ texto: 'Ouvir', acao: () => entrada('ouvir') });
+      principal = t('lesson.pose');
+      sub = t('web.pose.hint');
+      botoes.push({ texto: t('web.start'), principal: true, acao: () => entrada('pose') });
+      botoes.push({ texto: t('lesson.hear'), acao: () => entrada('ouvir') });
       break;
     case 'Demonstracao':
-      principal = 'Olhe e ouça.';
-      sub = [...soando].map((n) => nomeDaNota({ nota: n, dedo: POSICAO[n] })).join('');
+      principal = t('lesson.watch');
+      sub = [...soando].map(([nota, dedo]) => nomeDaNota({ nota, dedo })).join('');
       break;
     case 'Guiada':
-      principal = msgGuia ? 'Mais uma vez com guia.' : nomeDaNota(e.alvo);
+      principal = msgGuia ? t('lesson.backToGuide') : nomeDaNota(e.alvo);
       sub = msgGuia ? nomeDaNota(e.alvo) : '';
-      if (!e.revisao) botoes.push({ texto: 'Ouvir', acao: () => entrada('ouvir') });
+      if (!e.revisao) botoes.push({ texto: t('lesson.hear'), acao: () => entrada('ouvir') });
       break;
     case 'Juntar':
-      principal = 'Junte tudo de memória.';
-      sub = `Frase ${e.frase} de ${e.frases}`;
+      principal = t(e.revisao ? 'review.title' : 'lesson.join');
+      sub = e.revisao ? t('review.play') : t('lesson.join.phrase', { i: e.frase, n: e.frases });
       break;
     case 'Transicao':
     case 'Memoria':
     case 'RetornoDeErro':
       if (e.juntando) {
-        principal = e.fase === 'Transicao' ? 'Agora junte tudo.' : 'Do começo da frase.';
-        sub = e.fase === 'Transicao' ? `As ${e.frases} frases, de memória.` : '';
+        principal = t(e.fase === 'Transicao' ? 'lesson.join.intro' : 'lesson.join.retry');
+        sub = e.fase === 'Transicao' ? t('lesson.join.count', { n: e.frases }) : '';
         break;
       }
-      principal = e.revisao ? 'Frase da última vez.' : 'Agora de memória.';
-      sub = e.revisao ? 'Toque de memória.' : '';
+      principal = t(e.revisao ? 'review.title' : 'lesson.memory');
+      sub = e.revisao ? t('review.play') : '';
       break;
     case 'Ofertas':
-      principal = 'Frase da última vez.';
-      sub = 'Toque de memória.';
-      if (e.ofertas.includes('Ouvir')) botoes.push({ texto: 'Ouvir', acao: () => entrada('ouvir') });
-      if (e.ofertas.includes('ComGuia')) botoes.push({ texto: 'Com guia', acao: () => entrada('comGuia') });
+      principal = t('review.title');
+      sub = t('review.play');
+      if (e.ofertas.includes('Ouvir')) botoes.push({ texto: t('review.hear'), acao: () => entrada('ouvir') });
+      if (e.ofertas.includes('ComGuia')) botoes.push({ texto: t('review.guide'), acao: () => entrada('comGuia') });
       break;
     case 'Resultado':
       if (e.revisao) {
-        principal = 'Lembrou.';
-        botoes.push({ texto: 'Continuar', principal: true, acao: mostrarEntre });
+        principal = t('review.done');
+        sub = e.decorou ? t('progress.memorized.badge') : '';
+        botoes.push({ texto: t('pause.continue'), principal: true, acao: mostrarEntre });
       } else {
-        principal = `<div class="estrelas">${estrelasHtml(e.estrelas)}</div>${e.estrelas === 3 ? 'Você lembrou.' : 'Lição seguinte aberta.'}`;
-        const ritmo = e.ritmo && e.ritmo.judged ? `No tempo: ${e.ritmo.onTime} de ${e.ritmo.judged}` : '';
-        const juntou = e.juntando ? `De cor: ${e.frases} frases seguidas.` : '';
-        sub = [juntou, ritmo, desbloqueados.includes('SONG1') ? 'A música do nível 1 abriu.' : ''].filter(Boolean).join('<br>');
+        principal = `<div class="estrelas">${estrelasHtml(e.estrelas)}</div>${t(e.estrelas === 3 ? 'result.3' : 'result.2')}`;
+        const ritmo = e.ritmo && e.ritmo.judged ? t('result.rhythm', { n: e.ritmo.onTime, m: e.ritmo.judged }) : '';
+        const juntou = e.juntando ? t('result.join', { n: e.frases }) : '';
+        sub = [juntou, ritmo, musicaAberta ? t('between.songOpen', { title: t(musicaAberta) }) : ''].filter(Boolean).join('<br>');
         painel = JSON.parse(Motor.Painel());
-        const proximo = painel.itens.find((i) => i.id === painel.proximo);
-        if (proximo && painel.proximo !== e.item) botoes.push({ texto: 'Próxima', principal: true, acao: () => iniciar(painel.proximo, false) });
-        botoes.push({ texto: 'De novo', acao: () => iniciar(e.item, false) });
-        botoes.push({ texto: 'Progresso', acao: mostrarEntre });
+        if (painel.proximo !== e.item) botoes.push({ texto: t('between.next'), principal: true, acao: () => iniciar(painel.proximo, false) });
+        botoes.push({ texto: t('between.again'), acao: () => iniciar(e.item, false) });
+        botoes.push({ texto: t('between.progress'), acao: mostrarEntre });
       }
       break;
     case 'Pausado':
-      principal = e.motivo === 'Cabo' ? 'Teclado desconectado. A lição pausou.' : 'Lição pausada.';
-      if (e.motivo === 'Foco') botoes.push({ texto: 'Continuar', principal: true, acao: () => entrada('continuar') });
-      botoes.push({ texto: 'Sair da aula', acao: () => entrada('sair') });
+      principal = t(e.motivo === 'Cabo' ? 'pause.cable' : 'pause.focus');
+      if (e.motivo === 'Foco') botoes.push({ texto: t('pause.continue'), principal: true, acao: () => entrada('continuar') });
+      botoes.push({ texto: t('pause.leave'), acao: () => entrada('sair') });
       break;
   }
 
   // Força só tem sentido com o teclado de verdade; no computador toda nota tem a mesma velocity.
   const velocityReal = usandoMidi && midiEntrada;
   const faixaHtml = !velocityReal || velocityFixa || !faixa ? '' :
-    `<div class="faixa" title="Força: ${faixa}">${['Leve', 'Medio', 'Forte'].map((f) => `<i class="${f === faixa ? 'acesa' : ''}"></i>`).join('')}</div>`;
-  const avisoFixa = velocityReal && velocityFixa ? '<div class="sub">Velocity fixa. No teclado, MIDI Out Velocity em Off.</div>' : '';
-  const sair = e.fase === 'Resultado' || e.fase === 'Encerrada' ? '' : '<button class="sair" id="sair">Sair da aula</button>';
+    `<div class="faixa" title="${t('web.velocity', { band: t(FORCA[faixa]) })}">${['Leve', 'Medio', 'Forte'].map((f) => `<i class="${f === faixa ? 'acesa' : ''}"></i>`).join('')}</div>`;
+  const avisoFixa = velocityReal && velocityFixa ? `<div class="sub">${t('warn.fixedVelocity')}</div>` : '';
+  const sair = e.fase === 'Resultado' || e.fase === 'Encerrada' ? '' : `<button class="sair" id="sair">${t('pause.leave')}</button>`;
   $('card').innerHTML = `${faixaHtml}${sair}<div class="etiqueta">${etiqueta}</div>
     <div class="principal">${principal}</div><div class="sub">${sub}</div>${avisoFixa}`;
   if (sair) $('sair').onclick = () => entrada('sair');
@@ -356,7 +384,7 @@ function desenharBotoes() {
   botoes.forEach((b, i) => {
     const el = document.createElement('button');
     el.className = b.principal ? 'principal' : '';
-    el.innerHTML = `${b.texto}<small>ou ${NOME_ATALHO[i]}</small>`;
+    el.innerHTML = `${b.texto}<small>${t('shortcut.hint', { key: NOME_ATALHO[i] })}</small>`;
     el.onclick = b.acao;
     $('botoes').append(el);
   });
@@ -388,11 +416,11 @@ let midiSaida = null;
 let usandoMidi = false;
 
 async function iniciarMidi() {
-  if (!navigator.requestMIDIAccess) { status('Sem Web MIDI. Use Chrome ou Edge.', 'aviso'); return; }
+  if (!navigator.requestMIDIAccess) { status(t('web.midi.unsupported'), 'aviso'); return; }
   try {
     midi = await navigator.requestMIDIAccess();
   } catch {
-    status('Sem permissão, o app não ouve o teclado.', 'aviso');
+    status(t('midi.permissionDenied'), 'aviso');
     return;
   }
   midi.onstatechange = atualizarPortas;
@@ -418,10 +446,10 @@ function atualizarPortas() {
   $('midi-saida').value = midiSaida?.id ?? '';
 
   if (midiEntrada) {
-    status(`Teclado conectado: ${midiEntrada.name}`, 'ok');
+    status(t('web.midi.connected', { name: midiEntrada.name }), 'ok');
     if (estado?.fase === 'Pausado' && estado.motivo === 'Cabo') entrada('conectado');
   } else {
-    status(usandoMidi ? 'Procurando teclado…' : 'Sem teclado MIDI: use o computador.', 'aviso');
+    status(t(usandoMidi ? 'midi.searching' : 'web.midi.none'), 'aviso');
     if (tinhaEntrada && tela === 'licao') entrada('desconectado');
   }
 }
@@ -572,7 +600,7 @@ function realces(agora) {
       for (const [n, d] of Object.entries(POSICAO)) pos(Number(n), { rotulo: d, stroke: COR.ativa });
       break;
     case 'Demonstracao':
-      for (const n of soando) pos(n, { fill: COR.ativa, rotulo: POSICAO[n] ?? '' });
+      for (const [n, dedo] of soando) pos(n, { fill: COR.ativa, rotulo: dedo });
       break;
     case 'Guiada': {
       const alvo = e.alvo;
@@ -628,8 +656,7 @@ function quadro() {
   desenharTeclas(agora);
   // Mão branca na pose e na demonstração; some em fade quando a demonstração acaba (MãoSome).
   const comMao = tela === 'licao' && (estado?.fase === 'Pose' || estado?.fase === 'Demonstracao');
-  const dedos = new Set([...soando].map((n) => POSICAO[n]).filter(Boolean));
-  mao.atualizar(comMao, dedos, { do: teclas.get(60).r.getBoundingClientRect() }, agora);
+  mao.atualizar(comMao, new Set(soando.values()), estado?.ancora ?? 0, { do: teclas.get(60).r.getBoundingClientRect() }, agora);
   requestAnimationFrame(quadro);
 }
 
@@ -657,7 +684,7 @@ document.addEventListener('visibilitychange', () => {
 
 $('form-entrada').onsubmit = (ev) => { ev.preventDefault(); entrar($('nome').value); };
 $('abrir-facilitador').onclick = () => {
-  $('fac-dia').textContent = `Dia do app: ${hoje}${meta.diaOffset ? ` (${meta.diaOffset} a mais que o real)` : ''}`;
+  $('fac-dia').textContent = meta.diaOffset ? t('web.fac.dayShifted', { day: hoje, n: meta.diaOffset }) : t('web.fac.day', { day: hoje });
   $('fac-abrir-todas').checked = !!meta.abrirTodas;
   $('facilitador').showModal();
 };
@@ -682,7 +709,7 @@ $('fac-execucoes').onclick = () => baixarCsv('execucoes.csv', todos('execucoes')
 $('fac-eventos').onclick = () => baixarCsv('eventos.csv', todos('eventos'),
   ['quando', 'tMs', 'participante', 'dia', 'item', 'fase', 'tipo', 'dados']);
 $('fac-apagar').onclick = () => {
-  if (!confirm(`Apagar o progresso de ${participante}? Execuções e eventos continuam guardados.`)) return;
+  if (!confirm(t('web.fac.confirmErase', { name: participante }))) return;
   if (tela === 'licao' && estado) entrada('sair');
   try { localStorage.removeItem(`${PREFIXO}progresso:${participante}`); } catch { /* nada a apagar */ }
   meta = { diaOffset: 0, abrirTodas: false, ultimoItem: null };
@@ -705,7 +732,7 @@ $('fac-trocar').onclick = () => {
 const erros = JSON.parse(Motor.ValidarConteudo());
 if (erros.length) console.error('Conteúdo inválido', erros);
 construirTeclado();
-status('Procurando teclado…');
+status(t('midi.searching'));
 iniciarMidi();
 desenharTela();
 setInterval(tick, 10);

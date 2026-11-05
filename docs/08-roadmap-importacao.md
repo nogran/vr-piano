@@ -1,6 +1,6 @@
 # Roadmap: importação de músicas
 
-**Status:** implementação futura, fora do escopo da v1. A única parte que entra na v1 é o **formato de música** (§3): as lições nativas já são escritas nele, então o importador futuro só precisa gerar o mesmo JSON.
+**Status:** implementação futura, fora do escopo da v1. A única parte que entra na v1 é o **formato de música** (§3): as músicas nativas já são escritas nele, então o importador futuro só precisa gerar o mesmo JSON.
 
 **Objetivo:** a pessoa escolhe um arquivo musical (Beethoven, Mozart, um arranjo próprio). O app processa o arquivo uma vez, fatia em trechos pedagógicos e gera a lição no formato do app: mão 3D na demonstração, cinza dinâmico na vez guiada e fase de memória.
 
@@ -42,20 +42,20 @@ arquivo escolhido ─► parser (MIDI ou MusicXML) ─► normalizador ─► va
 
 ## 3. Formato de música (o mesmo da v1)
 
-Três níveis. As lições nativas da v1 usam este formato com as restrições do [06 §5](06-modelo-de-dominio.md#5-formato-de-música-e-catálogo).
+Três níveis. As músicas nativas da v1 usam este formato com as restrições do [06 §5](06-modelo-de-dominio.md#5-formato-de-música-e-catálogo).
 
 ### Nível 1: metadados da música (`SongMetadata`)
 
 | Campo | Significado | Na v1 |
 |---|---|---|
-| `song_id` | Identificador único | `L01`…`L12`, `SONG1` |
+| `song_id` | Identificador único | `BRILHA`, `ODE` |
 | `title`, `composer` | Nome da obra e autor, das meta-tags do arquivo ou digitados pela pessoa | Chave de texto do 07 (`title_key`) em vez de texto fixo |
 | `bpm` | Andamento base | 60 |
 | `bpm_map` | Mudanças de andamento: lista de `{ "at_ms", "bpm" }` | Vazio |
 | `time_signature` | Fórmula de compasso (`4/4`, `3/4`), para o metrônomo e o corte em compassos | `4/4` |
 | `source_format` | `NATIVE`, `MIDI` ou `MUSICXML` | `NATIVE` |
 | `raw_file_url` | Cópia do arquivo original no armazenamento do app | `null` |
-| `practice` | `whole`: a execução percorre todos os trechos em sequência. `by_chunk`: cada trecho é praticado como uma lição | `whole` |
+| `practice` | `by_chunk`: cada trecho novo é praticado como um item, e a música inteira é mais um item. `whole`: a execução percorre todos os trechos em sequência | `by_chunk` |
 
 ### Nível 2: trechos (`LessonChunks`)
 
@@ -65,7 +65,7 @@ Três níveis. As lições nativas da v1 usam este formato com as restrições d
 | `start_time_ms`, `end_time_ms` | Onde o trecho começa e termina na linha do tempo da música |
 | `measure_range` | Compassos do trecho (`[1, 4]`) |
 | `active_hands` | `RH`, `LH` ou `BOTH` |
-| `label_lesson` | Na v1, o número da lição mostrado na etiqueta do card (na `SONG1`, a lição de origem do trecho). Em música importada é nulo e o card mostra o título |
+| `repeat_of` | Trecho novo que este trecho repete, ou `null`. Trecho repetido traz as notas completas, com os tempos deslocados, e não vira item. O importador pode preencher quando achar dois trechos iguais |
 | `notes` | Eventos de nota do trecho (nível 3) |
 
 ### Nível 3: eventos de nota (`NoteEvents`)
@@ -140,14 +140,13 @@ O formato de música não muda. A tela do piano, o cinza dinâmico e a mão 3D c
 | Só mão direita | Segunda mão 3D (asset espelhado), pose da mão esquerda, `hand` no `AlvoMudou`. Calibração não muda | `HandInputPort`, mão 3D, domínio |
 | Pose fixa em dó–sol | A pose do trecho vem dos dedos das primeiras notas, e não de uma posição fixa | Detector de pose |
 | Andamento único | `bpm_map` muda o intervalo do cinza ao longo da música | Domínio, demonstração |
-| Demonstração automática por item | Com `practice: by_chunk`, o “inédito” é por trecho (`demoSeen` guarda `song_id#chunk_index`) | Domínio, progresso |
-| Estrelas e desbloqueio das 12 lições | Música importada tem estrelas por trecho e não abre nem fecha lição nativa | Progresso |
+| Estrelas e desbloqueio do catálogo | Música importada tem estrelas por trecho e não abre nem fecha música nativa | Progresso |
 | Textos fixos do 07 | `title` e `composer` vêm do arquivo e são exibidos como estão, sem tradução | Card, catálogo |
 
 ## 5. Critérios para começar
 
 - A v1 aprovada pelo critério do RN-03.
-- O formato de música da v1 estável: as 12 lições e a música carregam dele sem campo extra.
+- O formato de música da v1 estável: as músicas do catálogo carregam dele sem campo extra.
 - Uma decisão sobre acordes e mão esquerda (§4), porque a maior parte das músicas importadas vai ter os dois.
 
 ## 6. Testes previstos (quando a entrega começar)
@@ -159,8 +158,7 @@ O formato de música não muda. A tela do piano, o cinza dinâmico e a mão 3D c
 
 ## 7. Ideias para pensar (31/10/2026)
 
-Anotadas depois do primeiro teste do app sem VR. Ainda não são requisito.
+Anotadas depois do primeiro teste da tela provisória web/. Ainda não são requisito.
 
-- **Ouvir a música inteira antes da lição.** Antes de cada lição, a pessoa pode ouvir a peça completa, para saber aonde aquela frase leva. Pede um arquivo com a peça toda além dos trechos (o MIDI importado já tem), e um botão "Ouvir a música" no card entre lições.
+- **Peças importadas com a audição e o Juntar.** A audição inteira (RF-54) e o Juntar por trechos (RF-56) já existem para as músicas nativas. Falta decidir como valem para peças importadas.
 - **Biblioteca de peças com níveis.** A pessoa escolhe as sinfonias e peças de que mais gosta e aprende essas. Cada peça tem arranjos por nível de dificuldade: mão direita só com a melodia, depois com mais notas, depois as duas mãos. Sinfonia é música de orquestra, então cada nível é um arranjo para piano. Depende das entregas 1 e 2 e da decisão sobre acordes e mão esquerda (§4).
-- **Aprender acumulando até a música toda.** Feito para as 12 lições: é a fase Juntar (06 §3, RF-36b). Falta decidir se a revisão do dia seguinte também deve pedir as frases acumuladas, e como isso vale para peças importadas.
