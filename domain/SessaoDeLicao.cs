@@ -125,6 +125,18 @@ namespace VrPiano.Dominio
         int ancoraDaDemo = Mao.AncoraDaPose;
         public int AncoraDaMao => Fase == Fase.Guiada ? Alvo.Ancora : ancoraDaDemo;
 
+        // Nomes das notas nas teclas brancas (RF-75). Somem em tudo que faz parte de tocar de memória, inclusive na
+        // pausa no meio dela, para a pausa não virar um jeito de espiar.
+        public bool NomesNasTeclas
+        {
+            get
+            {
+                var fase = Fase == Fase.Pausado ? faseAntesDaPausa : Fase;
+                return fase != Fase.Transicao && fase != Fase.Memoria && fase != Fase.Juntar
+                    && fase != Fase.RetornoDeErro && fase != Fase.Ofertas;
+            }
+        }
+
         public EtiquetaDoCard Etiqueta =>
             Revisao ? new EtiquetaDoCard(TipoDeEtiqueta.Revisao, Musica.TitleKey, null)
             : MusicaInteira || ouvindoMusica ? new EtiquetaDoCard(TipoDeEtiqueta.MusicaInteira, Musica.TitleKey, null)

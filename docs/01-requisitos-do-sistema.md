@@ -162,6 +162,7 @@ Tela e mão 3D:
 |---|---|
 | RF-64 | A mão 3D acha a posição pela nota e pelo dedo: âncora = índice da tecla branca da nota − (dedo − 1). O domínio calcula a âncora, e a tela só desliza a mão até ela, com o dedo certo descendo sobre a tecla certa. Na Brilha, Sol com dedo 4 move a mão de dó para ré, e o polegar no Dó traz de volta. A pose inicial continua em dó–sol. |
 | RF-65 | A etiqueta do card mostra “Brilha, Brilha · Frase 2” ou “Brilha, Brilha · Música inteira”, em até 32 caracteres (RNF-05). |
+| RF-75 | Cada tecla branca do teclado mostra o nome da nota logo acima dela, onde a mão não cobre, no idioma da interface (“Dó”, “Ré”, “Mi” / “C”, “D”, “E”). As teclas pretas ficam sem nome. Os nomes aparecem na pose, na demonstração, na vez guiada e fora da lição, e somem na transição para a memória, na memória, no juntar, no retorno de erro e nas ofertas, inclusive em pausa no meio dessas fases. O domínio decide quando aparecem. |
 | RF-66 | O painel lista as músicas e suas frases, com estrelas, estado, melhor ritmo e “Decorada”. |
 | RF-67 | Títulos, nomes de nota, frase, música inteira, decorada e “Ouvir a música” estão no 07, em pt-BR e inglês. |
 

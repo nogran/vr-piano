@@ -145,6 +145,7 @@ namespace VrPiano.Web
                 frases = s.FrasesDaCadeia,
                 etiqueta = s.Etiqueta,
                 ancora = s.AncoraDaMao,
+                nomesNasTeclas = s.NomesNasTeclas,
                 decorou = s.Decorou,
                 motivo = s.MotivoDaPausa,
                 estrelas = s.EstrelasDaExecucao,

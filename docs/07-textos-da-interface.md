@@ -75,6 +75,7 @@ Fonte única dos textos do app (RF-03). O arquivo `content/textos.json` é gerad
 | `note.65` | Fá | F |
 | `note.67` | Sol | G |
 | `note.69` | Lá | A |
+| `note.71` | Si | B |
 | `vel.soft` | leve | soft |
 | `vel.medium` | médio | medium |
 | `vel.loud` | forte | loud |

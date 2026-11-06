@@ -532,7 +532,7 @@ function somLocal(nota, velocity, ligar, em = performance.now()) {
 // ---------- Teclado na tela ----------
 
 const PRIMEIRA = 36, ULTIMA = 96;
-const BRANCA_L = 24, BRANCA_A = 150, PRETA_L = 14, PRETA_A = 95, TOPO = 26;
+const BRANCA_L = 24, BRANCA_A = 150, PRETA_L = 14, PRETA_A = 95, TOPO = 42;
 const teclas = new Map();
 const mao = criarMao(document.querySelector('main'));
 const ePreta = (n) => [1, 3, 6, 8, 10].includes(n % 12);
@@ -565,11 +565,23 @@ function construirTeclado() {
     rotulo.setAttribute('pointer-events', 'none');
     const acima = document.createElementNS(ns, 'text');
     acima.setAttribute('x', kx + (preta ? PRETA_L : BRANCA_L) / 2);
-    acima.setAttribute('y', TOPO - 8);
+    acima.setAttribute('y', TOPO - 22);
     acima.setAttribute('text-anchor', 'middle');
     acima.setAttribute('font-size', '13');
     acima.setAttribute('fill', '#fcd34d');
     g.append(r, rotulo, acima);
+    let nome = null;
+    if (!preta) {
+      nome = document.createElementNS(ns, 'text');
+      nome.setAttribute('x', kx + BRANCA_L / 2);
+      // Acima da tecla, onde a mão 3D não cobre o nome da tecla que ela está tocando.
+      nome.setAttribute('y', TOPO - 6);
+      nome.setAttribute('text-anchor', 'middle');
+      nome.setAttribute('font-size', '11');
+      nome.setAttribute('font-weight', '600');
+      nome.setAttribute('pointer-events', 'none');
+      g.append(nome);
+    }
     svg.append(g);
     r.addEventListener('pointerdown', (ev) => { ev.preventDefault(); noteOn(n, 80, ev.timeStamp, 'tela'); });
     r.addEventListener('pointerup', () => noteOff(n, 'tela'));
@@ -583,7 +595,7 @@ function construirTeclado() {
       svg.append(c);
       svg.setAttribute('viewBox', `0 0 ${x} ${TOPO + BRANCA_A + 14}`);
     }
-    teclas.set(n, { r, rotulo, acima, preta, ultimo: '' });
+    teclas.set(n, { r, rotulo, acima, nome, preta, ultimo: '' });
   }
 }
 
@@ -627,6 +639,7 @@ function desenharTeclas(agora) {
   for (let i = flashes.length - 1; i >= 0; i--) if (flashes[i].ate <= agora) flashes.splice(i, 1);
   if (aviso && aviso.ate <= agora) aviso = null;
   const m = realces(agora);
+  const comNomes = tela !== 'licao' || !estado || estado.nomesNasTeclas;
   for (const [n, k] of teclas) {
     const r = m.get(n) ?? {};
     const fill = r.fill ?? (k.preta ? COR.preta : COR.branca);
@@ -634,7 +647,9 @@ function desenharTeclas(agora) {
     const larg = r.stroke ? 3 : 1;
     const rotulo = r.rotulo ?? '';
     const acima = aviso && aviso.nota === n ? aviso.texto : '';
-    const chave = `${fill}|${stroke}|${rotulo}|${acima}`;
+    // As oitavas repetem os nomes da oitava do dó central (note.60 a note.71).
+    const nome = k.nome && comNomes ? t(`note.${60 + (n % 12)}`) : '';
+    const chave = `${fill}|${stroke}|${rotulo}|${acima}|${nome}`;
     if (chave === k.ultimo) continue;
     k.ultimo = chave;
     k.r.setAttribute('fill', fill);
@@ -643,6 +658,10 @@ function desenharTeclas(agora) {
     k.rotulo.textContent = rotulo;
     k.rotulo.setAttribute('fill', escuro(fill) ? '#fff' : '#111');
     k.acima.textContent = acima;
+    if (k.nome) {
+      k.nome.textContent = nome;
+      k.nome.setAttribute('fill', fill === COR.branca ? '#9ca3af' : '#fcd34d');
+    }
   }
 }
 

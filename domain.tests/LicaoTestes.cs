@@ -616,6 +616,41 @@ namespace VrPiano.Dominio.Testes
         }
 
         [Test]
+        public void RF75_NomesNasTeclasAparecemAteAMemoria()
+        {
+            var s = Cenario.Sessao("BRILHA#1");
+            s.Iniciar(0);
+            Assert.That((s.Fase, s.NomesNasTeclas), Is.EqualTo((Fase.Pose, true)));
+            s.PoseMudou(true, 0);
+            Assert.That((s.Fase, s.NomesNasTeclas), Is.EqualTo((Fase.Demonstracao, true)));
+
+            var guiada = Cenario.NaGuiada("BRILHA#1");
+            Assert.That((guiada.Fase, guiada.NomesNasTeclas), Is.EqualTo((Fase.Guiada, true)));
+            guiada.MidiDesconectado(0);
+            Assert.That((guiada.Fase, guiada.NomesNasTeclas), Is.EqualTo((Fase.Pausado, true)));
+        }
+
+        [Test]
+        public void RF75_NomesNasTeclasSomemNaMemoria()
+        {
+            var s = Cenario.NaGuiada("BRILHA#1");
+            var t = Cenario.TocarTudo(s, 0);
+            Assert.That((s.Fase, s.NomesNasTeclas), Is.EqualTo((Fase.Transicao, false)));
+
+            s.Tick(t + 1000);
+            Assert.That((s.Fase, s.NomesNasTeclas), Is.EqualTo((Fase.Memoria, false)));
+
+            // Pausar no meio da memória não revela os nomes.
+            s.MidiDesconectado(t + 1000);
+            Assert.That((s.Fase, s.NomesNasTeclas), Is.EqualTo((Fase.Pausado, false)));
+            s.MidiConectado(t + 1000);
+
+            // O retorno do erro ainda é memória.
+            s.NoteOn(s.Alvo.Nota + 2, 70, t + 1000);
+            Assert.That((s.Fase, s.NomesNasTeclas), Is.EqualTo((Fase.RetornoDeErro, false)));
+        }
+
+        [Test]
         public void RF32_NaVezGuiadaAMaoFicaOndeODedoDaVezAlcancaATecla()
         {
             var s = Cenario.NaGuiada("BRILHA#1");

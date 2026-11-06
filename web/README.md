@@ -27,7 +27,7 @@ dotnet run tools/gerar-textos.cs
 3. O navegador pede permissão para dispositivos MIDI na primeira vez. Permita.
 4. O app escolhe sozinho a entrada e a saída com "CASIO" no nome. A demonstração toca no próprio teclado.
 
-Sem teclado, dá para tocar com as teclas `A` a `K` do computador (A = dó central) ou clicando nas teclas. Marque "Som no computador" para ouvir a demonstração no PC mesmo com o teclado ligado.
+Sem teclado, dá para tocar com as teclas `A` a `K` do computador (A = dó central) ou clicando nas teclas. As teclas brancas da tela mostram o nome da nota, menos na memória (RF-75). Marque "Som no computador" para ouvir a demonstração no PC mesmo com o teclado ligado.
 
 ## O que muda em relação ao VR
 
