@@ -1,6 +1,6 @@
-# Tela provisória web/
+# Versão web/
 
-As mesmas músicas do app em Unity, com o teclado desenhado na tela. Fica até a migração para Unity ([05 §13](../docs/05-arquitetura-tecnica.md)). As regras vêm do motor em C# de [`domain/`](../domain), compilado para WebAssembly; esta pasta só liga o motor à Web MIDI, ao som e ao desenho das teclas. Serve para testar o método de aula (assistir, tocar guiado, tocar de memória) com pessoas antes de ter o headset.
+As mesmas músicas do app em Unity, com o teclado desenhado na tela. É a opção sem headset: a pessoa vai escolher entre web e VR ([05 §13](../docs/05-arquitetura-tecnica.md)). As regras vêm do motor em C# de [`domain/`](../domain), compilado para WebAssembly; esta pasta só liga o motor à Web MIDI, ao som e ao desenho das teclas. Hoje serve também para testar o método de aula (assistir, tocar guiado, tocar de memória) com pessoas antes de ter o headset.
 
 ## Rodar
 
@@ -44,6 +44,7 @@ A detecção de rajada (`P-04` a `P-07`) ainda não está no motor.
 ## Teste com pessoas
 
 - Cada pessoa entra com um nome ou código. Progresso, execuções e eventos ficam guardados no navegador, separados por nome.
+- O navegador guarda pouco, e quando o espaço acaba o app para de salvar sem avisar ([05 §13](../docs/05-arquitetura-tecnica.md)). Baixe os CSV ao fim de cada sessão.
 - **Facilitador** (canto superior direito):
   - **Simular dia seguinte** testa a revisão sem esperar um dia.
   - **Abrir todas as frases** pula o desbloqueio.

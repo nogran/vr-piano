@@ -1,4 +1,4 @@
-// Tela provisória web/: Web MIDI, teclado na tela, card e registro do teste. As regras da lição vêm do motor em C# (domain/).
+// Versão web/: Web MIDI, teclado na tela, card e registro do teste. As regras da lição vêm do motor em C# (domain/).
 import { dotnet } from './_framework/dotnet.js';
 import { criarMao } from './mao3d.js';
 

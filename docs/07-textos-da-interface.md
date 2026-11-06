@@ -1,6 +1,6 @@
 # Textos da interface
 
-Fonte única dos textos do app (RF-03). O arquivo `content/textos.json` é gerado destas tabelas com `dotnet run tools/gerar-textos.cs`, e o app e a tela provisória web/ leem só ele; nenhum texto fica escrito direto na cena ou no `main.js`. Depois de mudar uma tabela, rode o gerador (T-TXT-03 acusa se esquecer). Frases do card até 32 caracteres (RNF-05). “Frase” com número conta só trechos novos (RF-51); “Parte” conta os trechos do Juntar, repetições incluídas (RF-56). `{n}`, `{key}` e similares são trocados em tempo de execução.
+Fonte única dos textos do app (RF-03). O arquivo `content/textos.json` é gerado destas tabelas com `dotnet run tools/gerar-textos.cs`, e o app e a versão web/ leem só ele; nenhum texto fica escrito direto na cena ou no `main.js`. Depois de mudar uma tabela, rode o gerador (T-TXT-03 acusa se esquecer). Frases do card até 32 caracteres (RNF-05). “Frase” com número conta só trechos novos (RF-51); “Parte” conta os trechos do Juntar, repetições incluídas (RF-56). `{n}`, `{key}` e similares são trocados em tempo de execução.
 
 ## Idioma
 
@@ -145,9 +145,9 @@ Fonte única dos textos do app (RF-03). O arquivo `content/textos.json` é gerad
 | `song.ODE.title` | Ode à Alegria | Ode to Joy |
 | `song.hear` | Ouvir a música | Hear the song |
 
-## Tela provisória web/
+## Versão web/
 
-Textos que só existem nessa tela e saem com ela na migração para Unity.
+Textos que só existem na versão web/.
 
 | Chave | pt-BR | en |
 |---|---|---|

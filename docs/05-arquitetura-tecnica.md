@@ -2,18 +2,18 @@
 
 Como o app será construído, no nível de decisão. Sem código. A regra de negócio está em [06 · Modelo do domínio](06-modelo-de-dominio.md); aqui fica o que liga essa regra ao Quest, ao Android e ao CT-S300.
 
-O app é um só, em Unity, com builds para Quest e Windows (§13).
+O app é um só, e a pessoa escolhe entre web e VR (§13). O VR é em Unity, no Quest; a web roda no navegador.
 
 ## 1. Stack
 
 | Camada | Escolha | Observação |
 |---|---|---|
 | Engine | Unity 6 LTS, URP | Versão exata fixada no primeiro commit de código (§11). |
-| Plataformas | Um app só, com builds para Quest e Windows | Desktop e VR mostram o mesmo jogo (§13). |
+| Plataformas | Um app só: web e VR, à escolha da pessoa | As duas mostram o mesmo jogo (§13). |
 | XR | Meta XR Core SDK + Meta XR Interaction SDK, backend OpenXR | Passthrough, hand tracking, pinça, âncora espacial. |
 | Linguagem | C# no app e no domínio; Kotlin na ponte MIDI Android | — |
-| Domínio | Assembly separado, sem referência a `UnityEngine` (`noEngineReferences`), `netstandard2.1` e C# 9 | Os mesmos fontes compilam no projeto .NET de testes (RNF-11) e na tela provisória web/. |
-| Tela provisória web/ | .NET em WebAssembly (`JSExport`) + HTML/JS com Web MIDI | O mesmo domínio, com o teclado na tela. Serve para testar o método de aula com pessoas até a migração para Unity. |
+| Domínio | Assembly separado, sem referência a `UnityEngine` (`noEngineReferences`), `netstandard2.1` e C# 9 | Os mesmos fontes compilam no projeto .NET de testes (RNF-11) e na versão web/. |
+| Versão web/ | .NET em WebAssembly (`JSExport`) + HTML/JS com Web MIDI | O mesmo domínio, com o teclado na tela. É a opção sem headset e hoje serve também para testar o método de aula com pessoas. |
 | Testes do domínio | NUnit via `dotnet test` | Roda sem licença Unity, em qualquer máquina e em CI. |
 | Testes de adapter | Unity Test Framework (EditMode e PlayMode) | Persistência, mapa do teclado, pose com dados gravados. |
 | Android | arm64-v8a, IL2CPP, Vulkan, `minSdk 32`, `targetSdk` exigido pelo Horizon OS na data do build | — |
@@ -21,7 +21,7 @@ O app é um só, em Unity, com builds para Quest e Windows (§13).
 
 ## 2. Estrutura do repositório
 
-Um repositório só: o domínio, o conteúdo e os testes mudam juntos, e o app em Unity e a tela provisória web/ usam a mesma cópia.
+Um repositório só: o domínio, o conteúdo e os testes mudam juntos, e o app em Unity e a versão web/ usam a mesma cópia.
 
 ```text
 docs/                         planejamento (este conjunto)
@@ -29,8 +29,8 @@ content/                      catálogo, uma música por arquivo (formato do 06 
   legado/                     as 12 lições e a SONG1, fora do catálogo
 domain/                       domínio puro (C#), sem Unity
 domain.tests/                 NUnit, roda com dotnet test
-web/                          tela provisória web/: domínio em WebAssembly, casca em HTML/JS com Web MIDI
-unity/                        projeto Unity (previsto), com builds para Quest e Windows
+web/                          versão web: domínio em WebAssembly, casca em HTML/JS com Web MIDI
+unity/                        projeto Unity (previsto), com build para Quest (build Windows em aberto, §13)
   Assets/App/Adapters/        MIDI, mão, teclado, persistência, relógio, catálogo
   Assets/App/Presentation/    card, realce, mão branca, painéis
   Assets/App/Content/         leitura de content/: catálogo, músicas e textos
@@ -167,7 +167,7 @@ Preencher no primeiro commit de código. Daí em diante, mudar uma versão é de
 | Meta XR Interaction SDK | — |
 | Android Gradle Plugin / Kotlin | — |
 | `targetSdk` | — |
-| .NET SDK dos testes de domínio e da tela provisória web/ | 10.0.403 |
+| .NET SDK dos testes de domínio e da versão web/ | 10.0.403 |
 | Firmware do Quest nos testes de aceite | — |
 
 ## 12. O que só o hardware responde
@@ -185,17 +185,20 @@ Cada item tem um teste que decide. Até o teste, vale a hipótese.
 | A pose é reconhecível com o teclado na frente? | Sim, com as tolerâncias do 06 §7 | T-POSE-01 a 03 |
 | Consumo de bateria numa sessão | Menos de 40 % em 30 min | T-PERF-04 |
 
-## 13. Plataformas e migração
+## 13. Plataformas
 
-O vr-piano é um app só, em Unity, com builds para Quest e Windows. Desktop e VR são plataformas que mostram o mesmo jogo. `web/` é a tela provisória até a migração.
+O vr-piano é um app só, e a pessoa escolhe entre web e VR. As duas plataformas mostram o mesmo jogo, e é por isso que o motor é compartilhado. O VR é em Unity, no Quest. A web é `web/`, que hoje serve também para testar o método de aula.
 
 - Toda regra do jogo fica em `domain/`, que segue `netstandard2.1`, C# 9 e sem referência a `UnityEngine`.
 - A tela só desenha o que o domínio informa e liga MIDI, mão e armazenamento.
 - Os textos ficam em `content/textos.json`, gerado do [07](07-textos-da-interface.md).
 - A âncora da mão vem calculada do domínio; a tela só anima até ela.
 
-A resolver na migração:
+A resolver:
 
 | Item | Situação |
 |---|---|
-| Entrada MIDI no Windows | A ponte do §3 só existe no Android, e a Web MIDI só na tela provisória. O build Windows precisa de um adapter próprio para ouvir e tocar o CT-S300. Escolha em aberto. |
+| Forma da opção web | Em aberto: `web/` continua no navegador ou vira um build Windows em Unity. Se continuar no navegador, o build Windows deixa de ser necessário. |
+| Entrada MIDI no Windows | Só se houver build Windows. A ponte do §3 só existe no Android, e a Web MIDI só no navegador, então esse build precisa de um adapter próprio para ouvir e tocar o CT-S300. Escolha em aberto. |
+| Progresso entre plataformas | Em aberto se o progresso acompanha a pessoa entre web e VR. Se acompanhar, o `ProgressStorePort` ganha um adapter de conta e nuvem, e a RNF-04 muda, porque o Quest passa a precisar de internet. |
+| Armazenamento na web | Hoje tudo fica no `localStorage`, e o erro de gravação é ignorado: quando a cota enche, o progresso para de salvar sem avisar. A fazer: mover eventos e execuções para o IndexedDB e avisar quando uma gravação falhar. |
