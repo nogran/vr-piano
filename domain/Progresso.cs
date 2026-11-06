@@ -112,7 +112,7 @@ namespace VrPiano.Dominio
 
         public static int Cadeia(Progresso p, string musica) => p.Chain.TryGetValue(musica, out var n) ? n : 0;
 
-        // preparoOk = checklist confirmado e calibração válida no VR; na tela provisória web/ não há o que preparar.
+        // preparoOk = checklist confirmado e calibração válida no VR; na versão web/ não há o que preparar.
         public static bool Aberto(Progresso p, Repertorio r, string item, bool preparoOk)
         {
             var (musica, trecho) = r.Analisar(item);

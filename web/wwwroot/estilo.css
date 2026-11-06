@@ -30,7 +30,6 @@ header {
   background: var(--painel);
 }
 
-.marca span { color: var(--fraco); font-weight: 400; }
 .espaco { flex: 1; }
 .pilula { padding: 2px 10px; border-radius: 99px; background: #2a2f39; color: var(--fraco); font-size: 13px; }
 .pilula.ok { background: #14361f; color: #86efac; }
