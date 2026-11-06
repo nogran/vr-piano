@@ -80,6 +80,10 @@ main { position: relative; max-width: 1400px; margin: 0 auto; padding: 24px 16px
 .card .faixa i { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; }
 .card .faixa i.acesa { background: #6b7280; }
 
+.partitura { max-width: 1000px; margin: 10px auto 0; border-radius: 14px; background: #f5f6f8; overflow: hidden; }
+.partitura svg { display: block; width: 100%; height: auto; }
+.partitura .folha { transition: transform .3s ease; }
+
 .botoes { display: flex; justify-content: center; gap: 10px; min-height: 44px; margin: 12px 0 18px; flex-wrap: wrap; }
 
 #teclado { width: 100%; height: auto; display: block; user-select: none; touch-action: none; }

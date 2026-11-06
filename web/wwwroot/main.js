@@ -1,6 +1,7 @@
 // Versão web/: Web MIDI, teclado na tela, card e registro do teste. As regras da lição vêm do motor em C# (domain/).
 import { dotnet } from './_framework/dotnet.js';
 import { criarMao } from './mao3d.js';
+import { criarPartitura } from './partitura.js';
 
 const { getAssemblyExports, getConfig } = await dotnet.create();
 const Motor = (await getAssemblyExports(getConfig().mainAssemblyName)).VrPiano.Web.Motor;
@@ -78,7 +79,7 @@ function tratar(ev, agora) {
   switch (ev.tipo) {
     case 'FaseMudou':
       if (ev.fase !== 'Demonstracao') soando.clear();
-      if (ev.fase === 'Demonstracao') x.demos++;
+      if (ev.fase === 'Demonstracao') { x.demos++; demoIndice = -1; }
       if (ev.fase === 'Memoria') x.tentativas++;
       if (ev.fase === 'Transicao') msgGuia = false;
       if (ev.fase === 'Resultado' || ev.fase === 'Encerrada') fecharExecucao(ev.fase === 'Resultado');
@@ -89,21 +90,25 @@ function tratar(ev, agora) {
       if (ev.classe !== 'NoTempo') aviso = { texto: t(ev.classe === 'Adiantado' ? 'rhythm.early' : 'rhythm.late'), nota: ev.nota, ate: agora + AVISO_MS };
       break;
     case 'VoltaConcluida': x.voltas++; if (!ev.limpa) x.voltasComErro++; break;
-    case 'DicaDeMemoria': flash(ev.nota, COR.dica, agora, DICA_MS); x.dicas++; break;
+    case 'DicaDeMemoria': flash(ev.nota, COR.dica, agora, DICA_MS); x.dicas++; revelada = { cor: '#94a3b8', ate: agora + DICA_MS }; break;
     case 'TentativaFalhou':
       flash(ev.esperada, COR.ativa, agora, AMBAR_MS);
       flash(ev.tocada, COR.erro, agora, VERMELHO_MS);
       x.falhas++;
+      revelada = { cor: COR.ativa, ate: agora + AMBAR_MS };
       break;
     case 'JuntarFalhou':
       flash(ev.esperada, COR.ativa, agora, AMBAR_MS);
       flash(ev.tocada, COR.erro, agora, VERMELHO_MS);
       x.falhasJuntar++;
+      revelada = { cor: COR.ativa, ate: agora + AMBAR_MS };
       break;
     case 'CadeiaConcluida': x.juntouAte = ev.ateOTrecho; break;
     case 'VoltouAoGuiado': msgGuia = true; x.voltouAoGuiado++; break;
     case 'MemoriaConcluida': flash(ev.nota, COR.acerto, agora, VERDE_MS); break;
-    case 'DemoNota': if (ev.ligada) soando.set(ev.nota, ev.dedo); else soando.delete(ev.nota); break;
+    case 'DemoNota':
+      if (ev.ligada) { soando.set(ev.nota, ev.dedo); demoIndice++; demoDesde = agora; } else soando.delete(ev.nota);
+      break;
     case 'EnviarNoteOn': tocarSaida(ev.nota, ev.velocity, ev.canal, ev.em, true); break;
     case 'EnviarNoteOff': tocarSaida(ev.nota, 0, ev.canal, ev.em, false); break;
     case 'MusicaDesbloqueada': musicaAberta = ev.tituloKey; break;
@@ -646,6 +651,54 @@ function escuro(cor) {
   return m && cor.startsWith('rgb') ? m.slice(0, 3).reduce((s, v) => s + Number(v), 0) < 380 : false;
 }
 
+// ---------- Partitura (protótipo, docs/09) ----------
+
+const partitura = criarPartitura($('partitura'), COR);
+const passosPorMusica = new Map();
+let demoIndice = -1, demoDesde = 0, revelada = null;
+
+function passosDe(musica) {
+  if (!passosPorMusica.has(musica)) passosPorMusica.set(musica, JSON.parse(Motor.PassosDaMusica(musica)));
+  return passosPorMusica.get(musica);
+}
+
+function visaoDaPartitura(agora) {
+  const e = estado;
+  if (tela !== 'licao' || !e) return null;
+  const [musica, trecho] = e.item.split('#');
+  const { bpm, passos } = passosDe(musica);
+  const frase = trecho ? passos.filter((p) => p.trecho === Number(trecho)) : passos;
+  const cadeia = e.frases ? passos.filter((p) => p.trecho <= e.frases) : passos;
+  const lista = e.juntando ? cadeia : frase;
+  const visao = (seq, aberta, atual, progresso = 0, chegando = false) => ({
+    id: `${musica}:${seq[0].indice}-${seq.at(-1).indice}`, seq, bpm, aberta, atual, progresso, chegando,
+    revelar: revelada && agora < revelada.ate ? revelada : null,
+  });
+
+  switch (e.fase) {
+    case 'Pose': return trecho ? visao(frase, true, 0) : null;
+    case 'Demonstracao': {
+      if (e.revisao) return null;
+      const seq = e.etiqueta.tipo === 'MusicaInteira' ? passos : frase;
+      const atual = Math.max(demoIndice, 0);
+      const progresso = demoIndice < 0 ? 0 : Math.min(1, (agora - demoDesde) / seq[atual].duracaoMs);
+      return visao(seq, true, atual, progresso);
+    }
+    case 'Guiada': {
+      if (e.revisao) return null;
+      const progresso = e.tAtaque === null || e.emAtaque ? 1 : Math.min(1, Math.max(0, (agora - e.tAcerto) / (e.tAtaque - e.tAcerto)));
+      // Como a tecla: a nota só vira âmbar no tempo de ataque.
+      return { ...visao(frase, true, e.passo, progresso, true), antecipando: progresso < 1 };
+    }
+    case 'Transicao': return visao(lista, false, e.juntando ? 0 : -1);
+    case 'Memoria':
+    case 'Juntar':
+    case 'RetornoDeErro': return visao(lista, false, e.passo);
+    case 'Resultado': return visao(lista, true, lista.length);
+    default: return null;
+  }
+}
+
 // O tempo da lição anda por timer, para não parar quando o navegador deixa de desenhar; o desenho segue o quadro.
 function tick() {
   if (tela === 'licao' && estado && FASES_COM_TICK.has(estado.fase)) entrada('tick');
@@ -654,6 +707,7 @@ function tick() {
 function quadro() {
   const agora = performance.now();
   desenharTeclas(agora);
+  partitura.atualizar(visaoDaPartitura(agora));
   // Mão branca na pose e na demonstração; some em fade quando a demonstração acaba (MãoSome).
   const comMao = tela === 'licao' && (estado?.fase === 'Pose' || estado?.fase === 'Demonstracao');
   mao.atualizar(comMao, new Set(soando.values()), estado?.ancora ?? 0, { do: teclas.get(60).r.getBoundingClientRect() }, agora);

@@ -80,6 +80,7 @@ Cada trecho tem três fases: **assistir**, **tocar guiado** e **tocar de memóri
 6. [Modelo do domínio](docs/06-modelo-de-dominio.md): máquina de estados, eventos, formato de música, arquivo de progresso e parâmetros.
 7. [Textos da interface](docs/07-textos-da-interface.md): todas as frases em pt-BR e inglês.
 8. [Roadmap: importação de músicas](docs/08-roadmap-importacao.md): MIDI e MusicXML depois da v1, e o formato de música que a v1 já usa.
+9. [Partitura dinâmica](docs/09-partitura-dinamica.md): proposta de pauta em sincronia com o teclado, ainda fora do escopo do 01.
 
 Quando dois documentos divergirem, vale o 06 para regra e números, e o 01 para escopo.
 
