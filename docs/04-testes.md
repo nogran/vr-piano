@@ -97,6 +97,7 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 | RF68_* | Tabelas do 06 §5 escritas no teste | Comparar com os arquivos | Nota, dedo, início, duração e `repeat_of` iguais, nas duas músicas | RF-68 |
 
 ### Dia seguido e revisão
+| RF75_* | BRILHA#1 | Passar por pose, demonstração, guiada, transição, memória, pausa e erro | Nomes nas teclas na pose, na demonstração e na guiada, com pausa ou sem; nenhum nome da transição em diante, nem em pausa na memória | RF-75 |
 
 | ID | Dado | Quando | Então | Req. |
 |---|---|---|---|---|

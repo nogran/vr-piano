@@ -46,7 +46,7 @@ A **cor ativa** é o âmbar: vibrante sobre o branco e o preto das teclas, e dif
 | Dica de memória | Cinza claro, uma piscada | `P-34`, a cada `P-33` sem nota |
 | “Adiantado” / “Atrasado” | Texto pequeno branco com contorno escuro, acima da tecla tocada | `P-32` |
 | Tecla em repouso | Sem realce | — |
-| Nome da nota | Texto branco com contorno escuro, altura de uns 2 cm, logo acima da tecla da vez | Só na vez guiada |
+| Nome da nota | Texto pequeno logo acima de cada tecla branca, no idioma da interface, onde a mão não cobre. Na tecla acesa, o texto ganha destaque | Da pose à vez guiada, e some na memória (RF-75). O tamanho no VR sai do teste no headset (T-UX-12) |
 | Velocity | Três marcas pequenas no canto do card, uma acesa: leve, médio, forte | Atualiza no Note On, nunca fica vermelha; some se a velocity estiver fixa |
 
 Na vez guiada há no máximo duas teclas com realce: a atual em cor ativa e a próxima em cinza. Na demonstração, a tecla acesa acompanha a nota que o piano está soando. Na memória, zero teclas acesas até o erro ou a dica, e acerto não acende verde (só a última nota da tentativa).
