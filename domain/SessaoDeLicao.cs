@@ -228,8 +228,9 @@ namespace VrPiano.Dominio
                     break;
                 case Fase.Transicao:
                     if (t < fimDaEspera) break;
-                    if (Juntando) EntrarJuntar(t);
-                    else EntrarMemoria(t);
+                    if (!Juntando) EntrarMemoria(t);
+                    else if (CadeiaInedita) EntrarDemonstracao(t, Fase.Transicao, cadeia!);
+                    else EntrarJuntar(t);
                     break;
                 case Fase.Memoria:
                     if (t - ultimoAtivo >= p.SilencioAteDica)
@@ -320,7 +321,7 @@ namespace VrPiano.Dominio
             }
             if (proximoDaAgenda < agenda.Count) return;
 
-            var ouvido = ouvindoMusica ? Musica.SongId : Item;
+            var ouvido = destinoDaDemo == Fase.Transicao ? ChaveDaCadeia(Item) : ouvindoMusica ? Musica.SongId : Item;
             if (!Revisao && !progresso.DemoSeen.Contains(ouvido))
             {
                 progresso.DemoSeen.Add(ouvido);
@@ -337,7 +338,7 @@ namespace VrPiano.Dominio
             saida.Add(new MaoSome());
             if (destinoDaDemo == Fase.Encerrada) Mudar(Fase.Encerrada);
             else if (destinoDaDemo == Fase.Ofertas) EntrarOfertas();
-            else if (MusicaInteira) EntrarCadeia(t);
+            else if (destinoDaDemo == Fase.Transicao || MusicaInteira) EntrarCadeia(t);
             else EntrarGuiada(t);
         }
 
@@ -449,6 +450,10 @@ namespace VrPiano.Dominio
             PassoAtual++;
             if (PassoAtual == Passos.Count) ConcluirMemoria(nota, t);
         }
+
+        // No primeiro Juntar de uma frase, a mão toca a cadeia antes. Música inteira e revisão são a prova: não têm isso.
+        public static string ChaveDaCadeia(string item) => item + "/juntar";
+        bool CadeiaInedita => !Revisao && !MusicaInteira && !progresso.DemoSeen.Contains(ChaveDaCadeia(Item));
 
         // Da memória da frase ou da pose da música inteira: espera P-22 e começa a tocar a cadeia de memória.
         void EntrarCadeia(long t)
@@ -628,6 +633,7 @@ namespace VrPiano.Dominio
                 case Fase.Demonstracao:
                     if (Revisao) EntrarOfertas();
                     else if (ouvindoMusica) OuvirMusica(t, destinoDaDemo);
+                    else if (destinoDaDemo == Fase.Transicao) EntrarCadeia(t);
                     else EntrarPose();
                     break;
                 case Fase.Guiada:

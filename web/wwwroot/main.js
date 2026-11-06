@@ -685,7 +685,7 @@ function visaoDaPartitura(agora) {
     case 'Pose': return trecho ? visao(frase, true, 0) : null;
     case 'Demonstracao': {
       if (e.revisao) return null;
-      const seq = e.etiqueta.tipo === 'MusicaInteira' ? passos : frase;
+      const seq = e.juntando ? cadeia : e.etiqueta.tipo === 'MusicaInteira' ? passos : frase;
       const atual = Math.max(demoIndice, 0);
       const progresso = demoIndice < 0 ? 0 : Math.min(1, (agora - demoDesde) / seq[atual].duracaoMs);
       return visao(seq, true, atual, progresso);

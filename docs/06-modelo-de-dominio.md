@@ -105,7 +105,7 @@ Retomada:
 ### Juntar
 
 ```text
-Memória concluída ─ estrelas gravadas ─► Transição (P-22) ─► Juntar ─ fim da sequência ─► Resultado
+Memória concluída ─ estrelas gravadas ─► Transição (P-22) ─► [Demonstração da cadeia ─► Transição (P-22)] ─► Juntar ─ fim da sequência ─► Resultado
                                                                ▲  │ erro
                                                                │  ▼
                                                      RetornoDeErro (P-25), volta ao começo da frase
@@ -115,6 +115,7 @@ Memória concluída ─ estrelas gravadas ─► Transição (P-22) ─► Junta
 |---|---|---|---|
 | Memória | Último passo certo | Frase 2 em diante | Grava estrelas, ritmo, dia seguido e `últimaMemória`, como no Resultado. Vai para Transição e dela para Juntar, trecho 1. |
 | Memória | Último passo certo | Frase 1 | Resultado, sem Juntar. Grava `chain` = 1. |
+| Transição | `Tick` depois de `P-22` | Frase com `SONG#k/juntar` fora de `demoSeen` | Demonstração dos trechos 1 a k. No fim: `DemoVista(SONG#k/juntar)`, `MãoSome` e nova Transição, que também cobre `P-08`. |
 | Juntar | `NoteOn(n)` | `n == alvo` | Avança sem cor. Ao entrar no trecho seguinte: `FraseJuntada(trecho)`, e as falhas do trecho voltam a 0. No último passo: `CadeiaConcluída(k)` e Resultado. |
 | Juntar | `NoteOn(n)` | `n != alvo` | `JuntarFalhou(n, alvo, falhasDaFrase)`. RetornoDeErro por `P-25`, depois volta ao primeiro passo do trecho atual. |
 | Juntar | `Tick` | `P-33` sem Note On | `DicaDeMemória(alvo)`, como na Memória. |
@@ -123,6 +124,7 @@ Memória concluída ─ estrelas gravadas ─► Transição (P-22) ─► Junta
 - No Juntar da frase, nada muda estrelas, abre item ou conta dia: tudo isso já foi gravado na memória da frase. A dica e a falha aqui não tiram estrela.
 - “Sair da aula” em Juntar encerra sem gravar `chain`.
 - Pausa em Juntar: ao retomar, volta ao começo do trecho atual, sem somar falha.
+- Pausa na demonstração da cadeia: ao retomar, volta à Transição e toca a cadeia do início, que continua inédita.
 
 ### Audição da música (RF-54)
 
@@ -350,7 +352,7 @@ O progresso fica num JSON no armazenamento privado do app (`progress.json`). Dat
 
 - `language` é `null` até a primeira escolha. `calibration` é `null` sem calibração. Os cantos ficam no espaço da âncora.
 - Desbloqueio não é gravado: ele é calculado das estrelas (RF-41).
-- Item ausente em `stars` vale 0. Item ausente em `demoSeen` é inédito. `demoSeen` guarda também o id da música, depois da audição inteira.
+- Item ausente em `stars` vale 0. Item ausente em `demoSeen` é inédito. `demoSeen` guarda também o id da música, depois da audição inteira, e `SONG#k/juntar`, depois da demonstração da cadeia.
 - `rhythm` guarda, por item, a volta limpa com a maior fração no tempo. Não afeta estrelas nem desbloqueio.
 - Gravação atômica (RNF-09): escreve `progress.json.tmp`, força para o disco, copia o atual para `progress.json.bak` e renomeia o `.tmp` por cima do principal.
 - Leitura: principal → se não abre ou não valida, `.bak` → se também falhar, o arquivo ruim vira `progress.corrupt-<data>.json`, o app começa do zero e mostra um aviso uma vez.
