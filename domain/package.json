@@ -1,0 +1,7 @@
+{
+  "name": "com.vrpiano.dominio",
+  "version": "0.1.0",
+  "displayName": "VR Piano Domínio",
+  "description": "O motor do jogo em C#, sem Unity. O app em Unity e a versão web usam a mesma cópia.",
+  "unity": "6000.0"
+}
