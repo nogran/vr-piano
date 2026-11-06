@@ -17,7 +17,7 @@ Há três camadas, todas ancoradas no teclado depois da calibração. Nada da li
 | Camada | O que é | Quando existe |
 |---|---|---|
 | Realce das teclas | Um plano translúcido por tecla, a uns 2 mm da superfície, menor que a tecla para a borda real continuar visível | Depois da calibração |
-| Mão branca | Só a mão direita 3D branca fosca. É a única mão que o app desenha | Pose e demonstração. Some em fade no fim da demonstração e não aparece na vez guiada nem na memória |
+| Mão branca | Só a mão direita 3D branca fosca. É a única mão que o app desenha | Pose, demonstração e vez guiada, onde aponta o dedo da vez. Some em fade antes da memória e não aparece nela |
 | Card | Retângulo escuro arredondado: etiqueta, uma frase e, quando há escolha, botões brancos | Sempre, acima do teclado. Na vez guiada, só “Ouvir”. Na memória, sem botão |
 
 O app não desenha a mão da pessoa, nem um par, nem um esqueleto por cima do passthrough. A mão de verdade aparece apenas porque a câmera a vê.
@@ -38,7 +38,8 @@ A **cor ativa** é o âmbar: vibrante sobre o branco e o preto das teclas, e dif
 | Próxima tecla preta (antecipação) | Brilho de grafite discreto `#4B5563` até prata nítido `#D1D5DB` | Idem |
 | Mesma tecla em seguida | Contorno na cor ativa, centro com o ciclo de cinza | Idem |
 | Tecla na demonstração | Cor ativa | Enquanto o piano soa a nota |
-| Dedo na demonstração | Cor ativa, o mesmo tom da tecla | Enquanto o dedo está descido |
+| Dedo na demonstração | Cor ativa, o mesmo tom da tecla, com contorno azul `#2563EB` | Enquanto o dedo está descido |
+| Dedo da vez na vez guiada | Contorno azul `#2563EB`, do nó do dedo até a ponta | Enquanto o passo é o da vez |
 | Nota certa | Verde, alpha alto | `P-23` |
 | Nota errada, na tecla tocada | Vermelho | `P-24` |
 | Nota esperada depois de erro de memória | Âmbar | `P-25`, depois apaga e a tentativa recomeça |
@@ -72,8 +73,8 @@ Branca fosca, mão direita, malha aberta com licença MIT, com anatomia de mão 
 
 - **Pose.** Parada na posição de cinco dedos. Card: “Ponha a mão assim.” Com a pose aceita (RF-31), começa a demonstração (item inédito) ou a vez guiada.
 - **Demonstração.** A mão toca a sequência no andamento: o dedo desce na cor ativa junto com o som do piano e com a tecla acesa. É automática na primeira vez no item; depois, só com “Ouvir”.
-- **Fim da demonstração.** A mão some em fade (`P-35`) e deixa o teclado limpo.
-- **Vez guiada e memória.** Sem mão. Quem guia são as teclas.
+- **Vez guiada.** A mão fica sobre o teclado, desliza até a âncora do passo da vez e pinta o dedo da vez na cor ativa, sem descer, com contorno azul. Quem toca é a pessoa.
+- **Memória.** A mão some em fade (`P-35`) antes da fase e deixa o teclado limpo.
 - **Mão desligada.** A malha branca some e a pose é pulada. A demonstração fica só com o som e a tecla acesa.
 
 ## 5. Fluxo espacial da calibração
@@ -165,7 +166,7 @@ Fora desse recorte, as outras lições são dados do catálogo, não cena nova.
 
 A referência visual vigente é a prova de conceito em `docs/visao/poc/` (um quadro por passo, mostrado no README) e a capa `docs/visao/capa-licao1.jpg`. Nos quadros, os balões roxos são explicação e não fazem parte do app.
 
-A mão branca é sempre o mesmo modelo 3D, na capa e em todos os quadros: o mesmo esqueleto, as mesmas proporções e o mesmo material, vistos do mesmo ângulo que a pessoa vê o teclado. Quadro novo com mão usa esse modelo, nunca um desenho 2D. Muda só a pose (dedo pressionado) e a cor do dedo da vez na demonstração.
+A mão branca é sempre o mesmo modelo 3D, na capa e em todos os quadros: o mesmo esqueleto, as mesmas proporções e o mesmo material, vistos do mesmo ângulo que a pessoa vê o teclado. Quadro novo com mão usa esse modelo, nunca um desenho 2D. Muda só a pose (dedo pressionado), a cor e o contorno azul do dedo da vez.
 
 A capa é a foto de passthrough com a camada do app desenhada por cima, como num print do headset: card da pose com “Ouvir”, “Mão” e as teclas de atalho, e a mão branca em 3D, em escala real, vista de trás como a pessoa a vê, com o polegar no dó central e um dedo por tecla até o sol.
 

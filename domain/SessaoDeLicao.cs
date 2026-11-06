@@ -121,7 +121,9 @@ namespace VrPiano.Dominio
         public bool Decorou { get; private set; }
 
         // Tecla branca do polegar da mão 3D (RF-64). Na demonstração, ela anda quando a nota solta, antes da próxima.
-        public int AncoraDaMao { get; private set; } = Mao.AncoraDaPose;
+        // Na vez guiada, fica onde o dedo da vez alcança a tecla da vez.
+        int ancoraDaDemo = Mao.AncoraDaPose;
+        public int AncoraDaMao => Fase == Fase.Guiada ? Alvo.Ancora : ancoraDaDemo;
 
         public EtiquetaDoCard Etiqueta =>
             Revisao ? new EtiquetaDoCard(TipoDeEtiqueta.Revisao, Musica.TitleKey, null)
@@ -151,7 +153,7 @@ namespace VrPiano.Dominio
 
         void EntrarPose()
         {
-            AncoraDaMao = Mao.AncoraDaPose;
+            ancoraDaDemo = Mao.AncoraDaPose;
             Mudar(Fase.Pose);
         }
 
@@ -306,13 +308,13 @@ namespace VrPiano.Dominio
                 {
                     saida.Add(new EnviarNoteOn(passo.Nota, passo.Velocity ?? p.VelocityDaDemo, p.CanalDeSaida, em));
                     notaSoando = passo.Nota;
-                    AncoraDaMao = passo.Ancora;
+                    ancoraDaDemo = passo.Ancora;
                 }
                 else
                 {
                     saida.Add(new EnviarNoteOff(passo.Nota, p.CanalDeSaida, em));
                     if (notaSoando == passo.Nota) notaSoando = null;
-                    if (proximoDaAgenda < agenda.Count) AncoraDaMao = agenda[proximoDaAgenda].passo.Ancora;
+                    if (proximoDaAgenda < agenda.Count) ancoraDaDemo = agenda[proximoDaAgenda].passo.Ancora;
                 }
                 saida.Add(new DemoNota(passo.Nota, passo.Dedo, ligar));
             }

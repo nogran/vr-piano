@@ -616,6 +616,15 @@ namespace VrPiano.Dominio.Testes
         }
 
         [Test]
+        public void RF32_NaVezGuiadaAMaoFicaOndeODedoDaVezAlcancaATecla()
+        {
+            var s = Cenario.NaGuiada("BRILHA#1");
+            Assert.That(s.AncoraDaMao, Is.EqualTo(0), "dó com o polegar");
+            Cenario.Tocar(s, 0, 2);
+            Assert.That((s.Alvo.Nota, s.Alvo.Dedo, s.AncoraDaMao), Is.EqualTo((67, 4, 1)), "sol com o anelar");
+        }
+
+        [Test]
         public void RF64_FraseQueComecaForaDaPoseAncoraNaPrimeiraNota()
         {
             var s = Cenario.Sessao("BRILHA#3");

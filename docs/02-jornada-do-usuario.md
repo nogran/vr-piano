@@ -158,7 +158,7 @@ Sem lista de jogadores, sem nome, sem compartilhar.
 No mesmo painel de progresso, embaixo:
 
 - Idioma: Português / English. Trocar aqui reconstrói os textos e não mexe nas estrelas (RF-03).
-- “Mão”: ligada mostra a mão branca na pose e na demonstração. Desligada deixa só o som e a cor na tecla (RF-32c).
+- “Mão”: ligada mostra a mão branca na pose, na demonstração e na vez guiada. Desligada deixa só o som e a cor na tecla (RF-32c).
 - “Calibrar de novo”.
 - “Checklist do teclado”.
 

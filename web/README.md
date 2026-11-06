@@ -34,7 +34,7 @@ Sem teclado, dá para tocar com as teclas `A` a `K` do computador (A = dó centr
 | VR | Aqui |
 |---|---|
 | Teclas acesas em cima das reais | Teclas acesas na tela, olhar alterna entre tela e mão |
-| Mão 3D mostra a pose e toca a demonstração | Uma mão 3D no estilo das mãos do Quest ([`mao3d.js`](wwwroot/mao3d.js)) fica sobre as teclas na pose, desliza até a âncora que o domínio calcula e desce o dedo na cor ativa na demonstração; "Começar" faz o papel da pose reconhecida |
+| Mão 3D mostra a pose e toca a demonstração | Uma mão 3D no estilo das mãos do Quest ([`mao3d.js`](wwwroot/mao3d.js)) fica sobre as teclas na pose, desliza até a âncora que o domínio calcula desce o dedo na cor ativa na demonstração e aponta o dedo da vez na vez guiada; "Começar" faz o papel da pose reconhecida |
 | Pinça nos botões do card | Clique, teclas `1` `2` `3`, ou Dó2, Ré2, Mi2 no teclado (`P-27`) |
 | Calibração e âncora espacial | Não existem: a frase 1 da Brilha já abre |
 | Tirar o headset pausa | Trocar de aba pausa |

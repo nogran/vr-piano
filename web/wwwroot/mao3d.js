@@ -13,6 +13,9 @@ const DESCIDA_MS = 120;            // tempo do dedo descer ou subir (docs/05 §7
 const DESLIZE_MS = 200;            // tempo da mão andar uma tecla branca (RF-64)
 const INCLINACAO = 50 * Math.PI / 180; // olhar de quem toca, de cima e de trás
 const COR_ATIVA = new THREE.Color('#f59e0b');
+const COR_CONTORNO = new THREE.Color('#2563eb');
+const LARGURA_CONTORNO = 0.003;   // metros, na escala real da malha
+const INICIO_CONTORNO = 0.3;       // peso dos ossos do dedo onde o contorno começa, na base do dedo
 const ALTURA_DOS_NOS = 1.75;       // nós dos dedos acima da tecla, em teclas
 const PONTA = 0.32;                // meia espessura da ponta do dedo
 const APERTO = 0.2;                // quanto a junta da base dobra a mais para apertar (rad)
@@ -28,6 +31,10 @@ const DEDOS = [
   { dedo: 5, nome: 'pinky-finger', alvoX: 4 },
 ];
 
+// Soma, por vértice, um valor por osso, pesado pelos ossos do vértice.
+const pesoDosOssos = (lista) => `${lista}[int(skinIndex.x)] * skinWeight.x + ${lista}[int(skinIndex.y)] * skinWeight.y
+  + ${lista}[int(skinIndex.z)] * skinWeight.z + ${lista}[int(skinIndex.w)] * skinWeight.w`;
+
 // Material da biblioteca com uma borda (fresnel) e a cor ativa por dedo, pesada pelos ossos de cada vértice.
 function material(ativos) {
   const m = new THREE.MeshStandardMaterial({ color: ESTILO.cor, roughness: ESTILO.aspereza, metalness: 0 });
@@ -39,15 +46,34 @@ function material(ativos) {
     s.vertexShader = s.vertexShader
       .replace('#include <common>', '#include <common>\nuniform float ativos[32];\nvarying float vAtivo;')
       .replace('#include <skinning_vertex>', `#include <skinning_vertex>
-        vAtivo = ativos[int(skinIndex.x)] * skinWeight.x + ativos[int(skinIndex.y)] * skinWeight.y
-               + ativos[int(skinIndex.z)] * skinWeight.z + ativos[int(skinIndex.w)] * skinWeight.w;`);
+        vAtivo = ${pesoDosOssos('ativos')};`);
     s.fragmentShader = s.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform vec3 corAtiva; uniform vec3 corBorda; uniform float forcaBorda;\nvarying float vAtivo;')
       .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, corAtiva, clamp(vAtivo, 0.0, 1.0));')
       .replace('#include <dithering_fragment>', `
         float fres = pow(1.0 - clamp(abs(dot(normalize(normal), isOrthographic ? vec3(0.0, 0.0, 1.0) : normalize(vViewPosition))), 0.0, 1.0), 2.5);
-        gl_FragColor.rgb = mix(gl_FragColor.rgb, corBorda, fres * forcaBorda * (1.0 - clamp(vAtivo, 0.0, 1.0)));
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, corBorda, fres * forcaBorda);
         #include <dithering_fragment>`);
+  };
+  return m;
+}
+
+// Contorno do dedo da vez: cópia da malha com só as faces de trás, inflada pelas normais nos ossos marcados e desenhada
+// antes da mão. Só sobra a parte que passa da silhueta. A largura cresce a partir da base do dedo, para a linha nascer
+// fina na palma.
+function materialContorno(contorno) {
+  const m = new THREE.MeshBasicMaterial({ color: COR_CONTORNO, side: THREE.BackSide, depthTest: false, depthWrite: false });
+  m.onBeforeCompile = (s) => {
+    s.uniforms.contorno = { value: contorno };
+    s.vertexShader = s.vertexShader
+      .replace('#include <common>', '#include <common>\nuniform float contorno[32];\nvarying float vContorno;')
+      .replace('#include <skinning_vertex>', `#include <skinning_vertex>
+        vContorno = ${pesoDosOssos('contorno')};
+        transformed += normalize(objectNormal) * ${LARGURA_CONTORNO} * smoothstep(${INICIO_CONTORNO}, 0.8, vContorno);`);
+    s.fragmentShader = s.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vContorno;')
+      .replace('#include <color_fragment>', `#include <color_fragment>
+if (vContorno < ${INICIO_CONTORNO}) discard;`);
   };
   return m;
 }
@@ -134,7 +160,9 @@ export function criarMao(container) {
   cena.add(sombra);
 
   const ativos = new Array(32).fill(0);
+  const contorno = new Array(32).fill(0);
   const aperto = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let apontado = null; // { dedo, forca }: dedo pintado sem descer
   let pronta = null; // { posar(), deslizar(), ancora }
   let deslize = 0;   // onde a mão está agora, em teclas brancas a partir do dó central
 
@@ -145,6 +173,14 @@ export function criarMao(container) {
     malha.geometry = suavizar(suavizar(malha.geometry));
     malha.material = material(ativos);
     malha.frustumCulled = false;
+    const casca = new THREE.SkinnedMesh(malha.geometry, materialContorno(contorno));
+    casca.position.copy(malha.position); casca.quaternion.copy(malha.quaternion); casca.scale.copy(malha.scale);
+    casca.bindMode = malha.bindMode;
+    casca.frustumCulled = false;
+    casca.renderOrder = -1;
+    casca.visible = false;
+    malha.parent.add(casca);
+    casca.bind(malha.skeleton, malha.bindMatrix);
     // Eixos da malha: dedos para -y, do indicador ao mínimo em +z, dorso em +x. No mundo: dedos para -z, mínimo à
     // direita, dorso para cima.
     raiz.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(
@@ -221,6 +257,8 @@ export function criarMao(container) {
     const ossosDoDedo = new Map(DEDOS.map((d) => [d.dedo, ossos
       .map((o, i) => (o.name.startsWith(d.nome) && (d.dedo === 1 || !o.name.endsWith('metacarpal')) ? i : -1))
       .filter((i) => i >= 0)]));
+    // O contorno marca o dedo que a pessoa move: no polegar, sem a base dentro da palma.
+    const ossosDoContorno = new Map(DEDOS.map((d) => [d.dedo, ossosDoDedo.get(d.dedo).filter((i) => !ossos[i].name.endsWith('metacarpal'))]));
     const meio = ponta(DEDOS[2]);
     const xDaRaiz = raiz.position.x, xDaSombra = sombra.position.x;
     pronta = {
@@ -230,11 +268,17 @@ export function criarMao(container) {
         sombra.position.x = xDaSombra + x;
       },
       posar() {
+        let marcado = false;
         for (const d of DEDOS) {
           const p = pose.get(d.dedo);
           aplicar(d, p.base + APERTO * aperto[d.dedo], p.abrir);
-          for (const i of ossosDoDedo.get(d.dedo)) ativos[i] = aperto[d.dedo];
+          const cor = Math.max(aperto[d.dedo], apontado?.dedo === d.dedo ? apontado.forca : 0);
+          for (const i of ossosDoDedo.get(d.dedo)) ativos[i] = cor;
+          const marcar = apontado?.dedo === d.dedo || aperto[d.dedo] > 0;
+          for (const i of ossosDoContorno.get(d.dedo)) contorno[i] = marcar ? 1 : 0;
+          marcado ||= marcar;
         }
+        casca.visible = marcado;
       },
     };
   });
@@ -242,8 +286,11 @@ export function criarMao(container) {
   let opacidade = 0, ultimo = performance.now(), larguraVista = 0, alturaVista = 0;
   return {
     // visivel: a mão deve estar na tela; dedos: os dedos (1 a 5) apertando agora; ancora: tecla branca do polegar,
-    // calculada no domínio; teclas: { do: retângulo da tecla do dó central na tela }.
-    atualizar(visivel, dedos, ancora, teclas, agora) {
+    // calculada no domínio; teclas: { do: retângulo da tecla do dó central na tela }; destaque: { dedo, forca } do
+    // dedo da vez, pintado na cor ativa sem descer (forca de 0 a 1). O dedo da vez e os que estão descendo ganham o
+    // contorno azul.
+    atualizar(visivel, dedos, ancora, teclas, agora, destaque = null) {
+      apontado = destaque;
       const dt = Math.min(100, agora - ultimo); ultimo = agora;
       const alvoOpacidade = visivel && pronta ? 1 : 0;
       opacidade += Math.sign(alvoOpacidade - opacidade) * Math.min(Math.abs(alvoOpacidade - opacidade), dt / FADE_MS);
