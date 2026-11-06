@@ -92,6 +92,14 @@ namespace VrPiano.Web
             return Estado();
         }
 
+        // Todos os passos da música, para a partitura desenhar a sequência da fase.
+        [JSExport]
+        public static string PassosDaMusica(string musica)
+        {
+            var m = repertorio.Musica(musica);
+            return JsonSerializer.Serialize(new { bpm = m.Bpm, passos = Passo.DaMusica(m) }, Js);
+        }
+
         // tipo: tick, noteOn, pose, ouvir, comGuia, desconectado, conectado, foco, continuar, sair.
         [JSExport]
         public static string Entrada(string tipo, int nota, int velocity, double t)
