@@ -27,7 +27,7 @@ Um repositório só: o domínio, o conteúdo e os testes mudam juntos, e o app e
 docs/                         planejamento (este conjunto)
 content/                      catálogo, uma música por arquivo (formato do 06 §5) e textos gerados do 07 (textos.json)
   legado/                     as 12 lições e a SONG1, fora do catálogo
-domain/                       domínio puro (C#), sem Unity
+domain/                       domínio puro (C#), sem Unity; é também o pacote com.vrpiano.dominio
 domain.tests/                 NUnit, roda com dotnet test
 web/                          versão web: domínio em WebAssembly, casca em HTML/JS com Web MIDI
 unity/                        projeto Unity (previsto), com build para Quest (build Windows em aberto, §13)
@@ -38,6 +38,16 @@ unity/                        projeto Unity (previsto), com build para Quest (bu
 android-midi-bridge/          projeto Kotlin que gera o AAR
 tools/                        gerador de content/textos.json; reprodutor de sessões MIDI gravadas (previsto)
 ```
+
+O projeto Unity usa `domain/` como pacote local, sem copiar os fontes. Em `unity/Packages/manifest.json`:
+
+```json
+"com.vrpiano.dominio": "file:../../domain"
+```
+
+- `VrPiano.Dominio.asmdef` traz `noEngineReferences`, e `csc.rsp` liga o nullable, que na Unity não vem do `.csproj`.
+- A Unity compila todo `.cs` da pasta, então o `dotnet` grava `bin/` e `obj/` em `artifacts/domain/`, fora do pacote (`domain/Directory.Build.props`).
+- A Unity gera um `.meta` para cada arquivo de `domain/`. Esses arquivos vão para o repositório, para os GUIDs não mudarem entre máquinas.
 
 ## 3. Ponte MIDI no Android
 

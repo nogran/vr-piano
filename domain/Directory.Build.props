@@ -1,0 +1,8 @@
+<Project>
+
+  <!-- domain/ é também um pacote Unity, e a Unity compila todo .cs da pasta: bin/ e obj/ não podem ficar aqui dentro. -->
+  <PropertyGroup>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)..\artifacts\domain</ArtifactsPath>
+  </PropertyGroup>
+
+</Project>
