@@ -138,7 +138,8 @@ Origem na borda esquerda da frente da tecla branca mais grave, na superfície da
 - Posição: a âncora vem do domínio (RF-64) e diz em que tecla branca fica o polegar. A mão desliza até ela em ~200 ms por tecla. Na demonstração, a âncora muda quando a nota solta, para a mão chegar antes da próxima nota.
 - Animação por dedo: descer ~120 ms, segurar enquanto a nota soa, subir ~120 ms.
 - Destaque do dedo na demonstração: o dedo que desce fica na cor ativa, igual à da tecla.
-- Fim da demonstração: fade de `P-35` até sumir. A mão não aparece na vez guiada nem na memória.
+- Contorno do dedo: casca azul com a mesma malha e o mesmo esqueleto, só as faces de trás, inflada pelas normais nos ossos do dedo e desenhada antes da mão. Largura de 3 mm, nascendo fina no nó do dedo. No polegar, sem a base dentro da palma. Custa um desenho a mais da malha, só com dedo marcado; medir no Quest.
+- Vez guiada: a mão segue a âncora do passo da vez e pinta o dedo da vez, sem descer, com o contorno azul. Antes da memória: fade de `P-35` até sumir. A mão não aparece na memória.
 - Escala: largura da mão casada com 5 passos de tecla branca do teclado calibrado.
 
 ## 8. Desempenho e latência

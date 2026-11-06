@@ -19,6 +19,7 @@ const ATALHOS = [36, 38, 40];               // P-27
 const NOME_ATALHO = [60, 62, 64].map((n) => `${t(`note.${n}`)}2`);
 const VERDE_MS = 150, VERMELHO_MS = 200, AMBAR_MS = 1000, AVISO_MS = 600, DICA_MS = 400; // P-23, P-24, P-25, P-32, P-34
 const CINZA_INICIAL = 0.15;                  // P-29
+const DEDO_INICIAL = 0.4;                    // força da cor no dedo da vez antes do tempo de ataque
 const COR = {
   branca: '#ffffff', preta: '#16181d', borda: '#9ca3af', ativa: '#f59e0b', acerto: '#22c55e', erro: '#ef4444',
   dica: '#cbd5e1', premida: '#bfdbfe', cinzaDe: [0xe5, 0xe7, 0xeb], cinzaAte: [0x37, 0x41, 0x51],
@@ -662,6 +663,11 @@ function passosDe(musica) {
   return passosPorMusica.get(musica);
 }
 
+// De 0 (acabou de acertar a nota anterior) a 1 (tempo de ataque da nota da vez).
+function progressoDoAtaque(e, agora) {
+  return e.tAtaque === null || e.emAtaque ? 1 : Math.min(1, Math.max(0, (agora - e.tAcerto) / (e.tAtaque - e.tAcerto)));
+}
+
 function visaoDaPartitura(agora) {
   const e = estado;
   if (tela !== 'licao' || !e) return null;
@@ -686,7 +692,7 @@ function visaoDaPartitura(agora) {
     }
     case 'Guiada': {
       if (e.revisao) return null;
-      const progresso = e.tAtaque === null || e.emAtaque ? 1 : Math.min(1, Math.max(0, (agora - e.tAcerto) / (e.tAtaque - e.tAcerto)));
+      const progresso = progressoDoAtaque(e, agora);
       // Como a tecla: a nota só vira âmbar no tempo de ataque.
       return { ...visao(frase, true, e.passo, progresso, true), antecipando: progresso < 1 };
     }
@@ -708,9 +714,11 @@ function quadro() {
   const agora = performance.now();
   desenharTeclas(agora);
   partitura.atualizar(visaoDaPartitura(agora));
-  // Mão branca na pose e na demonstração; some em fade quando a demonstração acaba (MãoSome).
-  const comMao = tela === 'licao' && (estado?.fase === 'Pose' || estado?.fase === 'Demonstracao');
-  mao.atualizar(comMao, new Set(soando.values()), estado?.ancora ?? 0, { do: teclas.get(60).r.getBoundingClientRect() }, agora);
+  // Mão branca na pose, na demonstração e na vez guiada, onde aponta o dedo da vez; some em fade antes da memória.
+  const guiada = estado?.fase === 'Guiada';
+  const comMao = tela === 'licao' && (guiada || estado?.fase === 'Pose' || estado?.fase === 'Demonstracao');
+  const destaque = guiada ? { dedo: estado.alvo.dedo, forca: DEDO_INICIAL + (1 - DEDO_INICIAL) * progressoDoAtaque(estado, agora) } : null;
+  mao.atualizar(comMao, new Set(soando.values()), estado?.ancora ?? 0, { do: teclas.get(60).r.getBoundingClientRect() }, agora, destaque);
   requestAnimationFrame(quadro);
 }
 
