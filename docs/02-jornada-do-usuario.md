@@ -120,7 +120,7 @@ Não há mapa de fases espalhado no espaço. O próximo item é uma ação. A li
 
 ## 7. Frases seguintes e Juntar
 
-A partir da frase 2, o ciclo é o mesmo, e depois da memória vem o Juntar (RF-56). O card diz “Agora junte tudo.” e “As 2 partes, de memória.”. Ela toca os trechos desde o começo, sem luz, com “Parte 1 de 2” no card. Errou: volta ao começo daquela parte, não ao começo de tudo.
+A partir da frase 2, o ciclo é o mesmo, e depois da memória vem o Juntar (RF-56). O card diz “Agora junte tudo.” e “As 2 partes, de memória.”. Na primeira vez em cada frase, a mão branca toca as partes juntas, e a pessoa vê e ouve como a emenda soa. A mão some, e ela toca os trechos desde o começo, sem luz, com “Parte 1 de 2” no card. Errou: volta ao começo daquela parte, não ao começo de tudo.
 
 Trecho repetido não é frase nova. Na Ode, o trecho 3 repete o 1, então ODE#4 é a Frase 3, e o Juntar dela passa pelo trecho repetido: são quatro partes.
 

@@ -27,11 +27,11 @@ namespace VrPiano.Dominio.Testes
         public static SessaoDeLicao Sessao(string item, Progresso? progresso = null, bool revisao = false, Dia? hoje = null, bool preparoOk = true) =>
             new SessaoDeLicao(item, Repertorio, progresso ?? JaOuviu(), hoje ?? Hoje, revisao: revisao, preparoOk: preparoOk);
 
-        // Sessão já na Guiada, passo 0, com a demonstração vista.
+        // Sessão já na Guiada, passo 0, com as demonstrações da frase e da cadeia vistas.
         public static SessaoDeLicao NaGuiada(string item, Progresso? progresso = null)
         {
             progresso ??= JaOuviu();
-            foreach (var visto in new[] { item, Repertorio.Analisar(item).Musica.SongId })
+            foreach (var visto in new[] { item, Repertorio.Analisar(item).Musica.SongId, SessaoDeLicao.ChaveDaCadeia(item) })
                 if (!progresso.DemoSeen.Contains(visto)) progresso.DemoSeen.Add(visto);
             var s = Sessao(item, progresso);
             s.Iniciar(0);

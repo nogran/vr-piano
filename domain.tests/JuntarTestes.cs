@@ -67,6 +67,68 @@ namespace VrPiano.Dominio.Testes
             Assert.That(s.PassoAtual, Is.EqualTo(23));
         }
 
+        // Da Guiada até o fim da memória, com a cadeia ainda inédita: a próxima fase é a Transição do Juntar.
+        static (SessaoDeLicao, long) AntesDaCadeia(string item, Progresso progresso)
+        {
+            progresso.DemoSeen.Add(item);
+            var s = Sessao(item, progresso);
+            s.Iniciar(0);
+            s.PoseMudou(true, 0);
+            var t = AteAMemoria(s, 1000);
+            t = TocarTudo(s, t);
+            s.Coletar();
+            return (s, t + 1000);
+        }
+
+        [Test]
+        public void T_DOM_39f_a_mao_toca_a_cadeia_antes_do_primeiro_juntar()
+        {
+            var progresso = JaOuviu();
+            var (s, t) = AntesDaCadeia("BRILHA#2", progresso);
+            s.Tick(t);
+            Assert.That(s.Fase, Is.EqualTo(Fase.Demonstracao));
+
+            t += 120_000;
+            s.Tick(t);
+            var eventos = s.Coletar();
+            var ligadas = eventos.De<DemoNota>().Where(d => d.Ligada).Select(d => d.Nota);
+            Assert.That(ligadas, Is.EqualTo(s.Cadeia!.Select(p => p.Nota)));
+            Assert.That(eventos.De<MaoSome>(), Has.Count.EqualTo(1));
+            Assert.That(progresso.DemoSeen, Does.Contain(SessaoDeLicao.ChaveDaCadeia("BRILHA#2")));
+
+            Assert.That(s.Fase, Is.EqualTo(Fase.Transicao));
+            s.Tick(t + 1000);
+            Assert.That((s.Fase, s.PassoAtual), Is.EqualTo((Fase.Juntar, 0)));
+        }
+
+        [Test]
+        public void T_DOM_39g_nota_durante_a_mao_nao_conta_e_a_demonstracao_nao_repete()
+        {
+            var progresso = JaOuviu();
+            var (s, t) = AntesDaCadeia("BRILHA#2", progresso);
+            s.Tick(t);
+            s.NoteOn(s.Alvo.Nota + 1, 70, t + 10);
+            Assert.That(s.Coletar().De<JuntarFalhou>(), Is.Empty);
+
+            var (repetida, t2) = AntesDaCadeia("BRILHA#2", new Progresso { DemoSeen = { "BRILHA", SessaoDeLicao.ChaveDaCadeia("BRILHA#2") } });
+            repetida.Tick(t2);
+            Assert.That(repetida.Fase, Is.EqualTo(Fase.Juntar));
+        }
+
+        [Test]
+        public void T_DOM_39h_pausa_durante_a_mao_recomeca_a_cadeia()
+        {
+            var progresso = JaOuviu();
+            var (s, t) = AntesDaCadeia("BRILHA#2", progresso);
+            s.Tick(t);
+            s.FocoPerdido(t + 100);
+            s.Continuar(t + 200);
+            Assert.That(s.Fase, Is.EqualTo(Fase.Transicao));
+            Assert.That(progresso.DemoSeen, Does.Not.Contain(SessaoDeLicao.ChaveDaCadeia("BRILHA#2")));
+            s.Tick(t + 1200);
+            Assert.That(s.Fase, Is.EqualTo(Fase.Demonstracao));
+        }
+
         [Test]
         public void T_DOM_40_erro_volta_ao_comeco_da_frase_e_nao_tira_estrela()
         {

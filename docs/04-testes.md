@@ -66,6 +66,9 @@ Casos da v1. Cada caso aponta o requisito ([01](01-requisitos-do-sistema.md)) ou
 | T-DOM-39 | BRILHA#3 | Concluir a memória | Estrelas gravadas, Transição, Juntar com os trechos 1, 2 e 3 | RF-56 |
 | T-DOM-39b | BRILHA#1 | Concluir a memória | Resultado, sem Juntar | RF-55 |
 | T-DOM-39c | ODE#4; ODE#6 | Montar a sessão; concluir frases | O Juntar de ODE#4 tem os trechos 1, 2, 3 e 4, 30 passos. O de ODE#6 vai até o trecho 6. As fronteiras são os trechos, também na repetição | RF-56 |
+| T-DOM-39f | BRILHA#2 com a cadeia inédita | Concluir a memória; `Tick` até o fim | Demonstração dos trechos 1 e 2, `MãoSome`, `DemoVista`, Transição e Juntar no passo 0 | RF-36b |
+| T-DOM-39g | Demonstração da cadeia; cadeia já vista | `NoteOn` errado; concluir a memória | A nota não conta como falha; com a cadeia vista, vai direto ao Juntar | RF-36b |
+| T-DOM-39h | Demonstração da cadeia | `FocoPerdido`, `Continuar` | Volta à Transição e toca de novo; a cadeia continua inédita | RF-36b |
 | T-DOM-40 | Juntar na frase 2 | `NoteOn` errado | `JuntarFalhou`; depois de `P-25`, volta ao começo da frase 2; estrelas iguais | RF-36b |
 | T-DOM-41 | Juntar na frase 1 | 3 falhas seguidas | `DicaDeMemória` em cada passo da frase; na frase seguinte, não | RF-36b |
 | T-DOM-42 | `chain` da BRILHA = 5, depois vazio | Concluir Juntar de BRILHA#3; concluir Juntar de BRILHA#2; concluir BRILHA#1 | `CadeiaConcluída`; `chain` fica 5 no primeiro, vira 2 no segundo e 1 na frase 1. Só a música tocada muda | RF-56, RF-63 |
